@@ -13,7 +13,7 @@ make
 in terminal.
 
 
-To access the website, visit http://localhost:8080Th
+To access the website, visit http://localhost:8080
 
 Code is written in TypeScript. Browser only understands JavaScript, so the TypeScript code is compiled to JavaScript and stored in frontend/dist/
 
