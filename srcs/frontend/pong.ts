@@ -11,8 +11,8 @@ export function startPong() {
   
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    let ballSpeedX = Math.random() > 0.5 ? 4 : -4;
-    let ballSpeedY = Math.random() > 0.5 ? 4 : -4;
+    let ballSpeedX = Math.random() > 0.5 ? 2 : -2;
+    let ballSpeedY = Math.random() > 0.5 ? 2 : -2;
   
     let score1 = 0;
     let score2 = 0;
@@ -64,8 +64,8 @@ export function startPong() {
     function resetBall() {
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      ballSpeedX = Math.random() > 0.5 ? 4 : -4;
-      ballSpeedY = Math.random() > 0.5 ? 4 : -4;
+      ballSpeedX = Math.random() > 0.5 ? 2 : -2;
+      ballSpeedY = Math.random() > 0.5 ? 2 : -2;
     }
   
     function gameLoop() {

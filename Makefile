@@ -1,40 +1,38 @@
-# Makefile for Transcendence Frontend + Nginx
+BLUE 	= \033[0;34m
+GREEN 	= \033[0;32m
+RED 	= \033[0;31m
+ORANGE	= \033[38;5;209m
+YELLOW	= \033[0;93m
+BROWN 	= \033[38;2;184;143;29m
+RESET 	= \033[0m
 
-# Docker Compose file
 DC = docker compose -f srcs/docker-compose.yml
 
-# Default target
 all: build up
 
-# ------------------------------
-# 1️⃣ Clean previous builds
 clean:
-	@echo "Stopping containers and removing volumes..."
+	@echo "$(ORANGE)Stopping containers and removing volumes...$(ORANGE)"
 	-$(DC) down -v
-	@echo "Removing dist folder..."
-	-rm -rf srcs/frontend/dist
+	rm -rf srcs/dist
 
-# ------------------------------
-# 2️⃣ Build TypeScript
+fclean: clean
+	@echo "$(RED)Removing all installed dependencies...$(RESET)"
+	rm -rf srcs/frontend/node_modules
+
 ts:
-	@echo "Installing dependencies and compiling TypeScript..."
+	@echo "$(YELLOW)Installing dependencies and compiling TypeScript...$(RESET)"
 	cd srcs/frontend && npm install
 	cd srcs/frontend && npx tsc
 
-# ------------------------------
-# 3️⃣ Build Docker images
 build: ts
-	@echo "Building Docker images..."
+	@echo "$(YELLOW)Building Docker images...$(RESET)"
 	$(DC) build
 
-# ------------------------------
-# 4️⃣ Start containers
 up:
-	@echo "Starting containers..."
+	@echo "$(YELLOW)Starting containers...$(RESET)"
 	$(DC) up -d
+	@echo "$(GREEN)Ok!$(RESET)"
 
-# ------------------------------
-# 5️⃣ Rebuild from scratch
-re: clean all
+re: fclean all
 
-.PHONY: all clean ts build up re
+.PHONY: all clean fclean ts build up re
