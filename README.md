@@ -1,16 +1,4 @@
-First clone the project:
-
-```
-git clone https://github.com/pauldahacker/transcendence.git
-```
-
-Then run:
-
-```
-make
-```
-
-in terminal.
+clone the project and run make in terminal.
 
 
 To access the website, visit http://localhost:8080
