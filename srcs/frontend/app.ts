@@ -1,6 +1,5 @@
 import { startPong } from './pong.js';
 
-
 // SPA navigation logic
 // Helper to show a page and update browser history
 function navigateTo(pageId: string) {
@@ -44,4 +43,3 @@ document.addEventListener('DOMContentLoaded', () => {
 		navigateTo('home');
 	});
   });
-  
