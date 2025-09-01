@@ -1,0 +1,11 @@
+.page {
+  display: none; /* hide all by default */
+}
+
+.page.active {
+  display: block; /* only show the active page */
+}
+
+canvas {
+  background-color: black;
+}

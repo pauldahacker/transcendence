@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pong SPA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Pages -->
+  <div id="home" class="page active">
+    <h1>Home Page</h1>
+    <button id="start-game">Start Game</button>
+  </div>
+  
+  <div id="game" class="page">
+    <h1>Pong Game</h1>
+    <canvas id="game-canvas" width="600" height="400"></canvas>
+  </div>
+  
+  <div id="results" class="page">
+    <h1>Results Page</h1>
+    <button id="back-home">Back Home</button>
+  </div>  
+
+  <script type="module" src="dist/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "transcendence-frontend",
+  "version": "1.0.0",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
