@@ -2,6 +2,9 @@ export function startPong() {
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
   
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
     const paddleHeight = canvas.height / 5;
     const paddleWidth = canvas.width / 100;
     const ballSize = canvas.width / 100;
@@ -70,6 +73,7 @@ export function startPong() {
   
     function gameLoop() {
       if (!gameRunning) return;
+      if (score1 == 5 || score2 == 5) return;
       update();
       draw();
       requestAnimationFrame(gameLoop);
