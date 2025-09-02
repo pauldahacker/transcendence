@@ -12,6 +12,8 @@ function navigateTo(pageId: string) {
 
 	// Update browser history
 	history.pushState({ page: pageId }, '', `#${pageId}`);
+
+	requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
 }
   
 // Handle Back/Forward buttons
@@ -30,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	const hash = location.hash.replace('#', '');
 	if (hash && document.getElementById(hash)) {
 		navigateTo(hash);
+		if (hash === 'game') {
+			startPong();
+		}
 	} else {
 		navigateTo('home');
 	}
