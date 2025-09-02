@@ -1,13 +1,30 @@
-# Stage 1: Just serve compiled assets
+# Stage 1: Build frontend with Node
+FROM node:18-alpine AS builder
+
+WORKDIR /app/frontend
+
+# Copy package.json first (better cache)
+COPY frontend/package*.json ./
+RUN npm install
+
+# Copy sources
+COPY frontend/ ./
+
+# Compile TypeScript → dist/
+RUN npx tsc
+
+# Stage 2: Minimal Nginx serving compiled assets
 FROM alpine:3.21
+
 RUN apk add --no-cache nginx
 
+# Copy nginx config
 COPY requirements/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Copy already-compiled frontend
-COPY dist /usr/share/nginx/html/
-COPY frontend/index.html /usr/share/nginx/html/
-COPY frontend/styles.css /usr/share/nginx/html/
+# Copy only compiled JS + static assets
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+COPY --from=builder /app/frontend/index.html /usr/share/nginx/html/
+COPY --from=builder /app/frontend/styles.css /usr/share/nginx/html/
 
 WORKDIR /usr/share/nginx/html
 EXPOSE 80

@@ -19,12 +19,7 @@ fclean: clean
 	@echo "$(RED)Removing all installed dependencies...$(RESET)"
 	rm -rf srcs/frontend/node_modules
 
-ts:
-	@echo "$(YELLOW)Installing dependencies and compiling TypeScript...$(RESET)"
-	cd srcs/frontend && npm install
-	cd srcs/frontend && npx tsc
-
-build: ts
+build:
 	@echo "$(YELLOW)Building Docker images...$(RESET)"
 	$(DC) build
 
