@@ -4,25 +4,22 @@
   <meta charset="UTF-8">
   <title>Pong SPA</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Honk&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="m-0 p-0 h-full bg-amber-100 box-border">
   <!-- Pages -->
-  <div id="home" class="page active">
-    <h1>Home Page</h1>
-    <button id="start-game">Start Game</button>
+  <div id="home" class="page flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh]">
+    <h1 class="font-honk text-[20vh]">Home Page</h1>
+    <button id="start-game" class="h-[10vh] px-6 bg-stone-800 text-white rounded-xl shadow hover:bg-blue-500 font-mono text-base">Start Game</button>
   </div>
   
-  <div id="game" class="page">
-    <h1>Pong Game</h1>
-    <canvas id="game-canvas"></canvas>
+  <div id="game" class="page hidden flex flex-col justify-center items-center h-screen gap-[1vh] pb-[5vh]">
+    <h1 class="font-honk text-[5vh]">Pong Game</h1>
+    <canvas id="game-canvas" class="bg-black h-[80%] aspect-[3/2] max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px] block"></canvas>
   </div>
   
-  <div id="results" class="page">
+  <div id="results" class="page hidden flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh] font-honk text-[5vh]">
     <h1>Results Page</h1>
-    <button id="back-home">Back Home</button>
+    <button id="back-home" class="px-6 py-2 bg-gray-500 text-white rounded-xl shadow hover:bg-gray-600">Back Home</button>
   </div>  
 
   <script type="module" src="app.js"></script>
