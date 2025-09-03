@@ -6,9 +6,16 @@ YELLOW	= \033[0;93m
 BROWN 	= \033[38;2;184;143;29m
 RESET 	= \033[0m
 
+FRONTEND = ./srcs/frontend
+
 DC = docker compose -f srcs/docker-compose.yml
 
 all: build up
+
+
+build:
+	@echo "$(YELLOW)Building Docker images...$(RESET)"
+	$(DC) build
 
 clean:
 	@echo "$(ORANGE)Stopping containers and removing volumes...$(ORANGE)"
@@ -18,10 +25,6 @@ clean:
 fclean: clean
 	@echo "$(RED)Removing all installed dependencies...$(RESET)"
 	rm -rf srcs/frontend/node_modules
-
-build:
-	@echo "$(YELLOW)Building Docker images...$(RESET)"
-	$(DC) build
 
 up:
 	@echo "$(YELLOW)Starting containers...$(RESET)"

@@ -1,43 +1,5 @@
-html, body { 
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  box-sizing: border-box;
-}
+@import url(https://fonts.googleapis.com/css2?family=Honk&display=swap);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.page {
-  display: none; /* hide all by default */
-}
-
-.page.active {
-  box-sizing: border-box;
-  display: flex;              /* activate Flexbox */
-  flex-direction: column;     /* stack items vertically */
-  justify-content: center;    /* center along main axis (vertical) */
-  align-items: center;        /* center along cross axis (horizontal) */
-  height: 100vh;              /* full viewport height */
-  min-height: 400px;
-  min-width: 600px;
-  gap: 1vh;                  /* space between elements */
-  padding-bottom: 5vh;    /* extra space below canvas */
-
-  font-family: "Honk", system-ui; /* font from the Google Fonts*/
-  font-size: 5vh;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings:
-    "MORF" 15,
-    "SHLN" 50;
-}
-
-canvas {
-  background-color: black;
-  height: 80%;
-  aspect-ratio: 3 / 2;      /* maintain 3:2 ratio */
-  max-width: calc(100vw - 100px);
-  max-height: calc(100vh - 100px);
-  min-width: 300px;
-  min-height: 200px;
-  display: block;
-}

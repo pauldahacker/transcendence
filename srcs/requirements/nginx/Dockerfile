@@ -10,8 +10,8 @@ RUN npm install
 # Copy sources
 COPY frontend/ ./
 
-# Compile TypeScript → dist/
-RUN npx tsc
+# Run full build (TypeScript + Tailwind + bundler)
+RUN npm run build
 
 # Stage 2: Minimal Nginx serving compiled assets
 FROM alpine:3.21
@@ -23,8 +23,6 @@ COPY requirements/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Copy only compiled JS + static assets
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-COPY --from=builder /app/frontend/index.html /usr/share/nginx/html/
-COPY --from=builder /app/frontend/styles.css /usr/share/nginx/html/
 
 WORKDIR /usr/share/nginx/html
 EXPOSE 80
