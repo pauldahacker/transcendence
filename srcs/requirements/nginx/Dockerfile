@@ -4,11 +4,13 @@ FROM node:18-alpine AS builder
 WORKDIR /app/frontend
 
 # Copy package.json first (better cache)
-COPY frontend/package*.json ./
+COPY frontend/package*.json frontend/tsconfig.json ./
 RUN npm install
+RUN npm install --save-dev @types/react @types/react-dom
 
 # Copy sources
-COPY frontend/ ./
+COPY frontend/index.html frontend/styles.css frontend/tailwind.config.js frontend/postcss.config.js ./
+COPY frontend/src ./
 
 # Run full build (TypeScript + Tailwind + bundler)
 RUN npm run build
