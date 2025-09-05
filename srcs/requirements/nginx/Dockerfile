@@ -9,8 +9,7 @@ RUN npm install
 RUN npm install --save-dev @types/react @types/react-dom
 
 # Copy sources
-COPY frontend/index.html frontend/styles.css frontend/tailwind.config.js frontend/postcss.config.js ./
-COPY frontend/src ./
+COPY frontend/ ./
 
 # Run full build (TypeScript + Tailwind + bundler)
 RUN npm run build
