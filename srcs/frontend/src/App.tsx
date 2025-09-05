@@ -1,7 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './styles.css';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
+import Game from './pages/Game';
+import Results from './pages/Results';
 
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(<App />);
+export default function App() {
+  return (
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/game" element={<Game />} />
+        <Route path="/results" element={<Results />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </HashRouter>
+  );
+}

@@ -9,5 +9,5 @@
     "moduleResolution": "node",       // how TS looks up modules (Node-style)
     "jsx": "react-jsx"                // 👈 enables .tsx (React 17+ JSX transform)
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["src"]
 }
