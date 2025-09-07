@@ -2,6 +2,11 @@
 
 **To access the website, visit http://localhost:8080**
 
+If you don't have a clue how anything works, this very simple pong game gives a good idea of the basic stuff:
+
+https://www.geeksforgeeks.org/javascript/pong-game-in-javascript/
+
+
 Code is written in TypeScript. Browser only understands JavaScript, so the TypeScript code is compiled to JavaScript thanks to Docker.
 
 HTML page styled with CSS allows to introduce the different pages & elements of the website.
@@ -70,7 +75,7 @@ function App() {
 
 _This makes the project modular: each page (Home, Game, Results) is its own component in pages/, instead of being mixed together in one HTML file._
 
-**Why TailwindCSS?**
+**Why Tailwind?**
 
 Allows us to style things more easily. Instead of having a long CSS file, we can write the details directly in HTML:
 
@@ -89,7 +94,11 @@ HTML
 
 We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
 
+**Useful resources:**
 
+- https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API (the Canvas API is used to draw the pong game)
+
+- 
 
 Next steps:
 
