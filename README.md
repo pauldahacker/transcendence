@@ -15,7 +15,7 @@ Implemented Tailwind and React!
 
 **Why React?**
 
-Without React, you’d have one big index.html with multiple <div>s and manual navigation logic for the SPA (Single-Page Application):
+Without React, you’d have one big index.html with multiple divs and manual navigation logic for the SPA (Single-Page Application):
 
 HTML
 ```
@@ -66,7 +66,8 @@ function App() {
 }
 ```
 
-**NOTE: HashRouter is used for now, and we SHOULD change this in the future to a regular React Router **
+**NOTE: HashRouter is used for now, and we SHOULD change this in the future to a regular React Router.**
+**https://reactrouter.com/6.30.1/router-components/hash-router**
 
 _This makes the project modular: each page (Home, Game, Results) is its own component in pages/, instead of being mixed together in one HTML file._
 
