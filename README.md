@@ -1,7 +1,6 @@
-clone the project and run make in terminal.
+**clone the project and run make in terminal.**
 
-
-To access the website, visit http://localhost:8080
+**To access the website, visit http://localhost:8080**
 
 Code is written in TypeScript. Browser only understands JavaScript, so the TypeScript code is compiled to JavaScript thanks to Docker.
 
@@ -92,5 +91,14 @@ We also have access to pretty cool-looking fonts (downloaded from Google Fonts [
 
 
 
-Next steps + notes:
-Add
+Next steps:
+
+-> Make pong controls better: https://developer.mozilla.org/en-US/docs/Games/Techniques/Control_mechanisms/Desktop_with_mouse_and_keyboard (For now, the controls dont work when pressed at the same time.)
+
+-> Add "Player 1" and "Player 2" in Blue and Red on pong game.
+
+-> Add a Tournament page (A registration system and matchmaking).
+
+-> Make the Results page better.
+
+-> Switch to React Router, but that probably implies having a server.
