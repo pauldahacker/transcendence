@@ -37,12 +37,12 @@ HTML
 We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
 
 **Useful resources:**
- 
-- https://developer.mozilla.org/en-US/docs/Web/API (list of Web APIs)
-
-- https://developer.mozilla.org/en-US/docs/Web/API/History_API (Without React, this is used for SPAs)
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API (the Canvas API is used to draw the pong game)
+
+- https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model
 
 - https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API
 
