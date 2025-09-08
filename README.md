@@ -43,13 +43,12 @@ We also have access to pretty cool-looking fonts (downloaded from Google Fonts [
 HTML
 ```
 <!-- index.html -->
-<div className="flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh] h-screen">
-      <h1 className="font-honk text-[15vh] animate-wobble">Transcendence</h1>
-      <Link to="/game" className="mt-4 px-12 py-4 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-2xl flex items-center justify-center">Start Game</Link>
+<div id="home" class="flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh] h-screen">
+      <h1 class="font-honk text-[15vh] animate-wobble">Transcendence</h1>
 </div>
-<div id="game" className="...">Game Page</div>
-<div id="results" className="...">Results Page</div>
-...
+<div id="game" class="hidden flex-col justify-center items-center">
+      Game Page</div>
+<div id="results" class="hidden flex-col justify-center items-center">Results Page</div>
 ```
 
 TS (TypeScript)
