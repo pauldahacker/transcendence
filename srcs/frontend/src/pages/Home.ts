@@ -5,8 +5,7 @@ export function renderHome(root: HTMLElement) {
 
   container.innerHTML = `
     <h1 class="font-honk text-[15vh] animate-wobble">Transcendence</h1>
-    <a href="#/game"
-       class="mt-4 px-12 py-4 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-2xl flex items-center justify-center">
+    <a href="#/game" class="mt-4 px-6 py-2 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-[3vh]">
        Start Game
     </a>
   `;
