@@ -17,16 +17,39 @@ Using Docker, we can build a Docker Image with nginx and all the frontend files 
 
 Implemented Tailwind and React!
 
-**Why React?**
+**Why Tailwind?**
 
-Without React, you’d have one big index.html with multiple divs and manual navigation logic for the SPA (Single-Page Application):
+Allows us to style things more easily. Instead of having a long CSS file, we can write the details directly in HTML:
 
 HTML
 ```
-<div id="home">Home Page</div>
-<div id="game" class="hidden">Game Page</div>
-<div id="results" class="hidden">Results Page</div>
-<script src="app.js"></script>
+<button className="px-6 py-2 bg-stone-800 text-white rounded-xl shadow hover:bg-blue-500">
+  Start Game
+</button>
+```
+
+-> _No need to open/edit a separate stylesheet._
+
+-> _Styles are consistent across components._
+
+-> _Easy to prototype and keep the UI responsive._
+
+We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
+
+**Why React?**
+
+**Without React**, you’d have one big index.html with multiple divs and manual navigation logic for the SPA (Single-Page Application):
+
+HTML
+```
+<!-- index.html -->
+<div className="flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh] h-screen">
+      <h1 className="font-honk text-[15vh] animate-wobble">Transcendence</h1>
+      <Link to="/game" className="mt-4 px-12 py-4 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-2xl flex items-center justify-center">Start Game</Link>
+</div>
+<div id="game" className="...">Game Page</div>
+<div id="results" className="...">Results Page</div>
+...
 ```
 
 TS (TypeScript)
@@ -39,7 +62,7 @@ function navigateTo(pageId: string) {
 }
 ```
 
-With React, all of this disappears.
+**With React**, all of this disappears.
 We only keep a single entry point in index.html:
 
 HTML
@@ -48,9 +71,26 @@ HTML
 <div id="root"></div>
 ```
 
-And React Router handles the navigation cleanly:
+Then we insert HTML inside this "root" div from separate files corresponding to individual pages:
 
 TSX (TypeScript + JSX, meaning TypeScript with some HTML-style code)
+
+```
+// pages/HomePage.tsx
+export default function Home() {
+  return (
+    <div className="flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[1vh] pb-[5vh] h-screen">
+      <h1 className="font-honk text-[15vh] animate-wobble">Transcendence</h1>
+      <Link to="/game" className="mt-4 px-12 py-4 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-2xl flex items-center justify-center">Start Game</Link>
+    </div>
+  );
+}
+
+```
+
+And React Router handles the navigation cleanly:
+
+TSX
 ```
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
@@ -73,32 +113,21 @@ function App() {
 **NOTE: HashRouter is used for now, and we SHOULD change this in the future to a regular React Router.**
 **https://reactrouter.com/6.30.1/router-components/hash-router**
 
-_This makes the project modular: each page (Home, Game, Results) is its own component in pages/, instead of being mixed together in one HTML file._
+**_This makes the project modular: each page (Home, Game, Results) is its own component in pages/, instead of being mixed together in one HTML file._**
 
-**Why Tailwind?**
-
-Allows us to style things more easily. Instead of having a long CSS file, we can write the details directly in HTML:
-
-HTML
-```
-<button className="px-6 py-2 bg-stone-800 text-white rounded-xl shadow hover:bg-blue-500">
-  Start Game
-</button>
-```
-
--> _No need to open/edit a separate stylesheet._
-
--> _Styles are consistent across components._
-
--> _Easy to prototype and keep the UI responsive._
-
-We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
 
 **Useful resources:**
+ 
+- https://developer.mozilla.org/en-US/docs/Web/API (list of Web APIs)
+
+- https://developer.mozilla.org/en-US/docs/Web/API/History_API (Without React, this is used for SPAs)
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API (the Canvas API is used to draw the pong game)
 
-- 
+- https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model
+
 
 Next steps:
 
