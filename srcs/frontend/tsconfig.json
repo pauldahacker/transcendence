@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es6",                  // transpile modern JS down to ES6
-    "module": "es6",                  // ES module output (Vite expects this)
-    "outDir": "./dist",               // compiled JS (not used by Vite, but fine)
-    "rootDir": ".",                   // base dir for TS sources
-    "strict": true,                   // strict type-checking
-    "esModuleInterop": true,          // allows default import from CommonJS
-    "moduleResolution": "node",       // how TS looks up modules (Node-style)
-    "jsx": "react-jsx"                // enables .tsx (React 17+ JSX transform)
+    "target": "es6",
+    "module": "es6",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "moduleResolution": "node"
   },
   "include": ["src"]
 }
