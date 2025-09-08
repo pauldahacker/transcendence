@@ -1,7 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-import Game from './pages/Game';
+import Game from './pages/game/Game';
 import Results from './pages/Results';
 
 export default function App() {

@@ -7,7 +7,7 @@
     "strict": true,                   // strict type-checking
     "esModuleInterop": true,          // allows default import from CommonJS
     "moduleResolution": "node",       // how TS looks up modules (Node-style)
-    "jsx": "react-jsx"                // 👈 enables .tsx (React 17+ JSX transform)
+    "jsx": "react-jsx"                // enables .tsx (React 17+ JSX transform)
   },
   "include": ["src"]
 }

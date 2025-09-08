@@ -1,6 +1,5 @@
-export function startPong(onGameOver: (winner: number) => void) {
-  const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d')!;
+export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number) => void) {
+  const ctx = canvas.getContext("2d")!;
 
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;

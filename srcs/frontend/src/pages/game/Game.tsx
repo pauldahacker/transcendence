@@ -1,37 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { startPong } from '../pong';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import GameCanvas from "./GameCanvas";
 
 export default function Game() {
   const navigate = useNavigate();
   const [winner, setWinner] = useState<number | null>(null);
   const [showWinner, setShowWinner] = useState(false);
 
-  // Called when Pong ends
   function onGameOver(player: number) {
-    setWinner(player);      // set winner state
-    setShowWinner(true);    // trigger animation
+    setWinner(player);
+    setShowWinner(true);
 
-    // after a short delay, navigate to results
+    // Navigate to results after short delay
     setTimeout(() => {
-      navigate('/results', { state: { winner: player } });
-    }, 5000); // 5 seconds to show zoom-in text
+      navigate("/results", { state: { winner: player } });
+    }, 5000);
   }
-
-  // Start Pong on mount
-  useEffect(() => {
-    const cleanup = startPong(onGameOver);
-    return cleanup; // stop game when leaving
-  }, []);
 
   return (
     <div className="flex flex-col justify-center items-center h-screen gap-[1vh] pb-[5vh] min-h-[400px] min-w-[600px] relative">
       <h1 className="font-honk text-[8vh]">Pong Game</h1>
 
-      <canvas
-        id="game-canvas"
-        className="bg-black h-[80vh] aspect-[3/2] max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px] block"
-      ></canvas>
+      <div className="h-[80vh] aspect-[3/2] max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px]">
+        <GameCanvas onGameOver={onGameOver} />
+      </div>
 
       <Link
         to="/"
@@ -47,7 +39,6 @@ export default function Game() {
           </h2>
         </div>
       )}
-
     </div>
   );
 }
