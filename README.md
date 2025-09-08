@@ -15,65 +15,7 @@ The drawing and physics of the pong game on a canvas is also done with TypeScrip
 
 Using Docker, we can build a Docker Image with nginx and all the frontend files copied inside.
 
-Implemented Tailwind and React!
-
-**Why React?**
-
-Without React, you’d have one big index.html with multiple divs and manual navigation logic for the SPA (Single-Page Application):
-
-HTML
-```
-<div id="home">Home Page</div>
-<div id="game" class="hidden">Game Page</div>
-<div id="results" class="hidden">Results Page</div>
-<script src="app.js"></script>
-```
-
-TS (TypeScript)
-```
-// manual SPA logic
-function navigateTo(pageId: string) {
-  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-  document.getElementById(pageId)?.classList.remove('hidden');
-  history.pushState({ page: pageId }, '', `#${pageId}`);
-}
-```
-
-With React, all of this disappears.
-We only keep a single entry point in index.html:
-
-HTML
-```
-<!-- React takes over this div -->
-<div id="root"></div>
-```
-
-And React Router handles the navigation cleanly:
-
-TSX (TypeScript + JSX, meaning TypeScript with some HTML-style code)
-```
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import GamePage from "./pages/GamePage";
-import ResultsPage from "./pages/ResultsPage";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/game" element={<GamePage />} />
-        <Route path="/results" element={<ResultsPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-```
-
-**NOTE: HashRouter is used for now, and we SHOULD change this in the future to a regular React Router.**
-**https://reactrouter.com/6.30.1/router-components/hash-router**
-
-_This makes the project modular: each page (Home, Game, Results) is its own component in pages/, instead of being mixed together in one HTML file._
+Implemented Tailwind!
 
 **Why Tailwind?**
 
@@ -95,10 +37,17 @@ HTML
 We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
 
 **Useful resources:**
+ 
+- https://developer.mozilla.org/en-US/docs/Web/API (list of Web APIs)
+
+- https://developer.mozilla.org/en-US/docs/Web/API/History_API (Without React, this is used for SPAs)
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API (the Canvas API is used to draw the pong game)
 
-- 
+- https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model
+
 
 Next steps:
 
@@ -110,4 +59,4 @@ Next steps:
 
 -> Make the Results page better.
 
--> Switch to React Router, but that probably implies having a server.
+-> Implement a Backend? probably
