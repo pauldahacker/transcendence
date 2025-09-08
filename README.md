@@ -140,3 +140,5 @@ Next steps:
 -> Make the Results page better.
 
 -> Switch to React Router, but that probably implies having a server.
+
+-> Implement a Backend? probably
