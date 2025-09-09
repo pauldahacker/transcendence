@@ -25,7 +25,7 @@ export function renderGame(root: HTMLElement) {
     const overlay = document.createElement("div");
     overlay.className = "absolute inset-0 flex justify-center items-center";
     overlay.innerHTML = `
-      <h2 class="text-[20vh] animate-bigWobble font-honk text-white drop-shadow-lg text-center">
+      <h2 class="text-[15vh] animate-bigWobble font-honk text-white drop-shadow-lg text-center">
         Player ${winner} Wins!
       </h2>
     `;
