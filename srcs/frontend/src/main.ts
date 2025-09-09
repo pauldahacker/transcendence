@@ -1,5 +1,5 @@
 import { renderHome } from "./pages/Home";
-import { renderGame } from "./pages/game/Game";
+import { renderGame } from "./pages/game/renderGame";
 import { renderResults } from "./pages/Results";
 
 function router() {
