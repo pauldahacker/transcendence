@@ -6,15 +6,15 @@ export function renderHome(root: HTMLElement) {
   container.innerHTML = `
     <h1 class="font-honk text-[25vh] animate-wobble">Pong</h1>
     <a href="#/game" 
-       class="flex items-center justify-center w-[400px] h-[80px] rounded-full
-              border-2 border-white text-white font-bit text-[5vh]
-              transition-colors duration-300 hover:bg-white hover:text-cyan-900">
+       class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full
+              border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
+              transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
        1v1
     </a>
     <a href="#/tournament" 
-       class="flex items-center justify-center w-[400px] h-[80px] rounded-full
-              border-2 border-white text-white font-bit text-[5vh]
-              transition-colors duration-300 hover:bg-white hover:text-cyan-900">
+       class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full
+              border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
+              transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
        Tournament
     </a>
   `;
