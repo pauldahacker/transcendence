@@ -1,5 +1,5 @@
 import { renderHome } from "./pages/Home";
-import { renderGame } from "./pages/game/renderGame";
+import { renderGame } from "./pages/Game";
 import { renderResults } from "./pages/Results";
 import { renderTournament} from "./pages/Tournament";
 
