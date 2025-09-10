@@ -13,7 +13,11 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
   const config: GameConfig = {
     paddleHeight: canvas.height / 6,
     paddleWidth: canvas.width / 40,
+    paddleSpeed: canvas.height / 60,
     ballSize: canvas.width / 40,
+    minSpeedX : canvas.width / 80,
+    maxSpeedX : canvas.width / 40,
+    maxBounceAngle : Math.PI / 4,
   };
 
   const state: GameState = {
@@ -21,7 +25,7 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
     paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
     ballX: canvas.width / 2,
     ballY: canvas.height / 2,
-    ballSpeedX: Math.random() > 0.5 ? 4 : -4,
+    ballSpeedX: Math.random() > 0.5 ?  canvas.width / 200 : -canvas.width / 200,
     ballSpeedY: 0,
     score1: 0,
     score2: 0,

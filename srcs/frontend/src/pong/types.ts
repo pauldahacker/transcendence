@@ -14,7 +14,11 @@ export interface GameState {
   export interface GameConfig {
 	paddleHeight: number;
 	paddleWidth: number;
+	paddleSpeed: number;
 	ballSize: number;
+	minSpeedX : number;
+	maxSpeedX : number;
+	maxBounceAngle : number;
   }
   
   export type KeyState = Record<string, boolean>;
