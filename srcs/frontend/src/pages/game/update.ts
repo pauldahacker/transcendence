@@ -8,7 +8,7 @@ export function update(
   onGameOver: (winner: number) => void
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
-  const paddleSpeed = 10;
+  const paddleSpeed = 8;
 
   if (keys["w"]) state.paddle1Y = Math.max(0, state.paddle1Y - paddleSpeed);
   if (keys["s"]) state.paddle1Y = Math.min(canvas.height - paddleHeight, state.paddle1Y + paddleSpeed);
@@ -27,8 +27,8 @@ export function update(
     state.ballSpeedY *= -1;
   }
 
-  const minSpeedX = 10;
-  const maxSpeedX = 20;
+  const minSpeedX = 8;
+  const maxSpeedX = 14;
   const maxBounceAngle = Math.PI / 4;
 
   // Right paddle

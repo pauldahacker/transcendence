@@ -13,6 +13,6 @@ export function draw(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, s
   ctx.fillRect(ballX, ballY, ballSize, ballSize);
 
   ctx.font = "50px Honk";
-  ctx.fillText(`${score1}`, canvas.width / 4, 30);
-  ctx.fillText(`${score2}`, (canvas.width * 3) / 4, 30);
+  ctx.fillText(`${score1}`, canvas.width / 4, 50);
+  ctx.fillText(`${score2}`, (canvas.width * 3) / 4, 50);
 }
