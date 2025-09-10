@@ -1,6 +1,15 @@
-import { startPong } from "./pong";
+import { startPong } from "../pong/startPong";
 
-export function renderGame(root: HTMLElement) {
+// renderGame can take additional options as arguments
+type RenderGameOptions = {
+  player1?: string;
+  player2?: string;
+  onGameOver?: (winner: number) => void;
+};
+
+export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
+  const { player1 = "Player 1", player2 = "Player 2", onGameOver } = options;
+
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-center items-center h-screen gap-[1vh] pb-[5vh] min-h-[400px] min-w-[600px] relative";
@@ -24,32 +33,33 @@ export function renderGame(root: HTMLElement) {
   const gameContainer = container.querySelector<HTMLDivElement>("#game-container")!;
   const backHomeButton = container.querySelector<HTMLAnchorElement>("#back-home")!;
 
-  // Call startPong and get the cleanup function
   const stopGame = startPong(canvas, (winner: number) => {
     const overlay = document.createElement("div");
     overlay.className = "absolute inset-0 flex justify-center items-center";
     overlay.innerHTML = `
       <h2 class="text-[15vh] animate-bigWobble font-honk text-white drop-shadow-lg text-center">
-        Player ${winner} Wins!
+        ${winner === 1 ? player1 : player2} Wins!
       </h2>
     `;
     gameContainer.appendChild(overlay);
 
-    // redirect after 3 seconds
     const timeoutId = setTimeout(() => {
       location.hash = "#/results";
+      if (onGameOver) onGameOver(winner);
     }, 3000);
 
-    // store cleanup for timeout if user clicks back home
-    backHomeButton.addEventListener("click", () => {
-      clearTimeout(timeoutId);
-      overlay.remove();
-    }, { once: true });
+    backHomeButton.addEventListener(
+      "click",
+      () => {
+        clearTimeout(timeoutId);
+        overlay.remove();
+      },
+      { once: true }
+    );
   });
 
-  // Stop game if user clicks back home
   backHomeButton.addEventListener("click", () => {
-    stopGame();       // stops requestAnimationFrame and key listeners
-    container.remove(); // remove game container from DOM
+    stopGame();
+    container.remove();
   });
 }
