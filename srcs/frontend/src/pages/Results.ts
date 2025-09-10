@@ -5,7 +5,10 @@ export function renderResults(root: HTMLElement) {
 
   container.innerHTML = `
     <h1 class="font-honk text-[10vh] animate-wobble">Results</h1>
-    <a href="#/" id="back-home" class="mt-4 px-6 py-2 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-[3vh]">
+    <a href="#/" 
+       class="flex items-center justify-center w-[400px] h-[80px] rounded-full
+              border-2 border-white text-white font-bit text-[5vh]
+              transition-colors duration-300 hover:bg-white hover:text-cyan-900">
        Back Home
     </a>
   `;

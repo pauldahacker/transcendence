@@ -1,4 +1,5 @@
 import { startPong } from "./pong";
+
 export function renderGame(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
@@ -9,8 +10,11 @@ export function renderGame(root: HTMLElement) {
     <div id="game-container" class="relative h-[80vh] aspect-[3/2] max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px]">
       <canvas id="game-canvas" class="bg-black w-full h-full border border-gray-500 rounded"></canvas>
     </div>
-    <a href="#/" id="back-home" class="mt-4 px-6 py-2 bg-stone-950 text-red-600 rounded-lg shadow hover:text-lime-400 font-bit text-[3vh]">
-      Back Home
+    <a id="back-home" href="#/" 
+       class="flex items-center justify-center w-[400px] h-[80px] rounded-full
+              border-2 border-white text-white font-bit text-[5vh]
+              transition-colors duration-300 hover:bg-white hover:text-cyan-900">
+       Back Home
     </a>
   `;
 
@@ -36,7 +40,7 @@ export function renderGame(root: HTMLElement) {
       location.hash = "#/results";
     }, 3000);
 
-    // store cleanup for timeout if user navigates away
+    // store cleanup for timeout if user clicks back home
     backHomeButton.addEventListener("click", () => {
       clearTimeout(timeoutId);
       overlay.remove();
@@ -45,7 +49,7 @@ export function renderGame(root: HTMLElement) {
 
   // Stop game if user clicks back home
   backHomeButton.addEventListener("click", () => {
-    stopGame(); // stops requestAnimationFrame and key listeners
+    stopGame();       // stops requestAnimationFrame and key listeners
     container.remove(); // remove game container from DOM
   });
 }

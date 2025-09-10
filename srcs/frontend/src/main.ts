@@ -1,6 +1,7 @@
 import { renderHome } from "./pages/Home";
 import { renderGame } from "./pages/game/renderGame";
 import { renderResults } from "./pages/Results";
+import { renderTournament} from "./pages/Tournament";
 
 function router() {
   const app = document.getElementById("app")!;
@@ -9,6 +10,9 @@ function router() {
   switch (location.hash) {
     case "#/game":
       renderGame(app);
+      break;
+    case "#/tournament":
+      renderTournament(app);
       break;
     case "#/results":
       renderResults(app);
