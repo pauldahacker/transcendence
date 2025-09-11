@@ -3,7 +3,7 @@ export function showStartScreen(
 	onStart: () => void
   ) {
 	const ctx = canvas.getContext("2d")!;
-	ctx.fillStyle = "black";
+	ctx.fillStyle = "rgba(8, 51, 68, 1)";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
   
 	ctx.fillStyle = "white";

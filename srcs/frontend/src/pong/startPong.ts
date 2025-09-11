@@ -13,10 +13,10 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
   const config: GameConfig = {
     paddleHeight: canvas.height / 6,
     paddleWidth: canvas.width / 40,
-    paddleSpeed: canvas.height / 60,
+    paddleSpeed: canvas.height / 80,
     ballSize: canvas.width / 40,
-    minSpeedX : canvas.width / 80,
-    maxSpeedX : canvas.width / 40,
+    minSpeedX : canvas.width / 120,
+    maxSpeedX : canvas.width / 80,
     maxBounceAngle : Math.PI / 4,
   };
 
