@@ -9,6 +9,10 @@ export interface GameState {
 	score2: number;
 	gameRunning: boolean;
 	animationId?: number;
+
+	ballFlash: number;
+	paddle1Flash: number; // number of frames for flashing perfect shot
+  	paddle2Flash: number;
   }
   
   export interface GameConfig {
