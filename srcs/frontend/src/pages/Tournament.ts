@@ -1,6 +1,9 @@
 import { renderGame } from "./Game";
 
 export function renderTournament(root: HTMLElement) {
+  let tournamentActive = true;
+  let stopCurrentGame: (() => void) | null = null;
+
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-between items-center h-screen pt-[5vh] pb-[10vh] min-h-[400px] min-w-[600px] relative mx-auto my-auto";
@@ -29,9 +32,15 @@ export function renderTournament(root: HTMLElement) {
 
   const button2p = document.getElementById("btn-2p")!;
   const button4p = document.getElementById("btn-4p")!;
+  const backHomeLink = container.querySelector<HTMLAnchorElement>("a[href='#/']")!;
 
   button2p.addEventListener("click", () => showAliasOverlay(2));
   button4p.addEventListener("click", () => showAliasOverlay(4));
+  backHomeLink.addEventListener("click", () => {
+    tournamentActive = false;
+    if (stopCurrentGame) stopCurrentGame();
+    stopCurrentGame = null;
+  });
 
   function showAliasOverlay(numPlayers: number) {
     const overlay = document.createElement("div");
@@ -68,7 +77,12 @@ export function renderTournament(root: HTMLElement) {
         alert("Please enter a name for every player.");
         return;
       }
+      if (aliases.some((name) => name.length > 16)) {
+        alert("Player names cannot exceed 16 characters.");
+        return;
+      }
 
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
       const uniqueAliases = new Set(aliases);
       if (uniqueAliases.size !== aliases.length) {
         alert("Player names must be unique.");
@@ -86,10 +100,7 @@ export function renderTournament(root: HTMLElement) {
   }
 
   function startTournament(root: HTMLElement, aliases: string[]) {
-    // Shuffle players randomly
     const shuffled = aliases.sort(() => Math.random() - 0.5);
-  
-    // Create matches: each pair of players
     const matches: [string, string][] = [];
     for (let i = 0; i < shuffled.length; i += 2) {
       matches.push([shuffled[i], shuffled[i + 1]]);
@@ -99,44 +110,43 @@ export function renderTournament(root: HTMLElement) {
     const winners: string[] = [];
   
     function playNextMatch() {
+      if (!tournamentActive) return;
       if (currentMatchIndex >= matches.length) {
-        // Tournament complete
         alert("Tournament finished! Winners: " + winners.join(", "));
+        location.hash = "/"
         return;
       }
   
       const [p1, p2] = matches[currentMatchIndex];
-  
-      // Clear out root before rendering game
       root.innerHTML = "";
     
-      renderGame(root, {
+      stopCurrentGame = renderGame(root, {
         player1: p1,
         player2: p2,
         onGameOver: (winnerIndex) => {
-            const winner = winnerIndex === 1 ? p1 : p2;
-            winners.push(winner);
-          
-            const overlay = document.createElement("div");
-            overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
-          
-            root.appendChild(overlay);
+          if (!tournamentActive) return;
+          const winner = winnerIndex === 1 ? p1 : p2;
+          winners.push(winner);
 
-            const nextBtn = document.createElement("button");
-            nextBtn.textContent = "Proceed to Next Match";
-            nextBtn.className = "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black";
-            overlay.appendChild(nextBtn); // append inside overlay
+          const overlay = document.createElement("div");
+          overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
+          root.appendChild(overlay);
+
+          const nextBtn = document.createElement("button");
+          nextBtn.textContent = "Proceed to Next Match";
+          nextBtn.className = "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black";
+          overlay.appendChild(nextBtn);
             
-            nextBtn.addEventListener("click", () => {
-                root.innerHTML = "";
-                currentMatchIndex++;
-                playNextMatch();
-            }, { once: true });
-          },          
+          nextBtn.addEventListener("click", () => {
+            if (!tournamentActive) return;
+            root.innerHTML = "";
+            currentMatchIndex++;
+            playNextMatch();
+          }, { once: true });
+        },          
       });
     }
   
     playNextMatch();
   }
-  
 }

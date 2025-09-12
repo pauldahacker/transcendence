@@ -28,7 +28,7 @@ module.exports = {
 		  },
 		  zoomIn: {
 			"0%": { transform: "scale(1)", opacity: "1" },
-			"100%": { transform: "scale(1.5)", opacity: "1" },
+			"100%": { transform: "scale(1.4)", opacity: "1" },
 		  },
 		},
 		animation: {

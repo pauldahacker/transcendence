@@ -63,5 +63,6 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
     state.gameRunning = false;
     if (state.animationId) cancelAnimationFrame(state.animationId);
     cleanupInput();
+    document.removeEventListener("keydown", handlePause);
   };
 }

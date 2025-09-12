@@ -1,7 +1,7 @@
 export function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
-    "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen";
+    "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen mx-auto my-auto";
 
   container.innerHTML = `
     <h1 class="font-honk text-[25vh] animate-wobble">Pong</h1>
