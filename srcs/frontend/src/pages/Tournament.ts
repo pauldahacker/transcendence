@@ -114,15 +114,16 @@ export function renderTournament(root: HTMLElement) {
 
     matchListContainer.innerHTML = `
       <h2 class="text-[10vh] font-honk animate-wobble">Match List</h2>
-      <div class="flex flex-row justify-center gap-12">
-        <div id="match-list" class="flex flex-col gap-2 w-full max-w-[50vw] min-w-[300px] text-[3vh]"></div>
-        <button id="start-first-match" class="self-center w-[50vw] min-w-[300px] h-[6vh] bg-black text-lime-500 text-[3vh] rounded-lg
-            transition-colors duration-300 hover:bg-lime-500 hover:text-black">
-          Start First Match
+      <div class="flex flex-row justify-center items-center gap-12">
+        <div id="match-list" class="flex flex-col gap-2 w-full max-w-[60vw] min-w-[300px] text-[3vh]"></div>
+        <button id="start-first-match" class="self-center w-[10vw] h-[10vw] border-4 border-lime-600 shadow-lg
+            text-lime-500 font-bit text-[5vh] rounded-full min-w-[300px] min-h-[300px]
+            transition-colors duration-300 hover:shadow-2xl hover:border-lime-500">
+          Start
         </button>
       </div>
-      <a href="#/" class="flex items-center justify-center w-[25vw] h-[6vh] bg-black text-red-600 text-[3vh] rounded-lg min-w-[300px]
-          transition-colors duration-300 hover:bg-red-600 hover:text-black">
+      <a href="#/" class="flex items-center justify-center w-[25vw] h-[6vh] border-2 border-gray-100 text-gray-100 text-[3vh] rounded-lg min-w-[300px]
+          transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
         Back Home
       </a>
     `;
@@ -132,9 +133,9 @@ export function renderTournament(root: HTMLElement) {
     const matchListDiv = matchListContainer.querySelector<HTMLDivElement>("#match-list")!;
     matches.forEach(([p1, p2], i) => {
       const matchEl = document.createElement("div");
-      if (i === 0) matchEl.className = "flex justify-between p-8 border-4 border-lime-600 rounded text-[3vh]";
-      else matchEl.className = "flex justify-between p-8 border-2 border-gray-600 rounded text-[3vh]";
-      matchEl.innerHTML = `<span>Match ${i + 1}</span><span>${p1} vs ${p2}</span>`;
+      if (i === 0) matchEl.className = "flex justify-between p-8 gap-8 border-4 border-lime-600 rounded text-[3vh]";
+      else matchEl.className = "flex justify-between p-8 border-2 gap-8 border-gray-600 rounded text-[3vh]";
+      matchEl.innerHTML = `<span>Round ${i + 1}</span><span>${p1} vs ${p2}</span>`;
       matchListDiv.appendChild(matchEl);
     });
 
