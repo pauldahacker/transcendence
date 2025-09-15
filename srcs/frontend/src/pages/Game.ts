@@ -17,15 +17,23 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
     <h1 class="font-honk text-[5vh] animate-wobble">Pong</h1>
 
     <div class="flex items-center justify-center gap-[2vw]">
-      <div class="font-honk text-[4vh] text-center truncate w-[8ch] shrink-0">${player1}</div>
-      <div id="game-container" 
-           class="relative h-[80vh] aspect-[3/2] 
-                  max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] 
-                  min-w-[300px] min-h-[200px]">
-        <canvas id="game-canvas" 
-                class="bg-cyan-950 w-full h-full border border-gray-500 rounded"></canvas>
+      <div class="flex flex-col items-center font-honk text-[4vh] text-center">
+        <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
+          ${player1}
+        </div>
+        <div class="mt-2 font-bit text-[2vh] text-gray-300">W / S</div>
       </div>
-      <div class="font-honk text-[4vh] text-center truncate w-[8ch] shrink-0">${player2}</div>
+      <div id="game-container" class="relative h-[80vh] aspect-[3/2] 
+                max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px]">
+        <canvas id="game-canvas" class="bg-cyan-950 w-full h-full border border-gray-500 rounded">
+        </canvas>
+      </div>
+      <div class="flex flex-col items-center font-honk text-[4vh] text-center">
+        <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
+          ${player2}
+        </div>
+        <div class="mt-2 font-bit text-[2vh] text-gray-300">Arrow Keys</div>
+      </div>
     </div>
 
     <a id="back-home" href="#/" 
