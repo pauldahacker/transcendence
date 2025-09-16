@@ -1,7 +1,7 @@
-import { renderHome } from "./pages/Home";
-import { renderGame } from "./pages/Game";
-import { renderResults } from "./pages/Results";
-import { renderTournament} from "./pages/Tournament";
+import { renderHome } from "./views/Home";
+import { renderGame } from "./views/Game";
+import { renderResults } from "./views/Results";
+import { renderTournament} from "./views/Tournament";
 
 function router() {
   const app = document.getElementById("app")!;
