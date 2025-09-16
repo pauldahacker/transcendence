@@ -59,11 +59,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
       overlay.className = "absolute inset-0 flex justify-center items-center";
       overlay.innerHTML = `
         <div class="relative inline-block text-center">
-          <h2 class="absolute inset-0 text-[10vh] font-bit text-lime-500 text-center animate-zoomIn
-                 [text-shadow:-1px_-1px_0_#fff,1px_-1px_0_#fff,-1px_1px_0_#fff,1px_1px_0_#fff]">
-            ${winner === 1 ? player1 : player2} Wins!
-          </h2>
-          <h2 class="relative text-[10vh] font-bit text-lime-500 text-center animate-zoomIn">
+          <h2 class=" text-[10vh] font-honk text-center animate-zoomIn">
             ${winner === 1 ? player1 : player2} Wins!
           </h2>
         </div>

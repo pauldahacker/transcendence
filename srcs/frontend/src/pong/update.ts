@@ -44,7 +44,7 @@ export function update(
     const speedRatio = 1 - Math.abs(normalized);
 
     state.ballSpeedX = -1 * Math.max(config.maxSpeedX * speedRatio, config.minSpeedX);
-    state.ballSpeedY = config.minSpeedX * Math.sin(bounceAngle);
+    state.ballSpeedY = state.ballSpeedX * Math.sin(bounceAngle);
   }
 
   // Left paddle
