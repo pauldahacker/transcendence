@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "main": "server.js",
   "license": "MIT",
-  "dependencies": {}
+  "type": "commonjs",
+  "dependencies": {
+    "fastify": "^5.0.0"
+  }
 }
