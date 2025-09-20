@@ -2,3 +2,4 @@
 *.pem
 *.key
 .test-counter
+node_modules/
