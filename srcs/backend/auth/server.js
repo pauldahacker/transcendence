@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/19 22:56:20 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/20 21:52:37 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@ const { z } = require('zod');
 const argon2 = require('argon2');
 const { createSecretKey } = require('crypto');
 const { SignJWT, jwtVerify } = require('jose');
+const { randomBytes } = require('crypto');
 const { connect } = require('./db');
 
 const PORT = Number(process.env.PORT || 3001);
@@ -48,7 +49,11 @@ async function signAccess(user) {
 
 async function signRefresh(user) {
   const now = Math.floor(Date.now() / 1000);
-  const token = await new SignJWT({ sub: String(user.id), typ: 'refresh' })
+// ensure each issued refresh is unique, even within the same second
+  const jti = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : randomBytes(16).toString('hex');
+  const token = await new SignJWT({ sub: String(user.id), typ: 'refresh', jti })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt(now)
     .setExpirationTime(now + REFRESH_TTL)
@@ -101,12 +106,12 @@ fastify.post('/login', async (req, reply) => {
   return { accessToken, refreshToken };
 });
 
-// refresh (rotation)
+// refresh (rotation) — transactional, strict delete-before-issue
 fastify.post('/refresh', async (req, reply) => {
   const bodySchema = z.object({ refreshToken: z.string().min(10) });
   const { refreshToken } = bodySchema.parse(req.body);
 
-  // must exist in DB (rotation protection)
+  // must exist in DB (pre-check)
   const row = sql.getRefresh.get(refreshToken);
   if (!row) return reply.code(401).send({ error: 'invalid_refresh' });
 
@@ -122,8 +127,28 @@ fastify.post('/refresh', async (req, reply) => {
   const user = sql.getUserById.get(Number(payload.sub));
   if (!user) return reply.code(401).send({ error: 'invalid_user' });
 
-  // rotate: delete old, issue new
-  sql.deleteRefresh.run(refreshToken);
+  // Perform delete+issue as one atomic step to avoid race/TOCTOU
+  const tx = db.transaction((oldToken, u) => {
+    const res = sql.deleteRefresh.run(oldToken);
+    if (res.changes !== 1) {
+      // someone already used/rotated it in parallel
+      throw new Error('stale_refresh');
+    }
+    // issue and store a new refresh for this user
+    // (signRefresh writes the row)
+    return true;
+  });
+
+  try {
+    tx(refreshToken, user);
+  } catch (e) {
+    if (String(e.message).includes('stale_refresh')) {
+      return reply.code(401).send({ error: 'invalid_refresh' });
+    }
+    fastify.log.error(e);
+    return reply.code(500).send({ error: 'server_error' });
+  }
+
   const accessToken = await signAccess(user);
   const newRefresh = await signRefresh(user);
   return { accessToken, refreshToken: newRefresh };
