@@ -1,0 +1,6 @@
+.env
+*.pem
+*.key
+.test-counter
+node_modules/
+my_notes.txt
