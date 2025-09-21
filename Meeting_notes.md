@@ -19,3 +19,15 @@ Roman to do basic back-end by Saturday 20.09.2025
 
 **Next meeting (tentative): Sunday, 21.09.2025**
 
+**20250921**
+11. Blockchain. - 1.
+
+So far 10 points
+Roman to do point 5 plus maybe point 11 by Friday (26 September).
+!!! Use the frontend functionality.
+
+Ivan to do point 9 by Wednesday (24 September)
+
+Paul to finish the Tournament in the frontend and will check how to make remote and multiplayer plus maybe chat, game customization etc.
+
+**Next meeting (tentative): Sunday 28.09.2025, 9:30 Barcelona time**
