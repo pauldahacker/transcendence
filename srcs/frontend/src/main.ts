@@ -2,6 +2,7 @@ import { renderHome } from "./views/Home";
 import { renderGame } from "./views/Game";
 import { renderResults } from "./views/Results";
 import { renderTournament} from "./views/Tournament";
+import { renderGame3D } from "./views/Game3D"; // 👈 importa tu nueva vista
 
 function router() {
   const app = document.getElementById("app")!;
@@ -10,6 +11,9 @@ function router() {
   switch (location.hash) {
     case "#/game":
       renderGame(app);
+      break;
+    case "#/game3d":              // 👈 nueva ruta
+      renderGame3D(app);
       break;
     case "#/tournament":
       renderTournament(app);

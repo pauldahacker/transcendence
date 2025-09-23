@@ -8,7 +8,11 @@
     "preview": "vite preview",
     "clean": "rm -rf node_modules dist"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@babylonjs/core": "8.28.1",
+    "@babylonjs/loaders": "8.28.1",
+    "@babylonjs/materials": "8.28.1"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
