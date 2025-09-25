@@ -3,11 +3,19 @@ import { startPong } from "../pong/startPong";
 type RenderGameOptions = {
   player1?: string;
   player2?: string;
+  aiPlayer1?: boolean;
+  aiPlayer2?: boolean;
   onGameOver?: (winner: number) => void; // tournament mode hook
 };
 
 export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
-  const { player1 = "Player 1", player2 = "Player 2", onGameOver } = options;
+  const {
+    player1 = "Player 1",
+    player2 = "Player 2",
+    aiPlayer1 = false,
+    aiPlayer2 = false,
+    onGameOver
+  } = options;
 
   const container = document.createElement("div");
   container.className =
@@ -71,7 +79,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
           onGameOver(winner);
         }, 2000);
       }
-    });
+    }, { aiPlayer1, aiPlayer2 });
   });
 
   backHomeButton.addEventListener("click", () => {
