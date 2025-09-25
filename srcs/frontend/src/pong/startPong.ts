@@ -5,7 +5,9 @@ import { setupInput } from "./input";
 import { showStartScreen } from "./startScreen";
 import { showPauseScreen } from "./pause";
 
-export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number) => void) {
+export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number) => void, options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}) {
+  const { aiPlayer1 = false, aiPlayer2 = false } = options;
+  
   const ctx = canvas.getContext("2d")!;
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
