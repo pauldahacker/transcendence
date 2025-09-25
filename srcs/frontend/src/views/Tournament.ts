@@ -1,6 +1,6 @@
 import { createTournamentState } from "../tournament/state";
 import { createAliasOverlay, createMatchList } from "../tournament/ui";
-import { playNextMatch } from "../tournament/controller";
+import { playNextMatch, showMatchList } from "../tournament/controller";
 
 export function renderTournament(root: HTMLElement) {
   const container = document.createElement("div");
@@ -84,16 +84,7 @@ export function renderTournament(root: HTMLElement) {
         matches.push([shuffled[i], shuffled[i + 1]]);
 
       const state = createTournamentState(matches);
-      const matchListContainer = createMatchList(matches);
-
-      root.innerHTML = "";
-      root.appendChild(matchListContainer);
-
-      const startBtn = matchListContainer.querySelector<HTMLButtonElement>("#start")!;
-      startBtn.addEventListener("click", () => {
-        matchListContainer.remove();
-        playNextMatch(root, state);
-      });
+      showMatchList(root, state);
     });
 
     backButton.addEventListener("click", () => {
