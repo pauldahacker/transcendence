@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)/srcs/backend"
+if [[ -f .env ]]; then
+  make -f Makefile.env update-env-example >/dev/null
+  git add .env.example
+fi

@@ -1,11 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "es6",
-    "outDir": "./dist",
-    "rootDir": ".",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
-    "moduleResolution": "node"
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"]
 }
