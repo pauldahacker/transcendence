@@ -10,23 +10,40 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
+  const BASE_WIDTH = 900;
+  const BASE_HEIGHT = 600;
+
+  const scaleX = canvas.width / BASE_WIDTH;
+  const scaleY = canvas.height / BASE_HEIGHT;
+
+  // const config: GameConfig = {
+  //   paddleHeight: canvas.height / 6,
+  //   paddleWidth: canvas.width / 40,
+  //   paddleSpeed: canvas.height / 80,
+  //   ballSize: canvas.width / 40,
+  //   minSpeedX : canvas.width / 160,
+  //   maxSpeedX : canvas.width / 80,
+  //   maxBounceAngle : Math.PI / 4,
+  // };
+
   const config: GameConfig = {
     paddleHeight: canvas.height / 6,
     paddleWidth: canvas.width / 40,
-    paddleSpeed: canvas.height / 80,
+    paddleSpeed: 10 * scaleY,
     ballSize: canvas.width / 40,
-    minSpeedX : canvas.width / 160,
-    maxSpeedX : canvas.width / 80,
-    maxBounceAngle : Math.PI / 4,
+    minSpeedX: 10 * scaleX,
+    maxSpeedX: 20 * scaleX,
+    maxBounceAngle: Math.PI / 4,
   };
+
 
   const state: GameState = {
     paddle1Y: canvas.height / 2 - config.paddleHeight / 2,
     paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
     ballX: canvas.width / 2 - config.ballSize / 2,
     ballY: canvas.height / 2 - config.ballSize / 2,
-    ballSpeedX: Math.random() > 0.5 ?  canvas.width / 300 : -canvas.width / 300,
-    ballSpeedY: Math.random() > 0.5 ? Math.random() * canvas.width / 300 : Math.random() * -canvas.width / 300,
+    ballSpeedX: Math.random() > 0.5 ?  config.minSpeedX / 2 : -config.minSpeedX / 2,
+    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2,
     score1: 0,
     score2: 0,
     gameRunning: true,

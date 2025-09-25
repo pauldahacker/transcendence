@@ -21,7 +21,7 @@ export function createAliasOverlay(numPlayers: number): HTMLDivElement {
       <h2 class="text-[10vh] font-honk animate-wobble">Match List</h2>
       <div class="flex flex-row justify-center items-center gap-20">
         <div id="match-list" class="flex flex-col gap-2 w-full max-w-[60vw] min-w-[300px] text-[3vh]"></div>
-        <button id="start-first-match" class="self-center w-[400px] h-[100px] border-4 border-lime-600 shadow-2xl
+        <button id="start" class="self-center w-[400px] h-[100px] border-4 border-lime-600 shadow-2xl
             text-lime-500 font-bit text-[4vh] rounded-full
             transition-colors duration-300 hover:shadow-lg hover:border-lime-500">
           Start
