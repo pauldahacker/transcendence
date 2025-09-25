@@ -12,6 +12,8 @@ import {
   BackgroundMaterial
 } from "babylonjs";
 
+
+
 export function renderGame3D(root: HTMLElement) {
   // Contenedor + canvas (mismo layout que antes)
   const container = document.createElement("div");
@@ -70,8 +72,6 @@ export function renderGame3D(root: HTMLElement) {
   scene.clearColor = new Color3(0, 0, 0).toColor4(1);
 
 
-  
-  // Cámara orbital (arc rotate): mira al origen, rueda con ratón
   const camera = new ArcRotateCamera(
     "cam",
     3 * Math.PI / 2,   // alpha: apunta hacia -Z
@@ -86,10 +86,14 @@ export function renderGame3D(root: HTMLElement) {
   camera.wheelPrecision = 40;          // sensibilidad del zoom
 
   // Luz ambiental
-  new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
-
+  const light = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
+  light.diffuse =  new Color3(1, 1, 1);
+  light.groundColor = Color3.FromHexString("#FF9A5A");
+  light.specular = Color3.FromHexString("#FF9A5A");   
+  light.intensity = 0.9;
   
-  new AxesViewer(scene, 2);
+  //new AxesViewer(scene, 2);
+
   const ground = MeshBuilder.CreateGround("ground", { width: 10, height: 6 }, scene);
   const groundMat = new StandardMaterial("groundMat", scene);
   groundMat.diffuseColor = Color3.FromHexString("#164E63");
@@ -106,12 +110,10 @@ export function renderGame3D(root: HTMLElement) {
   p2.material = mat;
   p2.position._x = ground._width/2 - ground._width/80;
   p2.position.y = 0.15;
-  
 
-  // Animación simple: rotación del cubo
-  //scene.onBeforeRenderObservable.add(() => {
-  //  p1.rotation.y += engine!.getDeltaTime() * 0.0015; // ~rad/ms
-  //});
+  const ball =  MeshBuilder.CreateBox("cube", { size: ground._width/40 }, scene);
+  ball.position._x = 0;
+  ball.position.y = 0.15;
 
   // Bucle de render
   let running = true;
