@@ -79,21 +79,10 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
     loop();
   });
 
-
-  // src/pong/startPong.ts (solo añade este return al final)
-const cleanup = () => {
-  state.gameRunning = false;
-  if (state.animationId) cancelAnimationFrame(state.animationId);
-  cleanupInput();
-  document.removeEventListener("keydown", handlePause);
-};
-
-// añadimos getters opcionales al cleanup
-(cleanup as any).getState  = () => state;
-(cleanup as any).getConfig = () => config;
-(cleanup as any).getCanvas = () => canvas;
-
-return cleanup;
+  return () => {
+    state.gameRunning = false;
+    if (state.animationId) cancelAnimationFrame(state.animationId);
+    cleanupInput();
+    document.removeEventListener("keydown", handlePause);
+  };
 }
-
-
