@@ -16,6 +16,9 @@ all: build up
 build:
 	@echo "$(YELLOW)Building Docker images...$(RESET)"
 	$(DC) build
+dev:
+	@echo "$(YELLOW)Starting frontend dev container...$(RESET)"
+	$(DC) --profile dev up --build frontend-dev
 
 clean:
 	@echo "$(ORANGE)Stopping containers and removing volumes...$(ORANGE)"
@@ -33,4 +36,4 @@ up:
 
 re: fclean all
 
-.PHONY: all clean fclean ts build up re
+.PHONY: all clean fclean ts build up re dev

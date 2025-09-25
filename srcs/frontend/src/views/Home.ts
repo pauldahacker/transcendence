@@ -17,6 +17,12 @@ export function renderHome(root: HTMLElement) {
               transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
        Tournament
     </a>
+    <a href="#/game3d" 
+       class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full min-w-[300px]
+              border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
+              transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
+       Pong 3D
+    </a>
   `;
 
   root.appendChild(container);
