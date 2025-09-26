@@ -4,47 +4,40 @@ import { update } from "./update";
 import { setupInput } from "./input";
 import { showStartScreen } from "./startScreen";
 import { showPauseScreen } from "./pause";
+import { AIController, startSimpleAI } from "./ai";
 
-export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number) => void, options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}) {
-  const { aiPlayer1 = false, aiPlayer2 = false } = options;
-  
+export function startPong(
+  canvas: HTMLCanvasElement,
+  onGameOver: (winner: number) => void,
+  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}
+) {
+  const { aiPlayer1 = false, aiPlayer2 = true } = options;
   const ctx = canvas.getContext("2d")!;
+
+  // Real canvas dimensions
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
+  // Virtual resolution
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
-  const scaleX = canvas.width / BASE_WIDTH;
-  const scaleY = canvas.height / BASE_HEIGHT;
-
-  // const config: GameConfig = {
-  //   paddleHeight: canvas.height / 6,
-  //   paddleWidth: canvas.width / 40,
-  //   paddleSpeed: canvas.height / 80,
-  //   ballSize: canvas.width / 40,
-  //   minSpeedX : canvas.width / 160,
-  //   maxSpeedX : canvas.width / 80,
-  //   maxBounceAngle : Math.PI / 4,
-  // };
-
   const config: GameConfig = {
-    paddleHeight: canvas.height / 6,
-    paddleWidth: canvas.width / 40,
-    paddleSpeed: 10 * scaleY,
-    ballSize: canvas.width / 40,
-    minSpeedX: 10 * scaleX,
-    maxSpeedX: 20 * scaleX,
+    paddleHeight: 100,
+    paddleWidth: 25,
+    paddleSpeed: 8,
+    ballSize: 25,
+    minSpeedX: 4,
+    maxSpeedX: 10,
     maxBounceAngle: Math.PI / 4,
   };
 
-
   const state: GameState = {
-    paddle1Y: canvas.height / 2 - config.paddleHeight / 2,
-    paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
-    ballX: canvas.width / 2 - config.ballSize / 2,
-    ballY: canvas.height / 2 - config.ballSize / 2,
-    ballSpeedX: Math.random() > 0.5 ?  config.minSpeedX / 2 : -config.minSpeedX / 2,
+    paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    ballX: BASE_WIDTH / 2 - config.ballSize / 2,
+    ballY: BASE_HEIGHT / 2 - config.ballSize / 2,
+    ballSpeedX: Math.random() > 0.5 ? config.minSpeedX / 2 : -config.minSpeedX / 2,
     ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2,
     score1: 0,
     score2: 0,
@@ -59,25 +52,32 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
 
   let paused = false;
   function handlePause(e: KeyboardEvent) {
-    if (e.code === "Space") {
-      paused = !paused;
-    }
+    if (e.code === "Space") paused = !paused;
   }
+
+  const aiControllers: AIController[] = [];
+  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, BASE_WIDTH, BASE_HEIGHT));
+  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, BASE_WIDTH, BASE_HEIGHT));
+
 
   function loop() {
     if (!state.gameRunning) return;
     if (!paused) {
-      update(canvas, state, config, keys, onGameOver);
-      draw(ctx, canvas, state, config);
-    } else {
-      draw(ctx, canvas, state, config);
-      showPauseScreen(canvas);
+      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
+
+    ctx.save();
+    ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+    draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
+    ctx.restore();
+
+    if (paused) showPauseScreen(canvas);
+
     state.animationId = requestAnimationFrame(loop);
   }
 
   showStartScreen(canvas, () => {
-    document.addEventListener("keydown", handlePause); // <-- add listener here
+    document.addEventListener("keydown", handlePause);
     loop();
   });
 
@@ -86,5 +86,6 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
     if (state.animationId) cancelAnimationFrame(state.animationId);
     cleanupInput();
     document.removeEventListener("keydown", handlePause);
+    aiControllers.forEach(ai => ai.stop());
   };
 }

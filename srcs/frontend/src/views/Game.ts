@@ -13,7 +13,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
     player1 = "Player 1",
     player2 = "Player 2",
     aiPlayer1 = false,
-    aiPlayer2 = false,
+    aiPlayer2 = true,
     onGameOver
   } = options;
 
