@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/19 22:55:32 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/26 05:26:38 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ function connect() {
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       created_at TEXT NOT NULL
+      -- display_name added via migration below
     );
 
     CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -37,6 +38,23 @@ function connect() {
       FOREIGN KEY(user_id) REFERENCES users_auth(id) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
+  `);
+
+  // MIGRATION: add display_name column if missing
+  const hasDisplay = db
+    .prepare(`PRAGMA table_info(users_auth)`)
+    .all()
+    .some((c) => c.name === 'display_name');
+
+  if (!hasDisplay) {
+    db.exec(`ALTER TABLE users_auth ADD COLUMN display_name TEXT NOT NULL DEFAULT ''`);
+  }
+
+  // Unique index on display_name for non-empty values (enforce app-side too)
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_display_name_unique
+    ON users_auth(display_name)
+    WHERE display_name <> '';
   `);
 
   return db;
