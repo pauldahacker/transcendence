@@ -92,13 +92,13 @@ function handleBounce(
   const bounceAngle = normalized * config.maxBounceAngle;
   const speedRatio = 1 - Math.abs(normalized);
 
-  state.ballSpeedX = direction * Math.max(config.maxSpeedX * speedRatio, config.minSpeedX);
+  state.ballSpeedX = direction * Math.max(config.maxSpeed * speedRatio, config.minSpeed);
   state.ballSpeedY = direction * state.ballSpeedX * Math.sin(bounceAngle);
 }
 
 function resetBall(width: number, height: number, config: GameConfig, state: GameState) {
   state.ballX = width / 2 - config.ballSize / 2;
   state.ballY = height / 2 - config.ballSize / 2;
-  state.ballSpeedX = Math.random() > 0.5 ? config.minSpeedX / 2 : -config.minSpeedX / 2;
-  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2;
+  state.ballSpeedX = Math.random() > 0.5 ? config.minSpeed / 2 : -config.minSpeed / 2;
+  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeed / 2 : Math.random() * -config.minSpeed / 2;
 }

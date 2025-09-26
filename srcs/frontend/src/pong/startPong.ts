@@ -23,8 +23,8 @@ export function startPong(
     paddleWidth: canvas.width / 30,
     paddleSpeed: canvas.height / 60,
     ballSize: canvas.width / 30,
-    minSpeedX: canvas.width / 80,
-    maxSpeedX: canvas.width / 50,
+    minSpeed: canvas.width / 80,
+    maxSpeed: canvas.width / 50,
     maxBounceAngle: Math.PI / 4,
   };
 
@@ -33,8 +33,8 @@ export function startPong(
     paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
     ballX: canvas.width / 2 - config.ballSize / 2,
     ballY: canvas.height / 2 - config.ballSize / 2,
-    ballSpeedX: Math.random() > 0.5 ? config.minSpeedX / 2 : -config.minSpeedX / 2,
-    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2,
+    ballSpeedX: Math.random() > 0.5 ? config.minSpeed / 2 : -config.minSpeed / 2,
+    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeed / 2 : Math.random() * -config.minSpeed / 2,
     score1: 0,
     score2: 0,
     gameRunning: true,
