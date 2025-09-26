@@ -9,7 +9,10 @@ function router() {
   app.innerHTML = ""; // clear
 
   switch (location.hash) {
-    case "#/game":
+    case "#/1player":
+      renderGame(app, {onePlayer: true});
+      break;
+    case "#/2players":
       renderGame(app);
       break;
     case "#/game3d":              // 👈 nueva ruta

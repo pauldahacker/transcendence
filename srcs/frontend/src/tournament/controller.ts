@@ -9,7 +9,7 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
 
   state.stopCurrentGame = renderGame(
-    root, { player1: p1, player2: p2, onGameOver: (winnerIndex) => {
+    root, { tournament: true, player1: p1, player2: p2, onGameOver: (winnerIndex) => {
       if (!state.active) return;
       const winner = winnerIndex === 1 ? p1 : p2;
       state.winners.push(winner);
