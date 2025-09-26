@@ -20,8 +20,8 @@ export interface GameConfig {
 	paddleWidth: number;
 	paddleSpeed: number;
 	ballSize: number;
-	minSpeedX : number;
-	maxSpeedX : number;
+	minSpeed : number;
+	maxSpeed : number;
 	maxBounceAngle : number;
 }
   
