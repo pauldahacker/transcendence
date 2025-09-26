@@ -23,7 +23,7 @@ export function startPong(
     paddleWidth: canvas.width / 30,
     paddleSpeed: canvas.height / 60,
     ballSize: canvas.width / 30,
-    minSpeedX: canvas.width / 100,
+    minSpeedX: canvas.width / 80,
     maxSpeedX: canvas.width / 50,
     maxBounceAngle: Math.PI / 4,
   };

@@ -16,7 +16,7 @@ export function startSimpleAI(
 	let movementId: number | null = null;
 	let targetY: number | null = null;
   
-	// Step 1: Predict every 1000ms
+	// Every 1000ms, get the ball speed/direction info to predict where to move
 	predictionId = window.setInterval(() => {
 	  if (!state.gameRunning) return;
   
@@ -33,11 +33,11 @@ export function startSimpleAI(
 		);
 		targetY = state.ballY + state.ballSpeedY * framesUntilImpact;
 	  } else {
-		targetY = null;
+		targetY = height / 2 ;
 	  }
 	}, 1000);
   
-	// Step 2: Move toward target every ~16ms (≈60fps)
+	// every 16 ms, move closer to the predicted location
 	movementId = window.setInterval(() => {
 	  if (!state.gameRunning) return;
   
