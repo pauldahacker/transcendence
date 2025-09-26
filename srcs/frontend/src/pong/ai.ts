@@ -23,10 +23,7 @@ export function startSimpleAI(
 	  const ballGoingRight = state.ballSpeedX > 0;
   
 	  if ((playerIndex === 0 && !ballGoingRight) || (playerIndex === 1 && ballGoingRight)) {
-		const paddleX =
-		  playerIndex === 0
-			? 20 + config.paddleWidth
-			: width - 20 - config.paddleWidth;
+		const paddleX = playerIndex === 0 ? 20 + config.paddleWidth : width - 20 - config.paddleWidth;
   
 		const framesUntilImpact = Math.abs(
 		  (paddleX - state.ballX) / state.ballSpeedX
@@ -64,7 +61,7 @@ export function startSimpleAI(
 		  else keys["ArrowDown"] = true;
 		}
 	  }
-	}, 16); // ~60fps
+	}, 16); // ~60fps (1000 ms / 16  ms)
   
 	return {
 	  stop: () => {

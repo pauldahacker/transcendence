@@ -1,21 +1,34 @@
 import { startPong } from "../pong/startPong";
 
 type RenderGameOptions = {
+  onePlayer?: boolean;
+  tournament?: boolean;
+
   player1?: string;
   player2?: string;
   aiPlayer1?: boolean;
   aiPlayer2?: boolean;
-  onGameOver?: (winner: number) => void; // tournament mode hook
+  onGameOver?: (winner: number) => void;
 };
 
 export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   const {
-    player1 = "Player 1",
-    player2 = "Player 2",
-    aiPlayer1 = false,
-    aiPlayer2 = true,
+    onePlayer = false,
+    tournament = false,
     onGameOver
   } = options;
+
+  let p1 = options.player1 ?? "Player 1";
+  let p2 = options.player1 ?? "Player 2";
+  let aiP1 = options.aiPlayer1 ?? false;
+  let aiP2 = options.aiPlayer2 ?? false;
+  if (onePlayer)
+  {
+    p1 = "AI";
+    p2 = "You";
+    aiP1 = true;
+    aiP2 = false;
+  }
 
   const container = document.createElement("div");
   container.className =
@@ -27,9 +40,9 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
     <div class="flex items-center justify-center gap-[2vw]">
       <div class="flex flex-col items-center font-honk text-[4vh] text-center">
         <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
-          ${player1}
+          ${p1}
         </div>
-        <div class="mt-2 font-bit text-[2vh] text-gray-300">W / S</div>
+        ${aiP1 ? "" : `<div class="mt-2 font-bit text-[2vh] text-gray-300">W / S</div>`}
       </div>
       <div id="game-container" class="relative h-[80vh] aspect-[3/2] 
                 max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px]">
@@ -38,9 +51,9 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
       </div>
       <div class="flex flex-col items-center font-honk text-[4vh] text-center">
         <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
-          ${player2}
+          ${p2}
         </div>
-        <div class="mt-2 font-bit text-[2vh] text-gray-300">Arrow Keys</div>
+        ${aiP2 ? "" : `<div class="mt-2 font-bit text-[2vh] text-gray-300">Arrow Keys</div>`}
       </div>
     </div>
 
@@ -62,25 +75,58 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   let stopGame: () => void;
 
   requestAnimationFrame(() => {
-    stopGame = startPong(canvas, (winner: number) => {
-      const overlay = document.createElement("div");
-      overlay.className = "absolute inset-0 flex justify-center items-center";
-      overlay.innerHTML = `
-        <div class="relative inline-block text-center">
-          <h2 class=" text-[10vh] font-honk text-center animate-zoomIn">
-            ${winner === 1 ? player1 : player2} Wins!
-          </h2>
-        </div>
-      `;
-      gameContainer.appendChild(overlay);
-
-      if (onGameOver) {
+    stopGame = startPong(
+      canvas,
+      (winner: number) => {
+        const overlay = document.createElement("div");
+        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
+    
+        // Winner message
+        if (onePlayer) {
+          overlay.innerHTML =
+            winner === 1
+              ? `<h2 class="text-[10vh] font-honk text-center animate-zoomIn">You lost!</h2>`
+              : `<h2 class="text-[10vh] font-honk text-center animate-zoomIn">You won!</h2>`;
+        } else {
+          overlay.innerHTML = `
+            <h2 class="text-[10vh] font-honk text-center animate-zoomIn">
+              ${winner === 1 ? p1 : p2} Won!
+            </h2>
+          `;
+        }
+        gameContainer.appendChild(overlay);
+    
         setTimeout(() => {
-          onGameOver(winner);
+          if (tournament && onGameOver) {
+            // tournament: go to next match
+            onGameOver(winner);
+          } else {
+            // normal game: show Play Again
+            const buttonOverlay = document.createElement("div");
+            buttonOverlay.className =
+              "absolute inset-0 flex flex-col justify-center items-center gap-6";
+        
+            const playAgainBtn = document.createElement("button");
+            playAgainBtn.textContent = "Play Again";
+            playAgainBtn.className =
+              "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg " +
+              "transition-colors duration-300 hover:bg-lime-500 hover:text-black";
+    
+            playAgainBtn.addEventListener("click", () => {
+              if (stopGame) stopGame();
+              renderGame(root, options); // restart with same settings
+            });
+    
+            buttonOverlay.appendChild(playAgainBtn);
+            gameContainer.appendChild(buttonOverlay);
+          }
         }, 2000);
-      }
-    }, { aiPlayer1, aiPlayer2 });
-  });
+      },
+      { aiPlayer1: aiP1, aiPlayer2: aiP2 }
+    );
+    
+  }
+);
 
   backHomeButton.addEventListener("click", () => {
     if (stopGame) stopGame(); // cleanup if already started
