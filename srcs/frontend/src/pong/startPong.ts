@@ -11,32 +11,28 @@ export function startPong(
   onGameOver: (winner: number) => void,
   options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}
 ) {
-  const { aiPlayer1 = false, aiPlayer2 = true } = options;
+  const { aiPlayer1 = false, aiPlayer2 = false } = options;
   const ctx = canvas.getContext("2d")!;
 
   // Real canvas dimensions
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  // Virtual resolution
-  const BASE_WIDTH = 900;
-  const BASE_HEIGHT = 600;
-
   const config: GameConfig = {
-    paddleHeight: 100,
-    paddleWidth: 25,
-    paddleSpeed: 8,
-    ballSize: 25,
-    minSpeedX: 4,
-    maxSpeedX: 10,
+    paddleHeight: canvas.height / 5,
+    paddleWidth: canvas.width / 30,
+    paddleSpeed: canvas.height / 60,
+    ballSize: canvas.width / 30,
+    minSpeedX: canvas.width / 100,
+    maxSpeedX: canvas.width / 50,
     maxBounceAngle: Math.PI / 4,
   };
 
   const state: GameState = {
-    paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
-    paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
-    ballX: BASE_WIDTH / 2 - config.ballSize / 2,
-    ballY: BASE_HEIGHT / 2 - config.ballSize / 2,
+    paddle1Y: canvas.height / 2 - config.paddleHeight / 2,
+    paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
+    ballX: canvas.width / 2 - config.ballSize / 2,
+    ballY: canvas.height / 2 - config.ballSize / 2,
     ballSpeedX: Math.random() > 0.5 ? config.minSpeedX / 2 : -config.minSpeedX / 2,
     ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2,
     score1: 0,
@@ -56,19 +52,18 @@ export function startPong(
   }
 
   const aiControllers: AIController[] = [];
-  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, BASE_WIDTH, BASE_HEIGHT));
-  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, BASE_WIDTH, BASE_HEIGHT));
+  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, canvas.width, canvas.height, keys));
+  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, canvas.width, canvas.height, keys));
 
 
   function loop() {
     if (!state.gameRunning) return;
     if (!paused) {
-      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
+      update(canvas.width, canvas.height, state, config, keys, onGameOver);
     }
 
     ctx.save();
-    ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
-    draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
+    draw(ctx, canvas.width, canvas.height, state, config);
     ctx.restore();
 
     if (paused) showPauseScreen(canvas);
