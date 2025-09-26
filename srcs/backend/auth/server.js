@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/20 21:52:37 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/26 06:42:54 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,10 @@ const fastify = Fastify({ logger: true });
 const db = connect();
 
 const sql = {
-  insertUser: db.prepare('INSERT INTO users_auth (email, password_hash, created_at) VALUES (?, ?, ?)'),
+  insertUser: db.prepare('INSERT INTO users_auth (email, password_hash, created_at, display_name) VALUES (?, ?, ?, ?)'),
   getUserByEmail: db.prepare('SELECT * FROM users_auth WHERE email = ?'),
   getUserById: db.prepare('SELECT * FROM users_auth WHERE id = ?'),
+  getUserByDisplayName: db.prepare('SELECT * FROM users_auth WHERE display_name = ?'),
   insertRefresh: db.prepare('INSERT INTO refresh_tokens (user_id, token, exp, created_at) VALUES (?, ?, ?, ?)'),
   getRefresh: db.prepare('SELECT * FROM refresh_tokens WHERE token = ?'),
   deleteRefresh: db.prepare('DELETE FROM refresh_tokens WHERE token = ?'),
@@ -37,6 +38,16 @@ const sql = {
 };
 
 const secretKey = createSecretKey(Buffer.from(JWT_SECRET, 'utf8'));
+
+function validDisplayName(s) {
+  if (typeof s !== 'string') return false;
+  const trimmed = s.trim();
+  if (trimmed.length < 1 || trimmed.length > 16) return false;
+  if (/[\\[\\]]/.test(trimmed)) return false;      // disallow brackets like your FE
+  // Optional stricter rule:
+  // if (!/^[A-Za-z0-9 _-]+$/.test(trimmed)) return false;
+  return true;
+}
 
 async function signAccess(user) {
   const now = Math.floor(Date.now() / 1000);
@@ -76,15 +87,31 @@ fastify.post('/signup', async (req, reply) => {
   const bodySchema = z.object({
     email: z.string().email().max(200),
     password: z.string().min(8).max(128),
+    displayName: z.string()
   });
   const body = bodySchema.parse(req.body);
+
+  // validate display name like the frontend
+  if (!validDisplayName(body.displayName)) {
+    return reply.code(400).send({ error: 'invalid_display_name' });
+  }
+
   const exists = sql.getUserByEmail.get(body.email);
   if (exists) return reply.code(409).send({ error: 'email_in_use' });
 
+  const nameExists = sql.getUserByDisplayName.get(body.displayName.trim());
+  if (nameExists) return reply.code(409).send({ error: 'display_name_in_use' });
+
   const hash = await argon2.hash(body.password, { type: argon2.argon2id });
   const createdAt = new Date().toISOString();
-  const info = sql.insertUser.run(body.email, hash, createdAt);
-  return reply.code(201).send({ id: info.lastInsertRowid, email: body.email, createdAt });
+  const info = sql.insertUser.run(body.email, hash, createdAt, body.displayName.trim());
+
+  return reply.code(201).send({
+    id: info.lastInsertRowid,
+    email: body.email,
+    displayName: body.displayName.trim(),
+    createdAt
+  });
 });
 
 // login
@@ -169,7 +196,7 @@ fastify.get('/me', async (req, reply) => {
   const user = sql.getUserById.get(Number(payload.sub));
   if (!user) return reply.code(401).send({ error: 'invalid_user' });
 
-  return { id: user.id, email: user.email, createdAt: user.created_at };
+  return { id: user.id, email: user.email, displayName: user.display_name || '', createdAt: user.created_at };
 });
 
 // logout (invalidate all refresh tokens)

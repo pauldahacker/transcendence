@@ -1,13 +1,14 @@
 {
   "name": "api-gateway",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "server.js",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
-    "fastify": "^5.0.0",
-    "@fastify/helmet": "^13.0.0",
     "@fastify/cors": "^10.0.0",
-    "@fastify/http-proxy": "^10.0.1"
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/http-proxy": "^10.0.1",
+    "fastify": "^5.0.0",
+    "jose": "^5.2.4"
   }
 }
