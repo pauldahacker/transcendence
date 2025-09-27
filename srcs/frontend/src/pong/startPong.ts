@@ -18,23 +18,29 @@ export function startPong(
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
+  // Virtual resolution (fixed physics space)
+  const BASE_WIDTH = 900;
+  const BASE_HEIGHT = 600;
+
+  // Physics config (independent of actual screen size)
   const config: GameConfig = {
-    paddleHeight: canvas.height / 5,
-    paddleWidth: canvas.width / 30,
-    paddleSpeed: canvas.height / 60,
-    ballSize: canvas.width / 30,
-    minSpeed: canvas.width / 80,
-    maxSpeed: canvas.width / 50,
+    paddleHeight: 100,
+    paddleWidth: 25,
+    paddleSpeed: 8,
+    ballSize: 25,
+    minSpeed: 6,
+    maxSpeed: 12,
     maxBounceAngle: Math.PI / 4,
   };
 
+  // State in virtual resolution
   const state: GameState = {
-    paddle1Y: canvas.height / 2 - config.paddleHeight / 2,
-    paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
-    ballX: canvas.width / 2 - config.ballSize / 2,
-    ballY: canvas.height / 2 - config.ballSize / 2,
-    ballSpeedX: Math.random() > 0.5 ? config.minSpeed / 2 : -config.minSpeed / 2,
-    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeed / 2 : Math.random() * -config.minSpeed / 2,
+    paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    ballX: BASE_WIDTH / 2 - config.ballSize / 2,
+    ballY: BASE_HEIGHT / 2 - config.ballSize / 2,
+    ballSpeedX: Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3,
+    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3,
     score1: 0,
     score2: 0,
     gameRunning: true,
@@ -52,18 +58,19 @@ export function startPong(
   }
 
   const aiControllers: AIController[] = [];
-  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, canvas.width, canvas.height, keys));
-  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, canvas.width, canvas.height, keys));
-
+  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
+  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
 
   function loop() {
     if (!state.gameRunning) return;
     if (!paused) {
-      update(canvas.width, canvas.height, state, config, keys, onGameOver);
+      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
 
+    // Scale drawing to match actual canvas size
     ctx.save();
-    draw(ctx, canvas.width, canvas.height, state, config);
+    ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+    draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
     ctx.restore();
 
     if (paused) showPauseScreen(canvas);
