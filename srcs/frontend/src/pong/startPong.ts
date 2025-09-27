@@ -22,14 +22,21 @@ export function startPong(
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
+  // changed the speed to fixed FPS:
+  // -> we measure speed in how much time it takes to go from one end to the other
+  const targetFPS = 60; // requestAnimationFrame() is by default 60 FPS (1 frame every 16.667 ms)
+  const minSpeed = BASE_WIDTH / (2 * targetFPS); // cross in 2 seconds
+  const maxSpeed = BASE_WIDTH / (1 * targetFPS); // cross in 1 second
+  
+
   // Physics config (independent of actual screen size)
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
-    paddleSpeed: 8,
+    paddleSpeed: BASE_WIDTH / (1 * targetFPS),
     ballSize: 25,
-    minSpeed: 6,
-    maxSpeed: 12,
+    minSpeed: BASE_WIDTH / (1.5 * targetFPS),
+    maxSpeed: BASE_WIDTH / (0.75 * targetFPS),
     maxBounceAngle: Math.PI / 4,
   };
 
