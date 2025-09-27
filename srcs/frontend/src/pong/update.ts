@@ -99,6 +99,6 @@ function handleBounce(
 function resetBall(width: number, height: number, config: GameConfig, state: GameState) {
   state.ballX = width / 2 - config.ballSize / 2;
   state.ballY = height / 2 - config.ballSize / 2;
-  state.ballSpeedX = Math.random() > 0.5 ? config.minSpeed / 2 : -config.minSpeed / 2;
-  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeed / 2 : Math.random() * -config.minSpeed / 2;
+  state.ballSpeedX = Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3;
+  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3;
 }
