@@ -10,8 +10,10 @@ services:
     environment:
       - NODE_ENV=development
       - AUTH_URL=http://auth:${AUTH_PORT}
+      - TOURN_URL=http://tournaments:3003
     depends_on:
       - auth
+      - tournaments
 
   auth:
     build: ./auth
@@ -23,5 +25,19 @@ services:
     volumes:
       - auth_data:/var/lib/app
 
+  tournaments:
+    build: ./tournaments
+    expose:
+      - "3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - TOURN_DB_PATH=/var/lib/app/tournaments.db
+      - AUTH_INTERNAL_URL=http://auth:${AUTH_PORT}
+    volumes:
+      - tournaments_data:/var/lib/app
+
+
 volumes:
   auth_data:
+  tournaments_data:

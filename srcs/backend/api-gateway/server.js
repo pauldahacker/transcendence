@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:23:43 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/19 08:43:03 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/27 06:15:12 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,12 +36,22 @@ async function build() {
   // liveness
   fastify.get('/healthz', async () => ({ status: 'ok' }));
 
-  // proxy /auth/* → auth service
+  // proxy /auth/* > auth service
   await fastify.register(require('@fastify/http-proxy'), {
     upstream: AUTH_URL,
     prefix: '/auth',
     rewritePrefix: '/', // so /auth/healthz → /healthz on the auth service
   });
+  
+  const TOURN_URL = process.env.TOURN_URL || 'http://tournaments:3003';
+
+  // proxy /tournaments/* > tournaments service
+  await fastify.register(require('@fastify/http-proxy'), {
+    upstream: TOURN_URL,
+    prefix: '/tournaments',
+    rewritePrefix: '/', // so /tournaments/x → /x inside the service
+  });
+
 
   const port = 443;
   await fastify.listen({ port, host: '0.0.0.0' });
