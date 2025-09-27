@@ -58,16 +58,26 @@ export function renderTournament(root: HTMLElement) {
     document.body.appendChild(overlay);
 
     startButton.addEventListener("click", () => {
-      const aliases = Array.from(overlay.querySelectorAll<HTMLInputElement>("input")).map((input) => input.value.trim());
+      let aliases = Array.from(overlay.querySelectorAll<HTMLInputElement>("input")).map((input) => input.value.trim());
 
-      if (aliases.some((name) => name === "")) {
-        alert("Please enter a name for every player.");
+      if (aliases.some(name => name.includes("[") || name.includes("]"))) {
+        alert("No brackets [] allowed.");
         return;
       }
+
       if (aliases.some((name) => name.length > 16)) {
         alert("Player names cannot exceed 16 characters.");
         return;
       }
+
+      // Replace empty entries with AI bots
+      let botCount = 1;
+      aliases = aliases.map((name) => {
+        if (name === "") {
+          return `[AI] ${botCount++}`;
+        }
+        return name;
+      });
 
       const uniqueAliases = new Set(aliases);
       if (uniqueAliases.size !== aliases.length) {
