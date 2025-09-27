@@ -19,7 +19,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   } = options;
 
   let p1 = options.player1 ?? "Player 1";
-  let p2 = options.player1 ?? "Player 2";
+  let p2 = options.player2 ?? "Player 2";
   let aiP1 = options.aiPlayer1 ?? false;
   let aiP2 = options.aiPlayer2 ?? false;
   if (onePlayer)
