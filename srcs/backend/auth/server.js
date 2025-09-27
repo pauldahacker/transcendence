@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/26 06:42:54 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/26 19:09:42 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,6 +197,15 @@ fastify.get('/me', async (req, reply) => {
   if (!user) return reply.code(401).send({ error: 'invalid_user' });
 
   return { id: user.id, email: user.email, displayName: user.display_name || '', createdAt: user.created_at };
+});
+
+// public lookup by displayName (exact match), for internal services like tournaments
+fastify.get('/public/by-display-name', async (req, reply) => {
+  const name = String((req.query && req.query.name) || '').trim();
+  if (!name) return reply.code(400).send({ error: 'missing_name' });
+  const user = sql.getUserByDisplayName.get(name);
+  if (!user) return reply.code(404).send({ error: 'not_found' });
+  return { id: user.id, displayName: user.display_name };
 });
 
 // logout (invalidate all refresh tokens)

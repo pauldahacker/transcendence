@@ -1,0 +1,13 @@
+{
+  "name": "tournaments",
+  "version": "0.1.0",
+  "main": "server.js",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "better-sqlite3": "^9.6.0",
+    "zod": "^3.23.8",
+    "undici": "^6.19.8"
+  }
+}
