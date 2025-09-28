@@ -11,6 +11,7 @@ services:
       - NODE_ENV=development
       - AUTH_URL=http://auth:${AUTH_PORT}
       - TOURN_URL=http://tournaments:3003
+      - AUTH_JWT_SECRET=auth_jwt_secret_dev_2025!!
     depends_on:
       - auth
       - tournaments
@@ -22,6 +23,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=${AUTH_PORT}
+      - AUTH_DB_PATH=/var/lib/app/auth.db
+      - AUTH_JWT_SECRET=auth_jwt_secret_dev_2025!! 
     volumes:
       - auth_data:/var/lib/app
 
