@@ -6,13 +6,14 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:23:43 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/27 06:15:12 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/28 21:52:59 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 const fs = require('fs');
 const path = require('path');
 const Fastify = require('fastify');
+const authGuard = require('./authGuard');
 
 const CERT_DIR = '/certs';
 const AUTH_URL = process.env.AUTH_URL || 'http://auth:3001';
@@ -35,6 +36,16 @@ async function build() {
 
   // liveness
   fastify.get('/healthz', async () => ({ status: 'ok' }));
+
+// Load same JWT secret used in auth service
+const JWT_SECRET = process.env.AUTH_JWT_SECRET || 'dev_secret';
+
+// Protect tournament routes
+fastify.addHook('onRequest', async (req, reply) => {
+  if (req.url.startsWith('/tournaments')) {
+    await authGuard(JWT_SECRET)(req, reply);
+  }
+});
 
   // proxy /auth/* > auth service
   await fastify.register(require('@fastify/http-proxy'), {
