@@ -1,7 +1,8 @@
 import { GameState, GameConfig, KeyState } from "./types";
 
 export function update(
-  canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
   state: GameState,
   config: GameConfig,
   keys: KeyState,
@@ -9,44 +10,27 @@ export function update(
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
 
+  // Player movement
   if (keys["w"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
-  if (keys["s"]) state.paddle1Y = Math.min(canvas.height - paddleHeight, state.paddle1Y + config.paddleSpeed);
+  if (keys["s"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
   if (keys["ArrowUp"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
-  if (keys["ArrowDown"]) state.paddle2Y = Math.min(canvas.height - paddleHeight, state.paddle2Y + config.paddleSpeed);
+  if (keys["ArrowDown"]) state.paddle2Y = Math.min(height - paddleHeight, state.paddle2Y + config.paddleSpeed);
 
+  // Ball movement
   state.ballX += state.ballSpeedX;
   state.ballY += state.ballSpeedY;
 
+  // Wall collisions
   if (state.ballY <= 0) {
     state.ballY = 0;
     state.ballSpeedY *= -1;
   }
-  if (state.ballY + ballSize >= canvas.height) {
-    state.ballY = canvas.height - ballSize;
+  if (state.ballY + ballSize >= height) {
+    state.ballY = height - ballSize;
     state.ballSpeedY *= -1;
   }
 
-  // Right paddle
-  if (
-    state.ballX + ballSize >= canvas.width - 20 - paddleWidth &&
-    state.ballY + ballSize >= state.paddle2Y &&
-    state.ballY <= state.paddle2Y + paddleHeight
-  ) {
-    state.ballX = canvas.width - 20 - paddleWidth - ballSize;
-
-    const relativeIntersectY = (state.ballY + ballSize / 2) - (state.paddle2Y + paddleHeight / 2);
-    const normalized = relativeIntersectY / (paddleHeight / 2);
-    
-    // perfect shot
-    if (Math.abs(normalized) <= 0.15) state.ballFlash = 20; 
-    const bounceAngle = normalized * config.maxBounceAngle;
-
-    const speedRatio = 1 - Math.abs(normalized);
-
-    state.ballSpeedX = -1 * Math.max(config.maxSpeedX * speedRatio, config.minSpeedX);
-    state.ballSpeedY = state.ballSpeedX * Math.sin(bounceAngle);
-  }
-
+  // Paddle collisions
   // Left paddle
   if (
     state.ballX <= 20 + paddleWidth &&
@@ -54,17 +38,20 @@ export function update(
     state.ballY <= state.paddle1Y + paddleHeight
   ) {
     state.ballX = 20 + paddleWidth;
-
-    const relativeIntersectY = (state.ballY + ballSize / 2) - (state.paddle1Y + paddleHeight / 2);
-    const normalized = relativeIntersectY / (paddleHeight / 2);
-    if (Math.abs(normalized) <= 0.15) state.ballFlash = 20; 
-    const bounceAngle = normalized * config.maxBounceAngle;
-
-    const speedRatio = 1 - Math.abs(normalized);
-    state.ballSpeedX = Math.max(config.maxSpeedX * speedRatio, config.minSpeedX);
-    state.ballSpeedY = state.ballSpeedX * Math.sin(bounceAngle);
+    handleBounce(state, config, state.paddle1Y, paddleHeight, 1);
   }
 
+  // Right paddle
+  if (
+    state.ballX + ballSize >= width - 20 - paddleWidth &&
+    state.ballY + ballSize >= state.paddle2Y &&
+    state.ballY <= state.paddle2Y + paddleHeight
+  ) {
+    state.ballX = width - 20 - paddleWidth - ballSize;
+    handleBounce(state, config, state.paddle2Y, paddleHeight, -1);
+  }
+
+  // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
   if (state.paddle1Flash > 0) state.paddle1Flash--;
   if (state.paddle2Flash > 0) state.paddle2Flash--;
@@ -72,12 +59,13 @@ export function update(
   // Scoring
   if (state.ballX < 0) {
     state.score2++;
-    resetBall(canvas, state);
-  } else if (state.ballX > canvas.width) {
+    resetBall(width, height, config, state);
+  } else if (state.ballX > width) {
     state.score1++;
-    resetBall(canvas, state);
+    resetBall(width, height, config, state);
   }
 
+  // Game over
   if (state.score1 === 3) {
     state.gameRunning = false;
     onGameOver(1);
@@ -88,10 +76,29 @@ export function update(
   }
 }
 
-function resetBall(canvas: HTMLCanvasElement, state: GameState) {
-  state.ballX = canvas.width / 2 - canvas.width / 80; // half ball size
-  state.ballY = canvas.height / 2 - canvas.width / 80;
-  
-  state.ballSpeedX = Math.random() > 0.5 ?  canvas.width / 300 : -canvas.width / 300;
-  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * canvas.width / 300 : Math.random() * -canvas.width / 300;
+function handleBounce(
+  state: GameState,
+  config: GameConfig,
+  paddleY: number,
+  paddleHeight: number,
+  direction: 1 | -1
+) {
+  const { ballSize } = config;
+  const relativeIntersectY = (state.ballY + ballSize / 2) - (paddleY + paddleHeight / 2);
+  const normalized = relativeIntersectY / (paddleHeight / 2);
+
+  if (Math.abs(normalized) <= 0.15) state.ballFlash = 20;
+
+  const bounceAngle = normalized * config.maxBounceAngle;
+  const speedRatio = 1 - Math.abs(normalized);
+
+  state.ballSpeedX = direction * Math.max(config.maxSpeed * speedRatio, config.minSpeed);
+  state.ballSpeedY = direction * state.ballSpeedX * Math.sin(bounceAngle);
+}
+
+function resetBall(width: number, height: number, config: GameConfig, state: GameState) {
+  state.ballX = width / 2 - config.ballSize / 2;
+  state.ballY = height / 2 - config.ballSize / 2;
+  state.ballSpeedX = Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3;
+  state.ballSpeedY = Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3;
 }
