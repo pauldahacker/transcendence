@@ -5,7 +5,8 @@ export interface TournamentState {
     winners: string[];
     stopCurrentGame: (() => void) | null;
 }
-  
+
+// creates a TournamentState interface
 export function createTournamentState(matches: [string, string][]): TournamentState {
   return {
       active: true,

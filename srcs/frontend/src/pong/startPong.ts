@@ -6,12 +6,17 @@ import { showStartScreen } from "./startScreen";
 import { showPauseScreen } from "./pause";
 import { AIController, startSimpleAI } from "./ai";
 
-export function startPong(
-  canvas: HTMLCanvasElement,
+/*
+startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, pause, and cleanup.
+  canvas: the HTML element in which to draw the game
+  onGameover: callback when either player wins (displays winning animation + end screen)
+  options: which player(s) should be AI-controlled
+*/
+export function startPong(canvas: HTMLCanvasElement,
   onGameOver: (winner: number) => void,
-  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}
-) {
-  const { aiPlayer1 = false, aiPlayer2 = false } = options;
+  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {})
+{
+  const { aiPlayer1 = false, aiPlayer2 = false } = options; // default
   const ctx = canvas.getContext("2d")!;
 
   // Real canvas dimensions
@@ -26,7 +31,7 @@ export function startPong(
   // -> we measure speed in how much time it takes to go from one end to the other
   const targetFPS = 60; // requestAnimationFrame() is by default 60 FPS (1 frame every 16.667 ms)
   const minSpeed = BASE_WIDTH / (2 * targetFPS); // cross in 2 seconds
-  const maxSpeed = BASE_WIDTH / (1 * targetFPS); // cross in 1 second
+  const maxSpeed = BASE_WIDTH / (0.8 * targetFPS); // cross in 0.8 seconds
   
 
   // Physics config (independent of actual screen size)
@@ -40,7 +45,6 @@ export function startPong(
     maxBounceAngle: Math.PI / 4,
   };
 
-  // State in virtual resolution
   const state: GameState = {
     paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
     paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
@@ -64,7 +68,8 @@ export function startPong(
     if (e.code === "Space") paused = !paused;
   }
 
-  const aiControllers: AIController[] = [];
+  const aiControllers: AIController[] = []; // AI controllers stored in array so they can be stopped later.
+  // If AI is enabled, start AI for that player (0 = left paddle, 1 = right paddle).
   if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
   if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
 
@@ -85,11 +90,13 @@ export function startPong(
     state.animationId = requestAnimationFrame(loop);
   }
 
+  // At the end of the start screen (when a user presses a key), enter the loop.
   showStartScreen(canvas, () => {
     document.addEventListener("keydown", handlePause);
     loop();
   });
 
+  // when leaving the game screen, startPong() returns this cleanup function
   return () => {
     state.gameRunning = false;
     if (state.animationId) cancelAnimationFrame(state.animationId);

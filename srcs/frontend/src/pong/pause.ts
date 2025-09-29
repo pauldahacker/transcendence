@@ -1,3 +1,4 @@
+// draw the pause screen inside the canvas
 export function showPauseScreen(canvas: HTMLCanvasElement) {
 	const ctx = canvas.getContext("2d")!;
 	
