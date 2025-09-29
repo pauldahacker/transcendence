@@ -48,15 +48,3 @@ We also have access to pretty cool-looking fonts (downloaded from Google Fonts [
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model
 
-
-Next steps:
-
--> Make pong controls better: https://developer.mozilla.org/en-US/docs/Games/Techniques/Control_mechanisms/Desktop_with_mouse_and_keyboard (For now, the controls dont work when pressed at the same time.)
-
--> Add "Player 1" and "Player 2" in Blue and Red on pong game.
-
--> Add a Tournament page (A registration system and matchmaking).
-
--> Make the Results page better.
-
--> Implement a Backend? probably

@@ -13,17 +13,17 @@ export interface GameState {
 	ballFlash: number; // number of frames for flashing perfect shot
 	paddle1Flash: number;
   	paddle2Flash: number;
-  }
+}
   
-  export interface GameConfig {
+export interface GameConfig {
 	paddleHeight: number;
 	paddleWidth: number;
 	paddleSpeed: number;
 	ballSize: number;
-	minSpeedX : number;
-	maxSpeedX : number;
+	minSpeed : number;
+	maxSpeed : number;
 	maxBounceAngle : number;
-  }
+}
   
-  export type KeyState = Record<string, boolean>;
+export type KeyState = Record<string, boolean>;
   
