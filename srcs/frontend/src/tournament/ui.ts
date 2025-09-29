@@ -52,7 +52,7 @@ export function createMatchList(
   
       matchEl.innerHTML = `<span class="text-gray-500 font-bold">Round finished</span><span>${p1Styled} vs ${p2Styled}</span>`;
     } else if (i === currentMatch) {
-      // Next match (highlighted green, always appears at the top)
+      // Next match
       const isFinal = matches.length === 1;
       const label = isFinal ? "Final" : "Next Match";
 

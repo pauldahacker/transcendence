@@ -4,46 +4,50 @@ import { update } from "./update";
 import { setupInput } from "./input";
 import { showStartScreen } from "./startScreen";
 import { showPauseScreen } from "./pause";
+import { AIController, startSimpleAI } from "./ai";
 
-export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number) => void) {
+export function startPong(
+  canvas: HTMLCanvasElement,
+  onGameOver: (winner: number) => void,
+  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}
+) {
+  const { aiPlayer1 = false, aiPlayer2 = false } = options;
   const ctx = canvas.getContext("2d")!;
+
+  // Real canvas dimensions
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
+  // Virtual resolution (fixed physics space)
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
-  const scaleX = canvas.width / BASE_WIDTH;
-  const scaleY = canvas.height / BASE_HEIGHT;
+  // changed the speed to fixed FPS:
+  // -> we measure speed in how much time it takes to go from one end to the other
+  const targetFPS = 60; // requestAnimationFrame() is by default 60 FPS (1 frame every 16.667 ms)
+  const minSpeed = BASE_WIDTH / (2 * targetFPS); // cross in 2 seconds
+  const maxSpeed = BASE_WIDTH / (1 * targetFPS); // cross in 1 second
+  
 
-  // const config: GameConfig = {
-  //   paddleHeight: canvas.height / 6,
-  //   paddleWidth: canvas.width / 40,
-  //   paddleSpeed: canvas.height / 80,
-  //   ballSize: canvas.width / 40,
-  //   minSpeedX : canvas.width / 160,
-  //   maxSpeedX : canvas.width / 80,
-  //   maxBounceAngle : Math.PI / 4,
-  // };
-
+  // Physics config (independent of actual screen size)
   const config: GameConfig = {
-    paddleHeight: canvas.height / 6,
-    paddleWidth: canvas.width / 40,
-    paddleSpeed: 10 * scaleY,
-    ballSize: canvas.width / 40,
-    minSpeedX: 10 * scaleX,
-    maxSpeedX: 20 * scaleX,
+    paddleHeight: 100,
+    paddleWidth: 25,
+    paddleSpeed: BASE_WIDTH / (1 * targetFPS),
+    ballSize: 25,
+    minSpeed: BASE_WIDTH / (1.5 * targetFPS),
+    maxSpeed: BASE_WIDTH / (0.75 * targetFPS),
     maxBounceAngle: Math.PI / 4,
   };
 
-
+  // State in virtual resolution
   const state: GameState = {
-    paddle1Y: canvas.height / 2 - config.paddleHeight / 2,
-    paddle2Y: canvas.height / 2 - config.paddleHeight / 2,
-    ballX: canvas.width / 2 - config.ballSize / 2,
-    ballY: canvas.height / 2 - config.ballSize / 2,
-    ballSpeedX: Math.random() > 0.5 ?  config.minSpeedX / 2 : -config.minSpeedX / 2,
-    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeedX / 2 : Math.random() * -config.minSpeedX / 2,
+    paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
+    ballX: BASE_WIDTH / 2 - config.ballSize / 2,
+    ballY: BASE_HEIGHT / 2 - config.ballSize / 2,
+    ballSpeedX: Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3,
+    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3,
     score1: 0,
     score2: 0,
     gameRunning: true,
@@ -57,25 +61,32 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
 
   let paused = false;
   function handlePause(e: KeyboardEvent) {
-    if (e.code === "Space") {
-      paused = !paused;
-    }
+    if (e.code === "Space") paused = !paused;
   }
+
+  const aiControllers: AIController[] = [];
+  if (aiPlayer1) aiControllers.push(startSimpleAI(0, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
+  if (aiPlayer2) aiControllers.push(startSimpleAI(1, config, state, BASE_WIDTH, BASE_HEIGHT, keys));
 
   function loop() {
     if (!state.gameRunning) return;
     if (!paused) {
-      update(canvas, state, config, keys, onGameOver);
-      draw(ctx, canvas, state, config);
-    } else {
-      draw(ctx, canvas, state, config);
-      showPauseScreen(canvas);
+      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
+
+    // Scale drawing to match actual canvas size
+    ctx.save();
+    ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+    draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
+    ctx.restore();
+
+    if (paused) showPauseScreen(canvas);
+
     state.animationId = requestAnimationFrame(loop);
   }
 
   showStartScreen(canvas, () => {
-    document.addEventListener("keydown", handlePause); // <-- add listener here
+    document.addEventListener("keydown", handlePause);
     loop();
   });
 
@@ -84,5 +95,6 @@ export function startPong(canvas: HTMLCanvasElement, onGameOver: (winner: number
     if (state.animationId) cancelAnimationFrame(state.animationId);
     cleanupInput();
     document.removeEventListener("keydown", handlePause);
+    aiControllers.forEach(ai => ai.stop());
   };
 }
