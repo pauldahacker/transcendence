@@ -1,3 +1,4 @@
+// Displays the correct number of boxes for tournament alias input.
 export function createAliasOverlay(numPlayers: number): HTMLDivElement {
     const overlay = document.createElement("div");
     overlay.className = "absolute inset-0 bg-black/70 flex flex-col justify-center items-center gap-4";
@@ -11,7 +12,8 @@ export function createAliasOverlay(numPlayers: number): HTMLDivElement {
   
     return overlay;
 }
-  
+
+// Creates, fills and returns the match list container.
 export function createMatchList(
   matches: [string, string][],
   winners: string[],

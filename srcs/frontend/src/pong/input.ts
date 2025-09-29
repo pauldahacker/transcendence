@@ -1,5 +1,6 @@
 import { KeyState } from "./types";
 
+// attaches key listeners and fills the keys object. Returns a cleanup function to remove the listeners later.
 export function setupInput(keys: KeyState) {
   function handleKeyDown(e: KeyboardEvent) {
     keys[e.key] = true;
