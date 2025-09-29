@@ -40,6 +40,7 @@ export function renderTournament(root: HTMLElement) {
     document.querySelectorAll(".overlay").forEach((el) => el.remove());
   });
 
+  // When the 2 player or 4 player button is pressed, show the correct overlay to allow alias input.
   function showAliasOverlay(numPlayers: number) {
     const overlay = createAliasOverlay(numPlayers);
 
@@ -58,13 +59,16 @@ export function renderTournament(root: HTMLElement) {
     document.body.appendChild(overlay);
 
     startButton.addEventListener("click", () => {
+      // When the start button is clicked, check the aliases
       let aliases = Array.from(overlay.querySelectorAll<HTMLInputElement>("input")).map((input) => input.value.trim());
 
+      // Brackets reserved for bots (e.g. [AI] 1)
       if (aliases.some(name => name.includes("[") || name.includes("]"))) {
         alert("No brackets [] allowed.");
         return;
       }
 
+      // No name can exceed 16 characters
       if (aliases.some((name) => name.length > 16)) {
         alert("Player names cannot exceed 16 characters.");
         return;
@@ -79,6 +83,7 @@ export function renderTournament(root: HTMLElement) {
         return name;
       });
 
+      // No repeated names
       const uniqueAliases = new Set(aliases);
       if (uniqueAliases.size !== aliases.length) {
         alert("Player names must be unique.");
@@ -88,13 +93,15 @@ export function renderTournament(root: HTMLElement) {
       overlay.remove();
       container.remove();
 
+      // shuffle the aliases for pseudo-random matchmaking
       const shuffled = aliases.sort(() => Math.random() - 0.5);
-      const matches: [string, string][] = [];
+      const matches: [string, string][] = []; // make pairs
       for (let i = 0; i < shuffled.length; i += 2)
         matches.push([shuffled[i], shuffled[i + 1]]);
 
+      // create starting state and display the match list
       const state = createTournamentState(matches);
-      showMatchList(root, state);
+      showMatchList(root, state); 
     });
 
     backButton.addEventListener("click", () => {
