@@ -9,27 +9,32 @@ import { AIController, startSimpleAI } from "./ai";
 export function startPong(
   canvas: HTMLCanvasElement,
   onGameOver: (winner: number) => void,
-  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {}
+  options: {
+    aiPlayer1?: boolean;
+    aiPlayer2?: boolean;
+    render3D?: (state: GameState, config: GameConfig) => void; // ⬅ nuevo hook por frame
+    skip2DDraw?: boolean;                                       // ⬅ no dibujar el canvas 2D
+  } = {}
 ) {
-  const { aiPlayer1 = false, aiPlayer2 = false } = options;
+  const {
+    aiPlayer1 = false,
+    aiPlayer2 = false,
+    render3D,
+    skip2DDraw = false,
+  } = options;
+
   const ctx = canvas.getContext("2d")!;
 
-  // Real canvas dimensions
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  // Dimensiones reales del canvas (para el caso en que SÍ dibujemos 2D)
+  canvas.width = canvas.clientWidth || canvas.width;
+  canvas.height = canvas.clientHeight || canvas.height;
 
-  // Virtual resolution (fixed physics space)
+  // Espacio virtual fijo para la física
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
-  // changed the speed to fixed FPS:
-  // -> we measure speed in how much time it takes to go from one end to the other
-  const targetFPS = 60; // requestAnimationFrame() is by default 60 FPS (1 frame every 16.667 ms)
-  const minSpeed = BASE_WIDTH / (2 * targetFPS); // cross in 2 seconds
-  const maxSpeed = BASE_WIDTH / (1 * targetFPS); // cross in 1 second
-  
-
-  // Physics config (independent of actual screen size)
+  const targetFPS = 60;
+  // velocidades en "pixeles virtuales por frame"
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
@@ -40,14 +45,16 @@ export function startPong(
     maxBounceAngle: Math.PI / 4,
   };
 
-  // State in virtual resolution
   const state: GameState = {
     paddle1Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
     paddle2Y: BASE_HEIGHT / 2 - config.paddleHeight / 2,
     ballX: BASE_WIDTH / 2 - config.ballSize / 2,
     ballY: BASE_HEIGHT / 2 - config.ballSize / 2,
     ballSpeedX: Math.random() > 0.5 ? config.minSpeed / 3 : -config.minSpeed / 3,
-    ballSpeedY: Math.random() > 0.5 ? Math.random() * config.minSpeed / 3 : Math.random() * -config.minSpeed / 3,
+    ballSpeedY:
+      Math.random() > 0.5
+        ? Math.random() * config.minSpeed / 3
+        : Math.random() * -config.minSpeed / 3,
     score1: 0,
     score2: 0,
     gameRunning: true,
@@ -70,17 +77,25 @@ export function startPong(
 
   function loop() {
     if (!state.gameRunning) return;
+
     if (!paused) {
       update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
 
-    // Scale drawing to match actual canvas size
-    ctx.save();
-    ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
-    draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
-    ctx.restore();
+    // Dibujo 2D (opcional)
+    if (!skip2DDraw) {
+      ctx.save();
+      ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
+      draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
+      ctx.restore();
 
-    if (paused) showPauseScreen(canvas);
+      if (paused) showPauseScreen(canvas);
+    }
+
+    // Hook 3D por frame
+    if (render3D) {
+      render3D(state, config);
+    }
 
     state.animationId = requestAnimationFrame(loop);
   }
@@ -90,11 +105,12 @@ export function startPong(
     loop();
   });
 
+  // función de parada/limpieza
   return () => {
     state.gameRunning = false;
     if (state.animationId) cancelAnimationFrame(state.animationId);
     cleanupInput();
     document.removeEventListener("keydown", handlePause);
-    aiControllers.forEach(ai => ai.stop());
+    aiControllers.forEach((ai) => ai.stop());
   };
 }
