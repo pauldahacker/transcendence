@@ -6,70 +6,88 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:23:43 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/28 21:52:59 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/30 04:09:00 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-const fs = require('fs');
-const path = require('path');
-const Fastify = require('fastify');
-const authGuard = require('./authGuard');
+// api-gateway/server.js
+const Fastify = require("fastify");
+const fs = require("fs");
+const path = require("path");
 
-const CERT_DIR = '/certs';
-const AUTH_URL = process.env.AUTH_URL || 'http://auth:3001';
+const USE_HTTP = process.env.USE_HTTP === "1";
+const PORT = Number(process.env.PORT || (USE_HTTP ? 3000 : 443));
+const HOST = process.env.HOST || "0.0.0.0";
 
-const fastify = Fastify({
-  logger: true,
-  https: {
-    key: fs.readFileSync(path.join(CERT_DIR, 'localhost-key.pem')),
-    cert: fs.readFileSync(path.join(CERT_DIR, 'localhost.pem')),
-  },
-});
+// Build fastify instance (no auto-listen)
+function build() {
+  const fastify = USE_HTTP
+    ? Fastify({ logger: true })
+    : Fastify({
+        logger: true,
+        https: {
+          key: fs.readFileSync(path.join(__dirname, "../certs/localhost-key.pem")),
+          cert: fs.readFileSync(path.join(__dirname, "../certs/localhost.pem")),
+        },
+      });
 
-// basic hardening & CORS for local dev
-async function build() {
-  await fastify.register(require('@fastify/helmet'));
-  await fastify.register(require('@fastify/cors'), {
-    origin: true, // allow your SPA origin in dev; tighten later
+  // CORS: permissive in dev; tighten later
+  fastify.register(require("@fastify/cors"), {
+    origin: (origin, cb) => cb(null, true),
     credentials: true,
   });
 
-  // liveness
-  fastify.get('/healthz', async () => ({ status: 'ok' }));
+  // Security headers (optional)
+  try {
+    fastify.register(require("@fastify/helmet"), { global: true, contentSecurityPolicy: false });
+  } catch (_) {}
 
-// Load same JWT secret used in auth service
-const JWT_SECRET = process.env.AUTH_JWT_SECRET || 'dev_secret';
+  // Health
+  fastify.get("/healthz", async () => ({ status: "ok" }));
 
-// Protect tournament routes
-fastify.addHook('onRequest', async (req, reply) => {
-  if (req.url.startsWith('/tournaments')) {
-    await authGuard(JWT_SECRET)(req, reply);
-  }
-});
+  // Proxy to services
+  const proxy = require("@fastify/http-proxy");
 
-  // proxy /auth/* > auth service
-  await fastify.register(require('@fastify/http-proxy'), {
-    upstream: AUTH_URL,
-    prefix: '/auth',
-    rewritePrefix: '/', // so /auth/healthz → /healthz on the auth service
-  });
-  
-  const TOURN_URL = process.env.TOURN_URL || 'http://tournaments:3003';
-
-  // proxy /tournaments/* > tournaments service
-  await fastify.register(require('@fastify/http-proxy'), {
-    upstream: TOURN_URL,
-    prefix: '/tournaments',
-    rewritePrefix: '/', // so /tournaments/x → /x inside the service
+  // auth service (inside compose network)
+  fastify.register(proxy, {
+    upstream: process.env.AUTH_UPSTREAM || "http://auth:3001",
+    prefix: "/auth",
+    rewritePrefix: "/",
   });
 
+  // tournaments service (JWT-guarded, but for now the gateway only forwards)
+  fastify.register(async (instance) => {
+    // Minimal guard (future: verify JWT properly and inject x-user-id)
+    instance.addHook("onRequest", async (req, rep) => {
+      // temporary hack: pass Authorization through; tournaments may require it
+      // Later: verify JWT here, then set req.headers['x-user-id'] = <from token>
+      return;
+    });
 
-  const port = 443;
-  await fastify.listen({ port, host: '0.0.0.0' });
-  fastify.log.info(`gateway up on https://0.0.0.0:${port}`);
+    instance.register(proxy, {
+      upstream: process.env.TOURN_UPSTREAM || "http://tournaments:3003",
+      prefix: "/tournaments",
+      rewritePrefix: "/",
+    });
+  });
+
+  return fastify;
 }
 
-build().catch((err) => {
-  fastify.log.error(err);
-  process.exit(1);
-});
+async function start() {
+  const fastify = build();
+  try {
+    await fastify.listen({ port: PORT, host: HOST });
+    fastify.log.info(`[api-gateway] listening on ${USE_HTTP ? "http" : "https"}://${HOST}:${PORT}`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+}
+
+// If run directly, start once. If imported, only export helpers.
+if (require.main === module) {
+  start();
+}
+
+module.exports = { build, start };
