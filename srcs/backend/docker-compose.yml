@@ -4,7 +4,9 @@ services:
   api-gateway:
     build: ./api-gateway
     ports:
-      - "${GATEWAY_PORT}:443"
+      - "3000:3000"   # dev HTTP
+      # - "443:443"   # keep commented; use when we go back to HTTPS
+      # - "${GATEWAY_PORT}:443"
     volumes:
       - ./certs:/certs:ro
     environment:
@@ -12,6 +14,8 @@ services:
       - AUTH_URL=http://auth:${AUTH_PORT}
       - TOURN_URL=http://tournaments:3003
       - AUTH_JWT_SECRET=auth_jwt_secret_dev_2025!!
+      - USE_HTTP=1
+      - PORT=3000
     depends_on:
       - auth
       - tournaments
