@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 18:26:38 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/30 04:12:53 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/09/30 15:39:05 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ function inferApiBase(): string {
     return "http://localhost:3000";
   }
   // Fallback (prod / nginx bundle): keep https
-  return "https://localhost";
+  return "http://localhost:3000";
 }
 const API_BASE = inferApiBase();
 
