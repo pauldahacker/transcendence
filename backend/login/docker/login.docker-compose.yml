@@ -1,0 +1,9 @@
+services:
+  login:
+    build:
+      context: ../src
+      dockerfile: ../docker/login.Dockerfile
+    container_name: login
+    networks:
+      - backend
+    restart: always
