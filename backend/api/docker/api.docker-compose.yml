@@ -6,4 +6,4 @@ services:
     container_name: api
     restart: always
     volumes:
-      - ../../certs:/certs:ro
+      - ../../ssl-certs:/certs:ro

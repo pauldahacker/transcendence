@@ -7,6 +7,8 @@ services:
       service: frontend
     ports:
       - "5173:5173"
+    depends_on:
+      - api
 
   api:
     extends:
@@ -37,6 +39,13 @@ services:
       - backend
     expose:
       - "3002"
+
+  ssl-certs:
+    build:
+      context: backend/ssl-certs
+      dockerfile: docker/ssl-certs.Dockerfile
+    volumes:
+      - ./backend/ssl-certs:/certs
 
 networks:
   backend:
