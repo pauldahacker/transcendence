@@ -15,7 +15,7 @@ const Fastify = require("fastify");
 const fs = require("fs");
 const path = require("path");
 
-const USE_HTTP = process.env.USE_HTTP === "1";
+const USE_HTTP = process.env.USE_HTTP === 1;
 const PORT = Number(process.env.PORT || (USE_HTTP ? 3000 : 443));
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -42,9 +42,6 @@ function build() {
     fastify.register(require("@fastify/helmet"), { global: true, contentSecurityPolicy: false });
   } catch (_) {}
 
-  // Health
-  fastify.get("/healthz", async () => ({ status: "ok" }));
-
   // Proxy to services
   const proxy = require("@fastify/http-proxy");
 
@@ -65,9 +62,8 @@ function build() {
     });
 
     instance.register(proxy, {
-      upstream: process.env.TOURN_UPSTREAM || "http://tournaments:3003",
-      prefix: "/tournaments",
-      rewritePrefix: "/",
+      upstream: process.env.TOURN_UPSTREAM || "http://tournaments:3002",
+      prefix: "/tournaments"
     });
   });
 

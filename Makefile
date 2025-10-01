@@ -1,39 +1,50 @@
-BLUE 	= \033[0;34m
-GREEN 	= \033[0;32m
-RED 	= \033[0;31m
-ORANGE	= \033[38;5;209m
-YELLOW	= \033[0;93m
-BROWN 	= \033[38;2;184;143;29m
-RESET 	= \033[0m
+YELLOW=\033[1;33m
+BLUE=\033[1;34m
+GREEN=\033[1;32m
+CYAN=\033[1;36m
+BOLD=\033[1m
+RESET=\033[0m
 
-FRONTEND = ./srcs/frontend
+define help_message =
+	@echo -e "$(YELLOW)$(BOLD)[Makefile]$(RESET)$(BOLD)${1}$(RESET)"
+endef
 
-DC = docker compose -f srcs/docker-compose.yml
+PROJECT_NAME=trascendence
 
-all: build up
-
-
-build:
-	@echo "$(YELLOW)Building Docker images...$(RESET)"
-	$(DC) build
-dev:
-	@echo "$(YELLOW)Starting frontend dev container...$(RESET)"
-	$(DC) --profile dev up --build frontend-dev
-
-clean:
-	@echo "$(ORANGE)Stopping containers and removing volumes...$(ORANGE)"
-	-$(DC) down -v
-	rm -rf srcs/dist
-
-fclean: clean
-	@echo "$(RED)Removing all installed dependencies...$(RESET)"
-	rm -rf srcs/frontend/node_modules
+all:
+	@echo
+	@echo -e "${BLUE}${BOLD}Available recipes:"
+	
+	@echo -e "  ${GREEN}${BOLD}up               ${CYAN}- Run the containerized application"
+	@echo -e "  ${GREEN}${BOLD}build            ${CYAN}- Build the container image"
+	@echo -e "  ${GREEN}${BOLD}down             ${CYAN}- Stop the containerized application"
+	@echo -e "  ${GREEN}${BOLD}clean            ${CYAN}- Stop the application and remove the database volume"
+	@echo -e "  ${GREEN}${BOLD}fclean           ${CYAN}- Remove container images"
+	@echo -e "  ${GREEN}${BOLD}re               ${CYAN}- Rebuild and restart the application"
+	@echo
 
 up:
-	@echo "$(YELLOW)Starting containers...$(RESET)"
-	$(DC) up -d
-	@echo "$(GREEN)Ok!$(RESET)"
+	$(call help_message, "Running the containerized application...")
+	docker compose up -d
+	$(call help_message, "Application is ready!")
+	docker compose logs -f || true
 
-re: fclean all
+build:
+	$(call help_message, "Building the container image...")
+	docker compose build
 
-.PHONY: all clean fclean ts build up re dev
+down:
+	$(call help_message, "Stopping the containerized application...")
+	docker compose down
+
+clean:
+	$(call help_message, "Stopping the containerized application and removing the database volume...")
+	docker compose down -v
+
+fclean: clean
+	$(call help_message, "Removing container images...")
+	docker rmi -f $(shell docker images --format '{{.Repository}}:{{.Tag}}' | grep "^${PROJECT_NAME}")
+
+re: clean build up
+
+.PHONY: all up build down clean fclean re

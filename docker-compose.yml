@@ -1,0 +1,47 @@
+name: trascendence
+
+services:
+  frontend:
+    extends:
+      file: frontend/docker/frontend.docker-compose.yml
+      service: frontend
+    ports:
+      - "5173:5173"
+
+  api:
+    extends:
+      file: backend/api/docker/api.docker-compose.yml
+      service: api
+    networks:
+      - backend
+    ports:
+      - "443:443"
+    depends_on:
+      - auth
+      - tournaments
+
+  auth:
+    extends:
+      file: backend/auth/docker/auth.docker-compose.yml
+      service: auth
+    networks:
+      - backend
+    expose:
+      - "3001"
+
+  tournaments:
+    extends:
+      file: backend/tournaments/docker/tournaments.docker-compose.yml
+      service: tournaments
+    networks:
+      - backend
+    expose:
+      - "3002"
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  auth_data:
+  tournaments_data:
