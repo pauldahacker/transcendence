@@ -12,10 +12,10 @@ services:
     ports:
       - "5173:5173"
 
-  play:
+  tournament:
     extends:
-      file: ./backend/play/docker/play.docker-compose.yml
-      service: play
+      file: ./backend/tournament/docker/tournament.docker-compose.yml
+      service: tournament
     ports:
       - "5174:3000"
 
