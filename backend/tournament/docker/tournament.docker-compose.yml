@@ -1,0 +1,9 @@
+services:
+  tournament:
+    build:
+      context: ../src
+      dockerfile: ../docker/tournament.Dockerfile
+    container_name: tournament
+    networks:
+      - backend
+    restart: always

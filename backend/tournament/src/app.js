@@ -3,7 +3,7 @@ const fastify = require('fastify')({
 })
 
 fastify.get('/', function (request, reply) {
-  reply.send({ status: 'play service' })
+  reply.send({ status: 'tournament service' })
 })
 
 fastify.listen({ host: "0.0.0.0", port: 3000 }, function (err, address) {
