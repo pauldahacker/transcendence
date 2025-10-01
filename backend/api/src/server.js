@@ -26,8 +26,8 @@ function build() {
     : Fastify({
         logger: true,
         https: {
-          key: fs.readFileSync(path.join(__dirname, "../certs/localhost-key.pem")),
-          cert: fs.readFileSync(path.join(__dirname, "../certs/localhost.pem")),
+          key: fs.readFileSync(path.join(__dirname, "../certs/key.pem")),
+          cert: fs.readFileSync(path.join(__dirname, "../certs/cert.pem")),
         },
       });
 
