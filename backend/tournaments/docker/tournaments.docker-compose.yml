@@ -1,0 +1,14 @@
+services:
+  tournaments:
+    build:
+      context: ../src
+      dockerfile: ../docker/tournaments.Dockerfile
+    container_name: tournaments
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - TOURN_DB_PATH=/var/lib/app/tournaments.db
+      - AUTH_INTERNAL_URL=http://auth:${AUTH_PORT}
+    volumes:
+      - tournaments_data:/var/lib/app
+    restart: always
