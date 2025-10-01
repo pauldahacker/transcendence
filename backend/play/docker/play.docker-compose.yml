@@ -1,0 +1,9 @@
+services:
+  play:
+    build:
+      context: ../src
+      dockerfile: ../docker/play.Dockerfile
+    container_name: play
+    networks:
+      - backend
+    restart: always

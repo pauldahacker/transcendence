@@ -1,0 +1,27 @@
+name: trascendence
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  frontend:
+    extends:
+      file: ./frontend/docker/frontend.docker-compose.yml
+      service: frontend
+    ports:
+      - "5173:5173"
+
+  play:
+    extends:
+      file: ./backend/play/docker/play.docker-compose.yml
+      service: play
+    ports:
+      - "5174:3000"
+
+  login:
+    extends:
+      file: ./backend/login/docker/login.docker-compose.yml
+      service: login
+    ports:
+      - "5175:3000"
