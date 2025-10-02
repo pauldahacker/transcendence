@@ -3,8 +3,8 @@ const path = require('path')
 const Fastify = require('fastify');
 
 const PORT = 443;
-const API_PORT = process.env.API_PORT || 3000;
-const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001;
+const API_PORT = 3000;
+const FRONTEND_PORT = 3001;
 
 const server = Fastify({
   logger: {
@@ -48,6 +48,10 @@ server.setErrorHandler((error, request, reply) => {
 	server.log.error(error);
 	reply.code(500).send({ error: 'Internal Server Error' });
   }
+});
+
+server.get('/health', async (request, reply) => {
+  return { status: 'ok' };
 });
 
 server.listen({ host: '0.0.0.0', port: PORT }, (err) => {

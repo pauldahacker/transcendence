@@ -7,3 +7,10 @@ services:
     restart: always
     volumes:
       - tournaments_data:/var/lib/app
+      - ../../ssl-certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:3003/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
