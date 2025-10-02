@@ -1,9 +1,9 @@
 services:
   tournaments:
+    container_name: tournaments
     build:
       context: ../src
-      dockerfile: ../docker/tournaments.Dockerfile
-    container_name: tournaments
+      dockerfile: ../docker/Dockerfile
+    restart: always
     volumes:
       - tournaments_data:/var/lib/app
-    restart: always

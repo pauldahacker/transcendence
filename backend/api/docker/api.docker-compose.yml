@@ -1,9 +1,0 @@
-services:
-  api:
-    build:
-      context: ../src
-      dockerfile: ../docker/api.Dockerfile
-    container_name: api
-    restart: always
-    volumes:
-      - ../../ssl-certs:/certs:ro

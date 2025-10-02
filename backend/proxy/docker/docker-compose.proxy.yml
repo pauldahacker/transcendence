@@ -1,0 +1,9 @@
+services:
+  proxy:
+    container_name: proxy
+    build:
+      context: ../src
+      dockerfile: ../docker/Dockerfile
+    restart: always
+    volumes:
+      - ../../ssl-certs:/certs:ro

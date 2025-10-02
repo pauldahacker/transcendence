@@ -1,9 +1,9 @@
 services:
   auth:
+    container_name: auth
     build:
       context: ../src
-      dockerfile: ../docker/auth.Dockerfile
-    container_name: auth
+      dockerfile: ../docker/Dockerfile
+    restart: always
     volumes:
       - auth_data:/var/lib/app
-    restart: always
