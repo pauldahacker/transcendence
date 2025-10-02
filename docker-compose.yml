@@ -1,44 +1,50 @@
 name: trascendence
 
 services:
-  frontend:
-    extends:
-      file: frontend/docker/frontend.docker-compose.yml
-      service: frontend
-    ports:
-      - "5173:5173"
-    depends_on:
-      - api
-
   api:
     extends:
       file: backend/api/docker/api.docker-compose.yml
       service: api
-    networks:
-      - backend
     ports:
       - "443:443"
+    links:
+      - frontend
+      - auth
+      - tournaments
     depends_on:
+      - frontend
       - auth
       - tournaments
 
+  frontend:
+    env_file: .env
+    extends:
+      file: frontend/docker/frontend.docker-compose.yml
+      service: frontend
+    environment:
+      - PORT=${FRONTEND_PORT}
+    expose:
+      - "${FRONTEND_PORT}"
+
   auth:
+    env_file: .env
     extends:
       file: backend/auth/docker/auth.docker-compose.yml
       service: auth
-    networks:
-      - backend
+    environment:
+      - PORT=${AUTH_PORT}
     expose:
-      - "3001"
+      - "${AUTH_PORT}"
 
   tournaments:
+    env_file: .env
     extends:
       file: backend/tournaments/docker/tournaments.docker-compose.yml
       service: tournaments
-    networks:
-      - backend
+    environment:
+      - PORT=${TOURNAMENTS_PORT}
     expose:
-      - "3002"
+      - "${TOURNAMENTS_PORT}"
 
   ssl-certs:
     build:
@@ -46,10 +52,6 @@ services:
       dockerfile: docker/ssl-certs.Dockerfile
     volumes:
       - ./backend/ssl-certs:/certs
-
-networks:
-  backend:
-    driver: bridge
 
 volumes:
   auth_data:

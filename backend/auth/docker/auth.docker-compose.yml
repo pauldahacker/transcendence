@@ -4,8 +4,6 @@ services:
       context: ../src
       dockerfile: ../docker/auth.Dockerfile
     container_name: auth
-    environment:
-      - AUTH_JWT_SECRET=auth_jwt_secret_dev_2025!! 
     volumes:
       - auth_data:/var/lib/app
     restart: always
