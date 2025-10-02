@@ -2,9 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const Fastify = require('fastify');
 
-const PORT = process.env.PORT || 3000;
-const AUTH_PORT = process.env.AUTH_PORT || 3001;
-const TOURNAMENTS_PORT = process.env.TOURNAMENTS_PORT || 3002;
+const PORT = 3000;
+const AUTH_PORT = 3002;
+const TOURNAMENTS_PORT = 3003;
 
 const server = Fastify({
   logger: {
@@ -25,8 +25,8 @@ const server = Fastify({
 const proxy = require('@fastify/http-proxy');
 
 const routes = [
-  { prefix: '/auth', url: `http://auth:${AUTH_PORT}` },
-  { prefix: '/tournaments', url: `http://tournaments:${TOURNAMENTS_PORT}` },
+  { prefix: '/auth', url: `https://auth:${AUTH_PORT}` },
+  { prefix: '/tournaments', url: `https://tournaments:${TOURNAMENTS_PORT}` },
 ];
 
 routes.forEach((route) => {

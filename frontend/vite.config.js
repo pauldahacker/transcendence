@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 
-const PORT = process.env.FRONTEND_PORT || 3001;
+const PORT = 3001;
 
 export default defineConfig({
   resolve: {
