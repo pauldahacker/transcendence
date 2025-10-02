@@ -15,8 +15,6 @@ services:
       service: proxy
 
   frontend:
-    expose:
-      - ${FRONTEND_PORT}
     environment:
       - PORT=${FRONTEND_PORT}
     env_file: .env
@@ -28,8 +26,6 @@ services:
     depends_on:
       - auth
       - tournaments
-    expose:
-      - ${API_PORT}
     environment:
       - PORT=${API_PORT}
       - AUTH_PORT
@@ -40,8 +36,6 @@ services:
       service: api
 
   auth:
-    expose:
-      - ${AUTH_PORT}
     environment:
       - PORT=${AUTH_PORT}
     env_file: .env
@@ -50,8 +44,6 @@ services:
       service: auth
 
   tournaments:
-    expose:
-      - ${TOURNAMENTS_PORT}
     environment:
       - PORT=${TOURNAMENTS_PORT}
     env_file: .env
