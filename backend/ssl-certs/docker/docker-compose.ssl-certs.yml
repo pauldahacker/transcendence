@@ -1,0 +1,8 @@
+services:
+  ssl-certs:
+    container_name: ssl-certs
+    build:
+      context: .
+    restart: on-failure
+    volumes:
+      - ./backend/ssl-certs:/certs

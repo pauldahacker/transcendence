@@ -1,58 +1,69 @@
 name: trascendence
-
 services:
-  api:
-    extends:
-      file: backend/api/docker/api.docker-compose.yml
-      service: api
-    ports:
-      - "443:443"
-    links:
-      - frontend
-      - auth
-      - tournaments
+  proxy:
     depends_on:
       - frontend
-      - auth
-      - tournaments
+      - api
+    ports:
+      - '443:443'
+    environment:
+      - FRONTEND_PORT
+      - API_PORT
+    env_file: .env
+    extends:
+      file: backend/proxy/docker/docker-compose.proxy.yml
+      service: proxy
 
   frontend:
-    env_file: .env
-    extends:
-      file: frontend/docker/frontend.docker-compose.yml
-      service: frontend
+    expose:
+      - ${FRONTEND_PORT}
     environment:
       - PORT=${FRONTEND_PORT}
+    env_file: .env
+    extends:
+      file: frontend/docker/docker-compose.frontend.yml
+      service: frontend
+
+  api:
+    depends_on:
+      - auth
+      - tournaments
     expose:
-      - "${FRONTEND_PORT}"
+      - ${API_PORT}
+    environment:
+      - PORT=${API_PORT}
+      - AUTH_PORT
+      - TOURNAMENTS_PORT
+    env_file: .env
+    extends:
+      file: backend/api/docker/docker-compose.api.yml
+      service: api
 
   auth:
-    env_file: .env
-    extends:
-      file: backend/auth/docker/auth.docker-compose.yml
-      service: auth
+    expose:
+      - ${AUTH_PORT}
     environment:
       - PORT=${AUTH_PORT}
-    expose:
-      - "${AUTH_PORT}"
-
-  tournaments:
     env_file: .env
     extends:
-      file: backend/tournaments/docker/tournaments.docker-compose.yml
-      service: tournaments
+      file: backend/auth/docker/docker-compose.auth.yml
+      service: auth
+
+  tournaments:
+    expose:
+      - ${TOURNAMENTS_PORT}
     environment:
       - PORT=${TOURNAMENTS_PORT}
-    expose:
-      - "${TOURNAMENTS_PORT}"
+    env_file: .env
+    extends:
+      file: backend/tournaments/docker/docker-compose.tournaments.yml
+      service: tournaments
 
   ssl-certs:
-    build:
-      context: backend/ssl-certs
-      dockerfile: docker/ssl-certs.Dockerfile
-    volumes:
-      - ./backend/ssl-certs:/certs
+    extends:
+      file: backend/ssl-certs/docker/docker-compose.ssl-certs.yml
+      service: ssl-certs
 
 volumes:
-  auth_data:
-  tournaments_data:
+  auth_data: null
+  tournaments_data: null

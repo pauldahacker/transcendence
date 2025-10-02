@@ -15,8 +15,8 @@ const { z } = require('zod');
 const { connect } = require('./db');
 const { request } = require('undici');
 
-const PORT = Number(process.env.PORT || 3002);
-const AUTH_INTERNAL_URL = process.env.AUTH_INTERNAL_URL || 'http://auth:3001';
+const PORT = Number(process.env.PORT || 3003);
+const AUTH_INTERNAL_URL = process.env.AUTH_INTERNAL_URL || 'http://auth:3002';
 
 const fastify = Fastify({ logger: true });
 const db = connect();
