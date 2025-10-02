@@ -6,18 +6,11 @@ services:
       - api
     ports:
       - '443:443'
-    environment:
-      - FRONTEND_PORT
-      - API_PORT
-    env_file: .env
     extends:
       file: backend/proxy/docker/docker-compose.proxy.yml
       service: proxy
 
   frontend:
-    environment:
-      - PORT=${FRONTEND_PORT}
-    env_file: .env
     extends:
       file: frontend/docker/docker-compose.frontend.yml
       service: frontend
@@ -26,27 +19,16 @@ services:
     depends_on:
       - auth
       - tournaments
-    environment:
-      - PORT=${API_PORT}
-      - AUTH_PORT
-      - TOURNAMENTS_PORT
-    env_file: .env
     extends:
       file: backend/api/docker/docker-compose.api.yml
       service: api
 
   auth:
-    environment:
-      - PORT=${AUTH_PORT}
-    env_file: .env
     extends:
       file: backend/auth/docker/docker-compose.auth.yml
       service: auth
 
   tournaments:
-    environment:
-      - PORT=${TOURNAMENTS_PORT}
-    env_file: .env
     extends:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments
