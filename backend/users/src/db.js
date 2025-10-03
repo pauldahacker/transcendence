@@ -1,63 +1,32 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   db.js                                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/09/26 05:26:38 by rzhdanov         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 const Database = require('better-sqlite3');
-const path = require('path');
+const DB_PATH = 'users.db';
 
-const DB_PATH = process.env.USERS_DB_PATH || '/var/lib/app/users.db';
+const db = new Database(DB_PATH);
 
-function connect() {
-  const db = new Database(DB_PATH);
-  db.pragma('journal_mode = WAL');
-  db.pragma('synchronous = NORMAL');
-
+function create() {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS users_users (
+    CREATE TABLE IF NOT EXISTS users_auth (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      created_at TEXT NOT NULL
-      -- display_name added via migration below
-    );
-
-    CREATE TABLE IF NOT EXISTS refresh_tokens (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      token TEXT NOT NULL UNIQUE,
-      exp INTEGER NOT NULL,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
       created_at TEXT NOT NULL,
-      FOREIGN KEY(user_id) REFERENCES users_users(id) ON DELETE CASCADE
+      is_admin BOOLEAN DEFAULT 0
     );
-    CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
-  `);
-
-  // MIGRATION: add display_name column if missing
-  const hasDisplay = db
-    .prepare(`PRAGMA table_info(users_users)`)
-    .all()
-    .some((c) => c.name === 'display_name');
-
-  if (!hasDisplay) {
-    db.exec(`ALTER TABLE users_users ADD COLUMN display_name TEXT NOT NULL DEFAULT ''`);
-  }
-
-  // Unique index on display_name for non-empty values (enforce app-side too)
-  db.exec(`
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_display_name_unique
-    ON users_users(display_name)
-    WHERE display_name <> '';
   `);
 
   return db;
 }
 
-module.exports = { connect };
+function addUser(username, password) {
+  try {
+    const stmt = db.prepare('INSERT INTO users_auth (username, password, created_at) VALUES (?, ?, datetime(\'now\'))');
+    const info = stmt.run(username, password);
+    return info;
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE')
+      throw new Error('Username already exists', { cause: { code: 409 } });
+    throw error;
+  }
+}
+
+module.exports = { create, addUser };
