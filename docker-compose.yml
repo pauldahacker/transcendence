@@ -13,6 +13,8 @@ services:
       service: proxy
 
   frontend:
+    volumes:
+      - ./common/ssl-certs/output:/certs:ro
     extends:
       file: frontend/docker/docker-compose.frontend.yml
       service: frontend

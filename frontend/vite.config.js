@@ -12,6 +12,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: PORT,
-    allowedHosts: ['frontend']
+
+    https: {
+      key: '/certs/key.pem',
+      cert: '/certs/cert.pem',
+    },
   }
 });
