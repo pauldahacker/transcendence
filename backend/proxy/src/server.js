@@ -26,7 +26,7 @@ const proxy = require('@fastify/http-proxy');
 
 const routes = [
   { prefix: '/api', url: `https://api:${API_PORT}` },
-  { prefix: '/', url: `http://frontend:${FRONTEND_PORT}` }
+  { prefix: '/', url: `https://frontend:${FRONTEND_PORT}` }
 ];
 
 routes.forEach((route) => {
