@@ -5,4 +5,4 @@ services:
       context: .
     restart: on-failure
     volumes:
-      - ../:/certs
+      - ../output/:/certs
