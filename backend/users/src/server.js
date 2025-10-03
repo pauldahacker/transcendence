@@ -21,7 +21,7 @@ const server = Fastify({
 });
 
 server.get('/', async (request, reply) => {
-  return { message: 'auth' };
+  return { message: 'users' };
 });
 
 server.get('/health', async (request, reply) => {

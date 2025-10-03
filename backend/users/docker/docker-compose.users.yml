@@ -1,12 +1,12 @@
 services:
-  auth:
-    container_name: auth
+  users:
+    container_name: users
     build:
       context: ../src
       dockerfile: ../docker/Dockerfile
     restart: always
     volumes:
-      - auth_data:/var/lib/app
+      - users_data:/var/lib/app
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:3002/health"]
       interval: 1m30s

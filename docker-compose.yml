@@ -21,7 +21,7 @@ services:
 
   api:
     depends_on:
-      - auth
+      - users
       - tournaments
     volumes:
       - ./common/ssl-certs/output:/certs:ro
@@ -29,12 +29,12 @@ services:
       file: backend/api/docker/docker-compose.api.yml
       service: api
 
-  auth:
+  users:
     volumes:
       - ./common/ssl-certs/output:/certs:ro
     extends:
-      file: backend/auth/docker/docker-compose.auth.yml
-      service: auth
+      file: backend/users/docker/docker-compose.users.yml
+      service: users
 
   tournaments:
     volumes:
@@ -49,5 +49,5 @@ services:
       service: ssl-certs
 
 volumes:
-  auth_data: null
+  users_data: null
   tournaments_data: null
