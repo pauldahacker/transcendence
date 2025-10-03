@@ -3,7 +3,7 @@ const path = require('path')
 const Fastify = require('fastify');
 
 const PORT = 3000;
-const AUTH_PORT = 3002;
+const USERS_PORT = 3002;
 const TOURNAMENTS_PORT = 3003;
 
 const server = Fastify({
@@ -25,7 +25,7 @@ const server = Fastify({
 const proxy = require('@fastify/http-proxy');
 
 const routes = [
-  { prefix: '/auth', url: `https://auth:${AUTH_PORT}` },
+  { prefix: '/users', url: `https://users:${USERS_PORT}` },
   { prefix: '/tournaments', url: `https://tournaments:${TOURNAMENTS_PORT}` },
 ];
 
