@@ -8,16 +8,13 @@ Request body:
 ```json
 {
   "username": "string",
-  "email": "string",
   "password": "string"
 }
 ```
 Response body:
 ```json
 {
-  "userId": "uuid",
-  "username": "string",
-  "email": "string",
+  "token": "string"
 }
 ```
 

@@ -16,8 +16,8 @@ const server = Fastify({
       }
     },
     https: {
-      key: fs.readFileSync("/certs/key.pem"),
-      cert: fs.readFileSync("/certs/cert.pem"),
+      key: fs.readFileSync("/app/certs/key.pem"),
+      cert: fs.readFileSync("/app/certs/cert.pem"),
     }
 });
 

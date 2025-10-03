@@ -14,10 +14,8 @@ export default defineConfig({
     port: PORT,
 
     https: {
-      key: '/certs/key.pem',
-      cert: '/certs/cert.pem',
+      key: '/app/certs/key.pem',
+      cert: '/app/certs/cert.pem',
     },
   }
 });
-
-

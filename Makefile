@@ -25,9 +25,7 @@ all:
 
 up:
 	$(call help_message, "Running the containerized application...")
-	docker compose up -d
-	$(call help_message, "Application is ready!")
-	docker compose logs -f || true
+	docker compose up --watch
 
 build:
 	$(call help_message, "Building the container image...")
