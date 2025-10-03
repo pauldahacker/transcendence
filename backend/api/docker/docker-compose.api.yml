@@ -11,3 +11,13 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
+    develop:
+      watch:
+        - action: sync
+          path: ../src
+          target: /app
+          initial_sync: true
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json

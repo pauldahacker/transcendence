@@ -1,12 +1,22 @@
 services:
   frontend:
+    container_name: frontend
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    container_name: frontend
     restart: always
-  healthcheck:
+    healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:3001" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: sync
+          path: ../
+          target: /app
+          initial_sync: true
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
