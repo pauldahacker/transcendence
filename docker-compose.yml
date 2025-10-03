@@ -6,6 +6,8 @@ services:
       - api
     ports:
       - '443:443'
+    volumes:
+      - ./common/ssl-certs/output:/certs:ro
     extends:
       file: backend/proxy/docker/docker-compose.proxy.yml
       service: proxy
@@ -19,23 +21,29 @@ services:
     depends_on:
       - auth
       - tournaments
+    volumes:
+      - ./common/ssl-certs/output:/certs:ro
     extends:
       file: backend/api/docker/docker-compose.api.yml
       service: api
 
   auth:
+    volumes:
+      - ./common/ssl-certs/output:/certs:ro
     extends:
       file: backend/auth/docker/docker-compose.auth.yml
       service: auth
 
   tournaments:
+    volumes:
+      - ./common/ssl-certs/output:/certs:ro
     extends:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments
 
   ssl-certs:
     extends:
-      file: backend/ssl-certs/docker/docker-compose.ssl-certs.yml
+      file: common/ssl-certs/docker/docker-compose.ssl-certs.yml
       service: ssl-certs
 
 volumes:
