@@ -1,9 +1,8 @@
 const fs = require('fs')
-const Fastify = require('fastify');
-
+const buildFastify = require('./app');
 const PORT = 3002;
 
-const server = Fastify({
+const server = buildFastify({
   logger: {
       transport: {
         target: 'pino-pretty',
@@ -17,14 +16,6 @@ const server = Fastify({
       key: fs.readFileSync("/app/certs/key.pem"),
       cert: fs.readFileSync("/app/certs/cert.pem"),
     }
-});
-
-server.get('/', async (request, reply) => {
-  return { message: 'users' };
-});
-
-server.get('/health', async (request, reply) => {
-  return { status: 'ok' };
 });
 
 server.listen({ host: '0.0.0.0', port: PORT }, (err) => {
