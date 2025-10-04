@@ -31,6 +31,10 @@ build:
 	$(call help_message, "Building the container image...")
 	docker compose build
 
+test:
+	$(call help_message, "Testing user API endpoints")
+	docker compose exec -it users npm test
+
 down:
 	$(call help_message, "Stopping the containerized application...")
 	docker compose down
