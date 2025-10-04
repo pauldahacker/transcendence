@@ -1,5 +1,5 @@
 const fs = require('fs')
-const { buildFastify } = require('./app');
+const { buildFastify } = require('./app/app');
 
 const DB_NAME = 'users.db'
 const PORT = 3002;

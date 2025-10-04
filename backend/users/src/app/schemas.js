@@ -6,4 +6,13 @@ function JSONError(message, statusCode, code) {
   return result;
 }
 
-module.exports = { JSONError };
+const usernameAndPasswordSchema = {
+  type: 'object',
+  properties: {
+    username: { type: 'string' },
+    password: { type: 'string' }
+  },
+  required: ['username', 'password']
+};
+
+module.exports = { JSONError, usernameAndPasswordSchema };
