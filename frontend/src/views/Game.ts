@@ -1,4 +1,6 @@
 import { startPong } from "../pong/startPong";
+import { startPong3D } from "../3d/renderStart";
+import { is3DActive } from "@/tournament/state";
 
 type RenderGameOptions = {
   onePlayer?: boolean;
@@ -75,7 +77,11 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   let stopGame: () => void;
 
   requestAnimationFrame(() => {
-    stopGame = startPong(
+
+    //we choose if 3d or no
+    const start = is3DActive ? startPong3D : startPong;
+
+    stopGame = start(
       canvas,
       (winner: number) => {
         const overlay = document.createElement("div");
