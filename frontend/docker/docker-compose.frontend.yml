@@ -12,11 +12,11 @@ services:
       retries: 5
     develop:
       watch:
-        - action: sync
-          path: ../
+        - action: sync+restart
+          path: ../src
           target: /app
           initial_sync: true
           ignore:
             - node_modules/
         - action: rebuild
-          path: package.json
+          path: ../src/package.json
