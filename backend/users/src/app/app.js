@@ -2,16 +2,8 @@
 
 const { UsersDatabase } = require('./db');
 const Fastify = require('fastify');
+const { routes } = require('../routes');
 const { JSONError } = require('./schemas');
-
-const usernameAndPasswordSchema = {
-  type: 'object',
-  properties: {
-    username: { type: 'string' },
-    password: { type: 'string' }
-  },
-  required: ['username', 'password']
-};
 
 function buildFastify(opts, dbFile) {
   const fastify = Fastify(opts);
@@ -19,7 +11,10 @@ function buildFastify(opts, dbFile) {
 
   fastify.register(require('@fastify/jwt'), { secret: process.env.JWT_SECRET });
   fastify.register(require('@fastify/auth'));
-  fastify.after(routes);
+  
+  fastify.after(() => {
+    routes(fastify, db);
+  });
 
   fastify.decorate('verifyJWT', async (request, _reply, done) => {
     const jwt = fastify.jwt;
@@ -33,7 +28,7 @@ function buildFastify(opts, dbFile) {
           throw JSONError('Token not valid', 401);
         }
 
-        password = db.getUser(decoded.user);
+        const password = db.getUser(decoded.user);
         if (password !== decoded.password)
           throw JSONError('Token credentials not valid', 401);
       } catch (error) {
@@ -56,48 +51,6 @@ function buildFastify(opts, dbFile) {
     }
     return done();
   });
-
-  function routes() {
-    fastify.get('/', async (_request, _reply) => {
-      return { message: 'users' };
-    });
-
-    fastify.get('/health', async (_request, _reply) => {
-      return { status: 'ok' };
-    });
-
-    fastify.post('/register',
-      {schema: { body: usernameAndPasswordSchema }},
-      async (request, reply) => {
-        request.log.info('Creating new user');
-        try {
-          db.addUser(request.body.username, request.body.password);
-
-          const token = fastify.jwt.sign({ user: request.body.username, password: request.body.password });
-          reply.send({ token });
-        } catch (err) {
-          throw err;
-        }
-      });
-
-    fastify.post('/login', {
-      schema: { body: usernameAndPasswordSchema },
-      preHandler: fastify.auth([
-        fastify.verifyUserAndPassword,
-      ]),
-    }, async (request, _reply) => {
-      request.log.info('User logging in');
-      try {
-        const token = fastify.jwt.sign({
-          user: request.body.username,
-          password: request.body.password
-        });
-        return { token };
-      } catch (err) {
-        throw err;
-      }
-    });
-  }
 
   return fastify;
 }
