@@ -126,7 +126,7 @@ function buildFastify(opts) {
           const token = fastify.jwt.sign({ user: req.body.username, password: req.body.password })
           reply.send({ token })
         } catch (err) {
-            reply.code(err.cause?.code || 500).send(err)
+            reply.status(err.cause?.code || 500).send(err.message);
         }
       }
     })
