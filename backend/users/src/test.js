@@ -1,8 +1,8 @@
 const { test } = require('node:test');
 const supertest = require('supertest');
 const unlink = require('fs').unlink;
-const { buildFastify } = require('./app');
-const { JSONError } = require('./schemas');
+const { buildFastify } = require('./app/app');
+const { JSONError } = require('./app/schemas');
 
 const DB_PATH = 'test.db';
 let token;
@@ -51,7 +51,6 @@ test('POST `/register` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.ok(response.body.token);
-    token = response.body.token;
   });
 
   await t.test('Second registration', async (t) => {
@@ -80,7 +79,7 @@ test('POST `/login` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.ok(response.body.token);
-    t.assert.strictEqual(response.body.token, token);
+    token = response.body.token;
   });
 
   await t.test('Login with incorrect password', async (t) => {
@@ -101,5 +100,41 @@ test('POST `/login` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(response.body, JSONError('User not found', 404));
+  });
+});
+
+test('POST `/logout` route', async (t) => {
+  const app = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('Logout with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, { message: 'Logged out successfully' });
+  });
+
+  await t.test('Logout with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
+
+  await t.test('Logout with blacklisted token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
   });
 });

@@ -2,7 +2,7 @@
 
 ### User endpoints
 
-- Endpoint: `POST   /api/users/register`
+#### Endpoint: `POST   /api/users/register`
 
 Request body:
 ```json
@@ -20,7 +20,7 @@ Response body:
 Error responses:
 - `409`: Username already exists
 
-- Endpoint: `POST   /api/users/login`
+#### Endpoint: `POST   /api/users/login`
 
 Request body:
 ```json
@@ -39,12 +39,45 @@ Error responses:
 - `401`: Password not valid
 - `404`: User not found
 
-- Endpoint: `POST   /api/users/logout`
+#### Endpoint: `POST   /api/users/logout`
 
 Response body:
 ```json
 {
-  "message": "
+  "message": "Logged out successfully"
+}
+```
+Error responses:
+- `401`: Invalid token header
+
+#### Endpoint: `GET    /api/users/profile`
+
+Response body:
+```json
+{
+  "user_id": "string",
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string"
+}
+```
+
+<!-- 
+
+curl -ik 'https://127.0.0.1/api/users/login' -H 'content-type: application/json' --data '{"username": "myuser4","password":"mypass2"}' && echo
+
+export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyNCIsImp0aSI6IjFmMGExNzU5LWM5NmEtNjdkMC1iN2JhLTliZjlhZmIwNGIzMiIsImlhdCI6MTc1OTYxODY5NSwiZXhwIjoxNzU5NjIyMjk1fQ.m9KXDuUQodm2FeTZMDFZEE62zhKzDPsgeVByodThuWM"
+
+curl -ik 'https://127.0.0.1/api/users/verify' \
+-H "content-type: application/json; charset=utf-8" \
+-H "Authorization: Bearer $TOKEN" && echo
+
+curl -ik 'https://127.0.0.1/api/users/logout' \
+-H "content-type: application/json; charset=utf-8" \
+-H "Authorization: Bearer $TOKEN" && echo
+
+
+
 - Endpoint: `GET    /api/users/{userId}`
 - Endpoint: `DELETE /api/users/{userId}`
 - Endpoint: `PUT    /api/users/change-password`
@@ -631,4 +664,4 @@ User Service  Game Service  Tournament Service
 ---
 
 Este diseño cumple con todos los requerimientos de seguridad, es escalable mediante microservicios, y proporciona una API REST completa para el sistema de Pong con torneos.
-
+ -->

@@ -1,4 +1,6 @@
 const schemas = require('./schemas');
+const { v6: uuidv6 } = require('uuid');
+const tokenBlacklist = new Set();
 
 function routes(fastify, db) {
 	fastify.get('/', async (_request, _reply) => {
@@ -16,30 +18,57 @@ function routes(fastify, db) {
 			try {
 				db.addUser(request.body.username, request.body.password);
 
-				const token = fastify.jwt.sign({ user: request.body.username, password: request.body.password });
+				const token = fastify.jwt.sign({
+					user: request.body.username,
+					jti: uuidv6(),
+				}, { expiresIn: '1h' });
 				reply.send({ token });
 			} catch (err) {
 				throw err;
 			}
-		});
+		}
+	);
 
 	fastify.post('/login', {
-		schema: { body: schemas.usernameAndPasswordSchema },
-		preHandler: fastify.auth([
-			fastify.verifyUserAndPassword,
-		]),
-	}, async (request, _reply) => {
-		request.log.info('User logging in');
-		try {
-			const token = fastify.jwt.sign({
-				user: request.body.username,
-				password: request.body.password
-			});
-			return { token };
-		} catch (err) {
-			throw err;
+			schema: { body: schemas.usernameAndPasswordSchema },
+			preHandler: fastify.auth([
+				fastify.verifyUserAndPassword,
+			]),
+		}, async (request, _reply) => {
+			request.log.info('User logging in');
+			try {
+				const token = fastify.jwt.sign({
+					user: request.body.username,
+					jti: uuidv6(),
+				}, { expiresIn: '1h' });
+				return { token };
+			} catch (err) {
+				throw err;
+			}
 		}
-	});
+	);
+
+	fastify.post('/logout', {
+			preHandler: fastify.auth([
+				fastify.verifyJWT,
+			]),
+		}, async (request, reply) => {
+			request.log.info('User logging out');
+			try {				
+				tokenBlacklist.add(request.user.jti);
+				reply.send({ message: 'Logged out successfully' });
+			} catch (err) {
+					throw err;
+			}
+		}
+	);
+
+	fastify.get('/verify', function (request, reply) {
+		request.jwtVerify(function (err, decoded) {
+			return reply.send(err || decoded)
+		})
+	})
+
 }
 
-module.exports = { routes };
+module.exports = { routes, tokenBlacklist };
