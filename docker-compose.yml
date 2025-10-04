@@ -24,6 +24,10 @@ services:
       service: api
 
   users:
+    env_file:
+      - .env
+    environment:
+      - JWT_SECRET
     extends:
       file: backend/users/docker/docker-compose.users.yml
       service: users

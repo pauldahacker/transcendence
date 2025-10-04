@@ -7,7 +7,7 @@ function buildFastify(opts, dbFile) {
   const fastify = Fastify(opts);
   const db = new UsersDatabase(dbFile);
 
-  fastify.register(require('@fastify/jwt'), { secret: 'supersecret' });
+  fastify.register(require('@fastify/jwt'), { secret: process.env.JWT_SECRET });
   fastify.register(require('@fastify/auth'));
   fastify.after(routes);
 
