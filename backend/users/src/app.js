@@ -1,29 +1,11 @@
 'use strict'
-/*
-Register a user:
 
-    curl -i 'http://127.0.0.1:3000/register' -H 'content-type: application/json' --data '{"user": "myuser","password":"mypass"}'
-Will return:
-    {"token":"YOUR_JWT_TOKEN"}
-
-The application then:
-1. generates a JWT token (from 'supersecret') and adds to the response headers
-1. inserts user in the leveldb
-
-Check it's all working by using one or the other auth mechanisms:
-1. Auth using username and password (you can also use JWT on this endpoint)
-    curl 'http://127.0.0.1:3000/auth-multiple' -H 'content-type: application/json' --data '{"user": "myuser","password":"mypass"}'
-    {"hello":"world"}
-
-1. Auth using JWT token
-    curl -i 'http://127.0.0.1:3000/auth' -H 'content-type: application/json' -H "auth: YOUR_JWT_TOKEN"
- */
-const db = require('./db');
+const { UsersDatabase } = require('./db');
 const Fastify = require('fastify')
 
-function buildFastify(opts) {
+function buildFastify(opts, dbFile) {
   const fastify = Fastify(opts)
-  db.create()
+  const db = new UsersDatabase(dbFile)
 
   fastify.register(require('@fastify/jwt'), { secret: 'supersecret' })
   fastify.register(require('@fastify/auth'))
@@ -126,7 +108,7 @@ function buildFastify(opts) {
           const token = fastify.jwt.sign({ user: req.body.username, password: req.body.password })
           reply.send({ token })
         } catch (err) {
-            reply.status(err.cause?.code || 500).send(err.message);
+            reply.status(err.cause?.code || 500).send({ error: err.message });
         }
       }
     })
