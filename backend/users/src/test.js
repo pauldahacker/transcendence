@@ -13,7 +13,7 @@ test('GET `/` route', async (t) => {
   const app = buildFastify(opts = {}, DB_PATH);
 
   t.after(() => app.close());
-  await app.ready()
+  await app.ready();
 
   const response = await supertest(app.server)
     .get('/')
