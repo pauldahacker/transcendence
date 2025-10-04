@@ -1,7 +1,7 @@
 // src/3d/renderStart3D.ts
 import { startPong } from "@/pong/startPong";
 import type { GameState, GameConfig } from "@/pong/types";
-import { ScoreLights, buildborders } from "@/3d/sceneUtils"
+import { ScoreLights, buildborders, addSkyDome } from "@/3d/sceneUtils"
 import {
 	Engine,
 	Scene,
@@ -71,7 +71,7 @@ import { update } from "@/pong/update";
 
 		//borders
 		buildborders(scene, W, H);
-		
+		addSkyDome(scene);
 		//paddle sizes
 		const paddleXThickness = W / 40; // X
 		const paddleDepth = H / 6;       // Z
