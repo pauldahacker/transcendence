@@ -13,7 +13,7 @@ This will display a list of available commands. For a first run, simply run:
 ```bash
 make up
 ```
-This will build the Docker images and start the containers.
+This will create a default `.env` file, build the Docker images and start the containers.
 
 ## About
 
