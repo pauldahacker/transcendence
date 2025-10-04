@@ -1,91 +1,91 @@
-'use strict'
+'use strict';
 
 const { UsersDatabase } = require('./db');
-const Fastify = require('fastify')
+const Fastify = require('fastify');
 
 function buildFastify(opts, dbFile) {
-  const fastify = Fastify(opts)
-  const db = new UsersDatabase(dbFile)
+  const fastify = Fastify(opts);
+  const db = new UsersDatabase(dbFile);
 
-  fastify.register(require('@fastify/jwt'), { secret: 'supersecret' })
-  fastify.register(require('@fastify/auth'))
-  fastify.after(routes)
+  fastify.register(require('@fastify/jwt'), { secret: 'supersecret' });
+  fastify.register(require('@fastify/auth'));
+  fastify.after(routes);
 
-  fastify.decorate('verifyJWTandLevelDB', verifyJWTandLevelDB)
-  fastify.decorate('verifyUserAndPassword', verifyUserAndPassword)
+  fastify.decorate('verifyJWTandLevelDB', verifyJWTandLevelDB);
+  fastify.decorate('verifyUserAndPassword', verifyUserAndPassword);
 
   function verifyJWTandLevelDB (request, reply, done) {
-    const jwt = this.jwt
-    const level = this.level.authdb
+    const jwt = this.jwt;
+    const level = this.level.authdb;
 
     if (request.body && request.body.failureWithReply) {
-      reply.code(401).send({ error: 'Unauthorized' })
-      return done(new Error())
+      reply.code(401).send({ error: 'Unauthorized' });
+      return done(new Error());
     }
 
     if (!request.raw.headers.auth) {
-      return done(new Error('Missing token header'))
+      return done(new Error('Missing token header'));
     }
 
-    jwt.verify(request.raw.headers.auth, onVerify)
+    jwt.verify(request.raw.headers.auth, onVerify);
 
     function onVerify (err, decoded) {
       if (err || !decoded.user || !decoded.password) {
-        return done(new Error('Token not valid'))
+        return done(new Error('Token not valid'));
       }
 
-      level.get(decoded.user, onUser)
+      level.get(decoded.user, onUser);
 
       function onUser (err, password) {
         if (err) {
           if (err.notFound) {
-            return done(new Error('Token not valid'))
+            return done(new Error('Token not valid'));
           }
-          return done(err)
+          return done(err);
         }
 
         if (!password || password !== decoded.password) {
-          return done(new Error('Token not valid'))
+          return done(new Error('Token not valid'));
         }
 
-        done()
+        done();
       }
     }
   }
 
   function verifyUserAndPassword (request, _reply, done) {
-    const level = this.level.authdb
+    const level = this.level.authdb;
 
     if (!request.body || !request.body.user) {
-      return done(new Error('Missing user in request body'))
+      return done(new Error('Missing user in request body'));
     }
 
-    level.get(request.body.user, onUser)
+    level.get(request.body.user, onUser);
 
     function onUser (err, password) {
       if (err) {
         if (err.notFound) {
-          return done(new Error('Password not valid'))
+          return done(new Error('Password not valid'));
         }
-        return done(err)
+        return done(err);
       }
 
       if (!password || password !== request.body.password) {
-        return done(new Error('Password not valid'))
+        return done(new Error('Password not valid'));
       }
 
-      done()
+      done();
     }
   }
 
   function routes () {
     fastify.get('/', async (request, reply) => {
-      return { message: 'users' }
-    })
+      return { message: 'users' };
+    });
 
     fastify.get('/health', async (request, reply) => {
-      return { status: 'ok' }
-    })
+      return { status: 'ok' };
+    });
 
     fastify.route({
       method: 'POST',
@@ -101,17 +101,17 @@ function buildFastify(opts, dbFile) {
       }
       },
       handler: (req, reply) => {
-        req.log.info('Creating new user')
+        req.log.info('Creating new user');
         try {
           db.addUser(req.body.username, req.body.password);
 
-          const token = fastify.jwt.sign({ user: req.body.username, password: req.body.password })
-          reply.send({ token })
+          const token = fastify.jwt.sign({ user: req.body.username, password: req.body.password });
+          reply.send({ token });
         } catch (err) {
             reply.status(err.cause?.code || 500).send({ error: err.message });
         }
       }
-    })
+    });
 
     fastify.route({
       method: 'POST',
@@ -121,13 +121,13 @@ function buildFastify(opts, dbFile) {
         fastify.verifyUserAndPassword
       ]),
       handler: (req, reply) => {
-        req.log.info('Auth route')
-        reply.send({ hello: 'world' })
+        req.log.info('Auth route');
+        reply.send({ hello: 'world' });
       }
-    })
+    });
   }
 
-  return fastify
+  return fastify;
 }
 
-module.exports = buildFastify
+module.exports = buildFastify;
