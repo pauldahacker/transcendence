@@ -2,6 +2,16 @@
 
 const { UsersDatabase } = require('./db');
 const Fastify = require('fastify');
+const { JSONError } = require('./schemas');
+
+const usernameAndPasswordSchema = {
+  type: 'object',
+  properties: {
+    username: { type: 'string' },
+    password: { type: 'string' }
+  },
+  required: ['username', 'password']
+};
 
 function buildFastify(opts, dbFile) {
   const fastify = Fastify(opts);
@@ -11,118 +21,80 @@ function buildFastify(opts, dbFile) {
   fastify.register(require('@fastify/auth'));
   fastify.after(routes);
 
-  fastify.decorate('verifyJWTandLevelDB', verifyJWTandLevelDB);
-  fastify.decorate('verifyUserAndPassword', verifyUserAndPassword);
+  fastify.decorate('verifyJWT', async (request, _reply, done) => {
+    const jwt = fastify.jwt;
 
-  function verifyJWTandLevelDB (request, reply, done) {
-    const jwt = this.jwt;
-    const level = this.level.authdb;
+    if (!request.headers.auth || request.headers.auth.length === 0)
+      return done(JSONError('Missing token header', 401));
 
-    if (request.body && request.body.failureWithReply) {
-      reply.code(401).send({ error: 'Unauthorized' });
-      return done(new Error());
-    }
-
-    if (!request.raw.headers.auth) {
-      return done(new Error('Missing token header'));
-    }
-
-    jwt.verify(request.raw.headers.auth, onVerify);
-
-    function onVerify (err, decoded) {
-      if (err || !decoded.user || !decoded.password) {
-        return done(new Error('Token not valid'));
-      }
-
-      level.get(decoded.user, onUser);
-
-      function onUser (err, password) {
-        if (err) {
-          if (err.notFound) {
-            return done(new Error('Token not valid'));
-          }
-          return done(err);
+    jwt.verify(request.headers.auth, (err, decoded) => {
+      try {
+        if (err || !decoded.user || !decoded.password) {
+          throw JSONError('Token not valid', 401);
         }
 
-        if (!password || password !== decoded.password) {
-          return done(new Error('Token not valid'));
-        }
-
-        done();
+        password = db.getUser(decoded.user);
+        if (password !== decoded.password)
+          throw JSONError('Token credentials not valid', 401);
+      } catch (error) {
+        return done(error);
       }
+      return done();
+    });
+  });
+
+  fastify.decorate('verifyUserAndPassword', async (request, _reply, done) => {
+    if (!request.body || !request.body.username) 
+      return done(JSONError('Missing user in body', 400));
+
+    try {
+      const password = db.getUser(request.body.username);
+      if (!password || password !== request.body.password)
+        throw done(JSONError('Password not valid', 401));
+    } catch (err) {
+      return done(err);
     }
-  }
+    return done();
+  });
 
-  function verifyUserAndPassword (request, _reply, done) {
-    const level = this.level.authdb;
-
-    if (!request.body || !request.body.user) {
-      return done(new Error('Missing user in request body'));
-    }
-
-    level.get(request.body.user, onUser);
-
-    function onUser (err, password) {
-      if (err) {
-        if (err.notFound) {
-          return done(new Error('Password not valid'));
-        }
-        return done(err);
-      }
-
-      if (!password || password !== request.body.password) {
-        return done(new Error('Password not valid'));
-      }
-
-      done();
-    }
-  }
-
-  function routes () {
-    fastify.get('/', async (request, reply) => {
+  function routes() {
+    fastify.get('/', async (_request, _reply) => {
       return { message: 'users' };
     });
 
-    fastify.get('/health', async (request, reply) => {
+    fastify.get('/health', async (_request, _reply) => {
       return { status: 'ok' };
     });
 
-    fastify.route({
-      method: 'POST',
-      url: '/register',
-      schema: {
-      body: {
-        type: 'object',
-        properties: {
-          username: { type: 'string' },
-          password: { type: 'string' }
-        },
-        required: ['username', 'password']
-      }
-      },
-      handler: (req, reply) => {
-        req.log.info('Creating new user');
+    fastify.post('/register',
+      {schema: { body: usernameAndPasswordSchema }},
+      async (request, reply) => {
+        request.log.info('Creating new user');
         try {
-          db.addUser(req.body.username, req.body.password);
+          db.addUser(request.body.username, request.body.password);
 
-          const token = fastify.jwt.sign({ user: req.body.username, password: req.body.password });
+          const token = fastify.jwt.sign({ user: request.body.username, password: request.body.password });
           reply.send({ token });
         } catch (err) {
-            reply.status(err.cause?.code || 500).send({ error: err.message });
+          throw err;
         }
-      }
-    });
+      });
 
-    fastify.route({
-      method: 'POST',
-      url: '/auth',
+    fastify.post('/login', {
+      schema: { body: usernameAndPasswordSchema },
       preHandler: fastify.auth([
-        fastify.verifyJWTandLevelDB,
-        fastify.verifyUserAndPassword
+        fastify.verifyUserAndPassword,
       ]),
-      handler: (req, reply) => {
-        req.log.info('Auth route');
-        reply.send({ hello: 'world' });
+    }, async (request, _reply) => {
+      request.log.info('User logging in');
+      try {
+        const token = fastify.jwt.sign({
+          user: request.body.username,
+          password: request.body.password
+        });
+        return { token };
+      } catch (err) {
+        throw err;
       }
     });
   }
@@ -130,4 +102,4 @@ function buildFastify(opts, dbFile) {
   return fastify;
 }
 
-module.exports = buildFastify;
+module.exports = { buildFastify };
