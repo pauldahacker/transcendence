@@ -1,4 +1,5 @@
 const Database = require('better-sqlite3');
+const { JSONError } = require('./schemas');
 
 class UsersDatabase extends Database {
   constructor(filename) {
@@ -20,8 +21,22 @@ class UsersDatabase extends Database {
       const info = stmt.run(username, password);
       return info;
     } catch (error) {
-      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE')
-        throw new Error('Username already exists', { cause: { code: 409 } });
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        error = JSONError('Username already exists', 409, error.code);
+      }
+      throw error;
+    }
+  }
+
+  getUser(username) {
+    try {
+      const stmt = this.prepare('SELECT password FROM users_auth WHERE username = ?');
+      const row = stmt.get(username);
+      if (!row) {
+        throw JSONError('User not found', 404);
+      }
+      return row.password;
+    } catch (error) {
       throw error;
     }
   }
