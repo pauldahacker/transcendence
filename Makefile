@@ -48,7 +48,7 @@ ifndef ARG
 	@exit 1
 endif
 	$(call help_message, "Running test of ${ARG} service...")
-	docker compose run --rm $(ARG) npm test
+	docker compose run --build --rm $(ARG) npm test
 
 down:
 	$(call help_message, "Stopping the containerized application...")

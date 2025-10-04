@@ -49,9 +49,9 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         opponent_id INTEGER NOT NULL,
-        result TEXT NOT NULL,
+        user_score INTEGER NOT NULL,
+        opponent_score INTEGER NOT NULL,
         match_date TEXT NOT NULL,
-        details TEXT,
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE,
         FOREIGN KEY (opponent_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
