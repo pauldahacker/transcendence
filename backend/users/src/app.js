@@ -21,7 +21,7 @@ Check it's all working by using one or the other auth mechanisms:
 const db = require('./db');
 const Fastify = require('fastify')
 
-function buildFastify(opts, db) {
+function buildFastify(opts) {
   const fastify = Fastify(opts)
   db.create()
 
