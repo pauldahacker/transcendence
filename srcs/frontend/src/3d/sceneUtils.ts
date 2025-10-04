@@ -8,6 +8,7 @@ import {
 	MeshBuilder, 
 	Color3, 
 	StandardMaterial, 
+  Texture,
 	DynamicTexture, 
 } from "babylonjs";
 
@@ -126,4 +127,24 @@ export function buildborders(scene: Scene, W: number, H: number){
   bottomB.position.x = 0;
   bottomB.position.z = -(H/2 + 0.3/2 + 0.0001);
   bottomB.position.y = 0;
+}
+
+
+export function addSkyDome(scene: Scene) {
+  const spaceUrl = new URL("./textures/space.jpg", import.meta.url).href;
+  const texture = new Texture(spaceUrl, scene);
+  texture.uScale = 30; // cuántas veces se repite horizontalmente (U)
+  texture.vScale = 20; // cuántas veces se repite verticalmente (V)
+
+  const dome = MeshBuilder.CreateSphere(spaceUrl, { diameter: 150, segments: 32, sideOrientation: Mesh.BACKSIDE }, scene);
+  const mat = new StandardMaterial("skyDomeMat", scene);
+  mat.diffuseTexture = texture;
+  mat.emissiveTexture = texture;
+  //mat.emissiveColor = new Color3(1.2, 1.2, 1.2);
+  mat.disableLighting = true;
+  mat.backFaceCulling = false;
+  
+
+  dome.material = mat;
+  return dome;
 }
