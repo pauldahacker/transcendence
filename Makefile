@@ -10,6 +10,7 @@ define help_message =
 endef
 
 PROJECT_NAME=trascendence
+ENV_FILE=.env
 
 all:
 	@echo
@@ -23,7 +24,11 @@ all:
 	@echo -e "  ${GREEN}${BOLD}re               ${CYAN}- Rebuild and restart the application"
 	@echo
 
-up:
+$(ENV_FILE):
+	$(call help_message, "Creating the .env file from .env.example...")
+	cp .env.example .env
+
+up: $(ENV_FILE)
 	$(call help_message, "Running the containerized application...")
 	docker compose up --watch
 
