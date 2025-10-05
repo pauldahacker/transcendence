@@ -30,7 +30,7 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL UNIQUE,
         display_name TEXT UNIQUE,
-        avatar_url TEXT,
+        avatar_url TEXT DEFAULT 'https://avatar.iran.liara.run/public',
         bio TEXT,
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
