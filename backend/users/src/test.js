@@ -50,7 +50,8 @@ test('POST `/register` route', async (t) => {
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.ok(response.body.token);
+    t.assert.deepStrictEqual(Object.keys(response.body), ['id', 'username', 'created_at']);
+    t.assert.strictEqual(response.body.username, 'myuser');
   });
 
   await t.test('Second registration', async (t) => {

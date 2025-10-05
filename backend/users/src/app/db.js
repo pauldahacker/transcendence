@@ -61,7 +61,11 @@ class UsersDatabase extends Database {
   addUser(username, password) {
     try {
       const stmt = this.prepare('INSERT INTO users_auth (username, password, created_at) VALUES (?, ?, datetime(\'now\'))');
-      const info = stmt.run(username, password);
+      stmt.run(username, password);
+      const info = this.prepare('SELECT id, username, created_at FROM users_auth WHERE username = ?').get(username);
+
+      const profileStmt = this.prepare('INSERT INTO users_profile (user_id) VALUES (?)');
+      profileStmt.run(info.id);
       return info;
     } catch (error) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {

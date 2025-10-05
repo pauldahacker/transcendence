@@ -16,13 +16,9 @@ function routes(fastify, db) {
 		async (request, reply) => {
 			request.log.info('Creating new user');
 			try {
-				db.addUser(request.body.username, request.body.password);
+				const info = db.addUser(request.body.username, request.body.password);
 
-				const token = fastify.jwt.sign({
-					user: request.body.username,
-					jti: uuidv6(),
-				}, { expiresIn: '1h' });
-				reply.send({ token });
+				reply.send(info);
 			} catch (err) {
 				throw err;
 			}
