@@ -15,4 +15,12 @@ const usernameAndPasswordSchema = {
   required: ['username', 'password']
 };
 
-module.exports = { JSONError, usernameAndPasswordSchema };
+const usernameParamSchema = {
+  type: 'object',
+  properties: {
+    username: { type: 'string' }
+  },
+  required: ['username']
+};
+
+module.exports = { JSONError, usernameAndPasswordSchema, usernameParamSchema };

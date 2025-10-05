@@ -109,6 +109,15 @@ test('POST `/logout` route', async (t) => {
 
   t.after(() => app.close());
   await app.ready();
+  
+  await t.test('Logout with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
 
   await t.test('Logout with valid token', async (t) => {
     const response = await supertest(app.server)
@@ -120,15 +129,6 @@ test('POST `/logout` route', async (t) => {
     t.assert.deepStrictEqual(response.body, { message: 'Logged out successfully' });
   });
 
-  await t.test('Logout with missing token', async (t) => {
-    const response = await supertest(app.server)
-    .post('/logout')
-    .expect(401)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
-  });
-
   await t.test('Logout with blacklisted token', async (t) => {
     const response = await supertest(app.server)
     .post('/logout')
@@ -137,5 +137,63 @@ test('POST `/logout` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
+});
+
+test('GET `/:username` route', async (t) => {
+  const app = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Get profile with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/myuser')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
+
+  await t.test('Get profile with blacklisted token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/myuser')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
+
+  await t.test('Login to get a valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'myuser', password: 'mypass' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.ok(response.body.token);
+    token = response.body.token;
+  });
+
+  await t.test('Get profile with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/myuser')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), ['user_id', 'username', 'display_name', 'avatar_url', 'bio', 'created_at']);
+    t.assert.strictEqual(response.body.username, 'myuser');
+  });
+
+  await t.test('Get non-existent user profile', async (t) => {
+    const response = await supertest(app.server)
+    .get('/nouser')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('User not found', 404));
   });
 });

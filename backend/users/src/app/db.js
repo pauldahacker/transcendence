@@ -66,6 +66,7 @@ class UsersDatabase extends Database {
 
       const profileStmt = this.prepare('INSERT INTO users_profile (user_id) VALUES (?)');
       profileStmt.run(info.id);
+
       return info;
     } catch (error) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
@@ -83,6 +84,24 @@ class UsersDatabase extends Database {
         throw JSONError('User not found', 404);
       }
       return row.password;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  getProfile(username) {
+    try {
+      const stmt = this.prepare(`
+        SELECT up.user_id, ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        FROM users_auth ua
+        JOIN users_profile up ON ua.id = up.user_id
+        WHERE ua.username = ?
+      `);
+      const row = stmt.get(username);
+      if (!row) {
+        throw JSONError('User not found', 404);
+      }
+      return row;
     } catch (error) {
       throw error;
     }
