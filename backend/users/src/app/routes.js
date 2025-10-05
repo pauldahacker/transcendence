@@ -88,6 +88,20 @@ function routes(fastify, db) {
 			}
 		}
 	);
+
+	fastify.get('/admin', {
+			preHandler: fastify.auth([
+				fastify.verifyJWT,
+				fastify.verifyAdmin
+			], { relation: 'and' }),
+		}, async (request, reply) => {
+			try {
+				reply.send({ message: 'damn, u admin' });
+			} catch (err) {
+				throw err;
+			}
+		}
+	);
 }
 
 module.exports = { routes, tokenBlacklist };

@@ -20,7 +20,7 @@ const optsFastify = {
     }
 }
 
-const app = buildFastify(optsFastify, DB_NAME);
+const { app } = buildFastify(optsFastify, DB_NAME);
 
 app.listen({ host: '0.0.0.0', port: PORT }, (err) => {
   if (err) {

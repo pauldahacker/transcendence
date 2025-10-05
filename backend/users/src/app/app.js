@@ -2,6 +2,7 @@
 
 const { UsersDatabase } = require('./db');
 const Fastify = require('fastify');
+const bcrypt = require('bcrypt');
 const { routes, tokenBlacklist } = require('./routes');
 const { JSONError } = require('./schemas');
 
@@ -37,8 +38,8 @@ function buildFastify(opts, dbFile) {
 
     try {
       const user = db.getUser(request.body.username);
-      if (!user || user.password !== request.body.password)
-        throw done(JSONError('Password not valid', 401));
+      if (!await bcrypt.compare(request.body.password, user.password))
+        return done(JSONError('Password not valid', 401));
     } catch (err) {
       return done(err);
     }
@@ -53,6 +54,17 @@ function buildFastify(opts, dbFile) {
       const user = db.getUserById(request.params.user_id);
       if (!user || user.username !== request.user.username)
         throw done(JSONError('User not authorized', 403));
+    } catch (err) {
+      return done(err);
+    }
+    return done();
+  });
+
+  app.decorate('verifyAdmin', async (request, _reply, done) => {
+    try {
+      const user = db.getUser(request.user.username);
+      if (!user || !user.is_admin)
+        throw done(JSONError('Admin privileges required', 403));
     } catch (err) {
       return done(err);
     }
