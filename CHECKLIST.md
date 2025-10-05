@@ -71,3 +71,5 @@
 ## Total points
 - Major modules completed: 4 (4 points)
 - Minor modules completed: 2 (1 points)
+
+- Total points: 5/7

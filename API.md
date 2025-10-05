@@ -52,8 +52,33 @@ Response body:
 Error responses:
 - `401`: Invalid token header
 
-#### Endpoint: `GET    /api/users/{username}/`
+#### Endpoint: `GET    /api/users/{user_id}/`
 
+Response body:
+```json
+{
+  "username": "string",
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string",
+  "created_at": "string",
+  "friends": [ "number" ]
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+
+#### Endpoint: `PUT    /api/users/{user_id}/`
+
+Request body:
+```json
+{
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string"
+}
+```
 Response body:
 ```json
 {
@@ -65,6 +90,9 @@ Response body:
   "created_at": "string"
 }
 ```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
 
 <!-- 
 
@@ -72,15 +100,15 @@ curl -ks 'https://127.0.0.1/api/users/register' -H 'content-type: application/js
 
 curl -ks 'https://127.0.0.1/api/users/login' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' | jq
 
-export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyIiwianRpIjoiMWYwYTFiNWMtNTg3OC02MWIwLWI0NDctMjQwYzNhODFjZGUwIiwiaWF0IjoxNzU5NjQ2MjUyLCJleHAiOjE3NTk2NDk4NTJ9.qJa_tMzUMf7Y0SWZ3BLI38edbgLkw-acFDwsmXbdO9I"
+export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyIiwianRpIjoiMWYwYTFjMjUtZWI1ZC02ZTcwLWI5YjMtNDQ1ZWQwMDY3ZmRjIiwiaWF0IjoxNzU5NjUxNjYzLCJleHAiOjE3NTk2NTUyNjN9.euLhN9iCLxRNDM9FzJI37Q7MPpvOq6kW1MIjc-B2vlQ"
+
+curl -ks 'https://127.0.0.1/api/users/1' \
+-H "content-type: application/json; charset=utf-8" \
+-H "Authorization: Bearer $TOKEN" | jq
 
 curl -ks 'https://127.0.0.1/api/users/logout' \
 -H "content-type: application/json; charset=utf-8" \
 -H "Authorization: Bearer $TOKEN" --data '{}' | jq
-
-curl -ks 'https://127.0.0.1/api/users/myuser' \
--H "content-type: application/json; charset=utf-8" \
--H "Authorization: Bearer $TOKEN" | jq
 
 
 # Diseño de API REST para Sistema de Pong con Arquitectura de Microservicios

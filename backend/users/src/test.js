@@ -72,6 +72,16 @@ test('POST `/login` route', async (t) => {
   t.after(() => app.close());
   await app.ready();
 
+  await t.test('Login without previous registration', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'nouser', password: 'mypass' })
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('User not found', 404));
+  });
+
   await t.test('Login with correct credentials', async (t) => {
     const response = await supertest(app.server)
     .post('/login')
@@ -140,7 +150,7 @@ test('POST `/logout` route', async (t) => {
   });
 });
 
-test('GET `/:username` route', async (t) => {
+test('GET `/:user_id` route', async (t) => {
   const app = buildFastify(opts = {}, DB_PATH);
 
   t.after(() => app.close());
@@ -148,7 +158,7 @@ test('GET `/:username` route', async (t) => {
   
   await t.test('Get profile with missing token', async (t) => {
     const response = await supertest(app.server)
-    .get('/myuser')
+    .get('/1')
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -157,7 +167,7 @@ test('GET `/:username` route', async (t) => {
 
   await t.test('Get profile with blacklisted token', async (t) => {
     const response = await supertest(app.server)
-    .get('/myuser')
+    .get('/1')
     .set('Authorization', `Bearer ${token}`)
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -178,18 +188,18 @@ test('GET `/:username` route', async (t) => {
 
   await t.test('Get profile with valid token', async (t) => {
     const response = await supertest(app.server)
-    .get('/myuser')
+    .get('/1')
     .set('Authorization', `Bearer ${token}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), ['user_id', 'username', 'display_name', 'avatar_url', 'bio', 'created_at']);
+    t.assert.deepStrictEqual(Object.keys(response.body), ['username', 'display_name', 'avatar_url', 'bio', 'created_at', 'friends']);
     t.assert.strictEqual(response.body.username, 'myuser');
   });
 
   await t.test('Get non-existent user profile', async (t) => {
     const response = await supertest(app.server)
-    .get('/nouser')
+    .get('/999')
     .set('Authorization', `Bearer ${token}`)
     .expect(404)
     .expect('Content-Type', 'application/json; charset=utf-8');

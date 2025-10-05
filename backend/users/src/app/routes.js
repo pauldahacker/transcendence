@@ -33,15 +33,11 @@ function routes(fastify, db) {
 		}, async (request, _reply) => {
 			request.log.info('User logging in');
 			try {
-				await request.jwtVerify(request);
-
-			} catch (err) {
-				if (err.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER') {
-					const token = fastify.jwt.sign({
+				const token = fastify.jwt.sign({
 					user: request.body.username,
 					jti: uuidv6()}, { expiresIn: '1h' });
-					return { token };
-				}
+				return { token };
+			} catch (err) {
 				throw err;
 			}
 		}
@@ -62,15 +58,14 @@ function routes(fastify, db) {
 		}
 	);
 
-	fastify.get('/:username', {
-			schema: { params: schemas.usernameParamSchema },
+	fastify.get('/:user_id', {
 			preHandler: fastify.auth([
 				fastify.verifyJWT,
 			]),
 		}, async (request, reply) => {
 			request.log.info('Fetching user profile');
 			try {
-				const info = db.getProfile(request.params.username);
+				const info = db.getProfile(request.params.user_id);
 				reply.send(info);
 			} catch (err) {
 				throw err;
