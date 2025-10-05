@@ -14,7 +14,9 @@ Request body:
 Response body:
 ```json
 {
-  "token": "string"
+  "id": "number",
+  "username": "string",
+  "created_at": "string"
 }
 ```
 Error responses:
@@ -50,7 +52,7 @@ Response body:
 Error responses:
 - `401`: Invalid token header
 
-#### Endpoint: `GET    /api/users/profile`
+#### Endpoint: `GET    /api/users/{username}/`
 
 Response body:
 ```json
@@ -58,13 +60,23 @@ Response body:
   "user_id": "string",
   "display_name": "string",
   "avatar_url": "string",
-  "bio": "string"
+  "bio": "string",
+  "friends": ["string"],
+  "match_history": [
+    {
+      "opponent": "string",
+      "result": "win|lose",
+      "score": "string",
+      "date": "string"
+    }
+  ]
+
 }
 ```
 
 <!-- 
 
-curl -ik 'https://127.0.0.1/api/users/login' -H 'content-type: application/json' --data '{"username": "myuser4","password":"mypass2"}' && echo
+curl -ik 'https://127.0.0.1/api/users/register' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' && echo
 
 export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyNCIsImp0aSI6IjFmMGExNzU5LWM5NmEtNjdkMC1iN2JhLTliZjlhZmIwNGIzMiIsImlhdCI6MTc1OTYxODY5NSwiZXhwIjoxNzU5NjIyMjk1fQ.m9KXDuUQodm2FeTZMDFZEE62zhKzDPsgeVByodThuWM"
 
@@ -75,12 +87,6 @@ curl -ik 'https://127.0.0.1/api/users/verify' \
 curl -ik 'https://127.0.0.1/api/users/logout' \
 -H "content-type: application/json; charset=utf-8" \
 -H "Authorization: Bearer $TOKEN" && echo
-
-
-
-- Endpoint: `GET    /api/users/{userId}`
-- Endpoint: `DELETE /api/users/{userId}`
-- Endpoint: `PUT    /api/users/change-password`
 
 
 # Diseño de API REST para Sistema de Pong con Arquitectura de Microservicios
