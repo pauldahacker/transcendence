@@ -58,35 +58,29 @@ Response body:
 ```json
 {
   "user_id": "string",
+  "username": "string",
   "display_name": "string",
   "avatar_url": "string",
   "bio": "string",
-  "friends": ["string"],
-  "match_history": [
-    {
-      "opponent": "string",
-      "result": "win|lose",
-      "score": "string",
-      "date": "string"
-    }
-  ]
-
+  "created_at": "string"
 }
 ```
 
 <!-- 
 
-curl -ik 'https://127.0.0.1/api/users/register' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' && echo
+curl -ks 'https://127.0.0.1/api/users/register' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' | jq
 
-export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyNCIsImp0aSI6IjFmMGExNzU5LWM5NmEtNjdkMC1iN2JhLTliZjlhZmIwNGIzMiIsImlhdCI6MTc1OTYxODY5NSwiZXhwIjoxNzU5NjIyMjk1fQ.m9KXDuUQodm2FeTZMDFZEE62zhKzDPsgeVByodThuWM"
+curl -ks 'https://127.0.0.1/api/users/login' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' | jq
 
-curl -ik 'https://127.0.0.1/api/users/verify' \
+export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyIiwianRpIjoiMWYwYTFiNWMtNTg3OC02MWIwLWI0NDctMjQwYzNhODFjZGUwIiwiaWF0IjoxNzU5NjQ2MjUyLCJleHAiOjE3NTk2NDk4NTJ9.qJa_tMzUMf7Y0SWZ3BLI38edbgLkw-acFDwsmXbdO9I"
+
+curl -ks 'https://127.0.0.1/api/users/logout' \
 -H "content-type: application/json; charset=utf-8" \
--H "Authorization: Bearer $TOKEN" && echo
+-H "Authorization: Bearer $TOKEN" --data '{}' | jq
 
-curl -ik 'https://127.0.0.1/api/users/logout' \
+curl -ks 'https://127.0.0.1/api/users/myuser' \
 -H "content-type: application/json; charset=utf-8" \
--H "Authorization: Bearer $TOKEN" && echo
+-H "Authorization: Bearer $TOKEN" | jq
 
 
 # Diseño de API REST para Sistema de Pong con Arquitectura de Microservicios
