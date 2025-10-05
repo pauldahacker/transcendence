@@ -97,84 +97,9 @@ Error responses:
 
 <!-- 
 
-curl -ks 'https://127.0.0.1/api/users/register' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' | jq
-
-curl -ks 'https://127.0.0.1/api/users/login' -H 'content-type: application/json' --data '{"username": "myuser","password":"mypass"}' | jq
-
-export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibXl1c2VyIiwianRpIjoiMWYwYTFjMjUtZWI1ZC02ZTcwLWI5YjMtNDQ1ZWQwMDY3ZmRjIiwiaWF0IjoxNzU5NjUxNjYzLCJleHAiOjE3NTk2NTUyNjN9.euLhN9iCLxRNDM9FzJI37Q7MPpvOq6kW1MIjc-B2vlQ"
-
-curl -ks 'https://127.0.0.1/api/users/1' \
--H "content-type: application/json; charset=utf-8" \
--H "Authorization: Bearer $TOKEN" | jq
-
-curl -ks 'https://127.0.0.1/api/users/logout' \
--H "content-type: application/json; charset=utf-8" \
--H "Authorization: Bearer $TOKEN" --data '{}' | jq
-
-
 # Diseño de API REST para Sistema de Pong con Arquitectura de Microservicios
 
 Basándome en los requerimientos, aquí está el diseño completo de la API REST organizada por microservicios:
-
----
-
-## **1. User Service** (Gestión de Usuarios)
-
-### Endpoints:
-
-```
-POST   /api/users/register
-POST   /api/users/login
-GET    /api/users/profile
-PUT    /api/users/profile
-POST   /api/users/logout
-GET    /api/users/{userId}
-DELETE /api/users/{userId}
-PUT    /api/users/change-password
-```
-
-### Detalles:
-
-#### `POST /api/users/register`
-**Request Body:**
-```json
-{
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "confirmPassword": "string"
-}
-```
-**Response (201):**
-```json
-{
-  "userId": "uuid",
-  "username": "string",
-  "email": "string",
-  "createdAt": "timestamp"
-}
-```
-
-#### `POST /api/users/login`
-**Request Body:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
-```
-**Response (200):**
-```json
-{
-  "token": "jwt_token",
-  "refreshToken": "string",
-  "user": {
-    "userId": "uuid",
-    "username": "string",
-    "email": "string"
-  }
-}
-```
 
 ---
 

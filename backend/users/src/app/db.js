@@ -1,19 +1,6 @@
 const Database = require('better-sqlite3');
 const { JSONError } = require('./schemas');
 
-
-// Major module: Standard user management, authentication and users across tour-
-// naments.
-// ◦Users can securely subscribe to the website.
-// ◦Registered users can securely log in.
-// ◦Users can select a unique display name to participate in tournaments.
-// ◦Users can update their information.
-// ◦Users can upload an avatar, with a default option if none is provided.
-// ◦Users can add others as friends and view their online status.
-// ◦User profiles display stats, such as wins and losses.
-// ◦Each user has a Match History including 1v1 games, dates, and relevant
-// details, accessible to logged-in users.
-
 class UsersDatabase extends Database {
   constructor(filename) {
     super(filename);
@@ -37,24 +24,25 @@ class UsersDatabase extends Database {
 
       CREATE TABLE IF NOT EXISTS friends (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id1 INTEGER NOT NULL,
-        user_id2 INTEGER NOT NULL,
+        user1_id INTEGER NOT NULL,
+        user2_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         confirmed BOOLEAN DEFAULT 0,
-        FOREIGN KEY (user_id1) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id2) REFERENCES users_auth(id) ON DELETE CASCADE,
-        UNIQUE(user_id1, user_id2)
+        FOREIGN KEY (user1_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        FOREIGN KEY (user2_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        UNIQUE(user1_id, user2_id)
       );
 
       CREATE TABLE IF NOT EXISTS match_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        opponent_id INTEGER NOT NULL,
-        user_score INTEGER NOT NULL,
-        opponent_score INTEGER NOT NULL,
+        user1_id INTEGER NOT NULL,
+        user2_id INTEGER NOT NULL,
+        winner_id INTEGER NOT NULL,
+        user1_wins BOOLEAN NOT NULL,
+        user2_wins BOOLEAN NOT NULL,
         match_date TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (opponent_id) REFERENCES users_auth(id) ON DELETE CASCADE
+        FOREIGN KEY (user1_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        FOREIGN KEY (user2_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
     `);
   }
@@ -114,17 +102,28 @@ class UsersDatabase extends Database {
       const row = stmt.get(user_id);
       if (!row)
         throw JSONError('User not found', 404);
+
       row.friends = this.prepare(`
-        SELECT f.user_id2 as friend_user_id
+        SELECT f.user2_id as friend_user_id
         FROM friends f
-        WHERE f.user_id1 = ?
+        WHERE f.user1_id = ?
 
         UNION
 
-        SELECT f.user_id1 as friend_user_id
+        SELECT f.user1_id as friend_user_id
         FROM friends f
-        WHERE f.user_id2 = ?;
-      `).all(user_id, user_id);
+        WHERE f.user2_id = ?;
+      `).all(user_id, user_id).map(row => row.friend_user_id);
+
+      row.stats = this.prepare(`
+        SELECT 
+          COUNT(*) as total_matches,
+          SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
+          SUM(CASE WHEN winner_id != ? THEN 1 ELSE 0 END) as losses
+        FROM match_history 
+        WHERE user1_id = ? OR user2_id = ?
+      `).get(user_id, user_id, user_id, user_id);
+
       return row;
     } catch (error) {
       throw error;
