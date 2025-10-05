@@ -26,4 +26,20 @@ const profileParamSchema = {
   additionalProperties: false
 };
 
-module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema };
+const userResponseKeys = [
+  'id',
+  'username',
+  'created_at'
+]
+
+const profileResponseKeys = [
+  'username',
+  'display_name',
+  'avatar_url',
+  'bio',
+  'created_at',
+  'friends',
+  'stats'
+]
+
+module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, userResponseKeys, profileResponseKeys };

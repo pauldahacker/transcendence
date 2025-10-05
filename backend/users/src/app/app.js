@@ -6,10 +6,10 @@ const { routes, tokenBlacklist } = require('./routes');
 const { JSONError } = require('./schemas');
 
 function buildFastify(opts, dbFile) {
-  const fastify = Fastify(opts);
+  const app = Fastify(opts);
   const db = new UsersDatabase(dbFile);
 
-  fastify.register(require('@fastify/jwt'), {
+  app.register(require('@fastify/jwt'), {
     secret: process.env.JWT_SECRET,
     trusted: async (_request, decodedToken) => {
       if (tokenBlacklist.has(decodedToken.jti))
@@ -17,13 +17,12 @@ function buildFastify(opts, dbFile) {
       return decodedToken;
     }
   });
-  fastify.register(require('@fastify/auth'));
-  
-  fastify.after(() => {
-    routes(fastify, db);
+  app.register(require('@fastify/auth'));
+  app.after(() => {
+    routes(app, db);
   });
 
-  fastify.decorate('verifyJWT', async (request, reply) => {
+  app.decorate('verifyJWT', async (request, reply) => {
     try {
       await request.jwtVerify();
     } catch (err) {
@@ -32,8 +31,7 @@ function buildFastify(opts, dbFile) {
     }
   });
 
-
-  fastify.decorate('verifyUserAndPassword', async (request, _reply, done) => {
+  app.decorate('verifyUserAndPassword', async (request, _reply, done) => {
     if (!request.body || !request.body.username) 
       return done(JSONError('Missing user in body', 400));
 
@@ -47,7 +45,7 @@ function buildFastify(opts, dbFile) {
     return done();
   });
 
-  fastify.decorate('verifyUserOwnership', async (request, _reply, done) => {
+  app.decorate('verifyUserOwnership', async (request, _reply, done) => {
     if (!request.params.user_id) 
       return done(JSONError('Missing user ID in params', 400));
 
@@ -61,7 +59,7 @@ function buildFastify(opts, dbFile) {
     return done();
   });
 
-  return fastify;
+  return { app, db };
 }
 
 module.exports = { buildFastify, tokenBlacklist };
