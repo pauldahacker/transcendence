@@ -79,12 +79,25 @@ class UsersDatabase extends Database {
 
   getUser(username) {
     try {
-      const stmt = this.prepare('SELECT password FROM users_auth WHERE username = ?');
+      const stmt = this.prepare('SELECT * FROM users_auth WHERE username = ?');
       const row = stmt.get(username);
       if (!row) {
         throw JSONError('User not found', 404);
       }
-      return row.password;
+      return row;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  getUserById(user_id) {
+    try {
+      const stmt = this.prepare('SELECT * FROM users_auth WHERE id = ?');
+      const row = stmt.get(user_id);
+      if (!row) {
+        throw JSONError('User not found', 404);
+      }
+      return row;
     } catch (error) {
       throw error;
     }
@@ -114,6 +127,28 @@ class UsersDatabase extends Database {
       `).all(user_id, user_id);
       return row;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  updateProfile(user_id, { display_name, avatar_url, bio }) {
+    try {
+      const stmt = this.prepare(`
+        UPDATE users_profile
+        SET display_name = COALESCE(?, display_name),
+            avatar_url = COALESCE(?, avatar_url),
+            bio = COALESCE(?, bio)
+        WHERE user_id = ?
+      `);
+      const info = stmt.run(display_name, avatar_url, bio, user_id);
+      if (info.changes === 0) {
+        throw JSONError('User not found', 404);
+      }
+      return this.getProfile(user_id);
+    } catch (error) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        error = JSONError('Display name is already taken', 409, error.code);
+      }
       throw error;
     }
   }

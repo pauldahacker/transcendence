@@ -82,17 +82,18 @@ Request body:
 Response body:
 ```json
 {
-  "user_id": "string",
   "username": "string",
   "display_name": "string",
   "avatar_url": "string",
   "bio": "string",
-  "created_at": "string"
+  "created_at": "string",
+  "friends": [ "number" ]
 }
 ```
 Error responses:
 - `401`: Invalid token header
 - `404`: User not found
+- `403`: User not authorized
 
 <!-- 
 

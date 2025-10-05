@@ -34,7 +34,7 @@ function routes(fastify, db) {
 			request.log.info('User logging in');
 			try {
 				const token = fastify.jwt.sign({
-					user: request.body.username,
+					username: request.body.username,
 					jti: uuidv6()}, { expiresIn: '1h' });
 				return { token };
 			} catch (err) {
@@ -66,6 +66,22 @@ function routes(fastify, db) {
 			request.log.info('Fetching user profile');
 			try {
 				const info = db.getProfile(request.params.user_id);
+				reply.send(info);
+			} catch (err) {
+				throw err;
+			}
+		}
+	);
+
+	fastify.put('/:user_id', {
+			preHandler: fastify.auth([
+				fastify.verifyJWT,
+				fastify.verifyUserOwnership
+			], { relation: 'and' }),
+		}, async (request, reply) => {
+			request.log.info('Updating user profile');
+			try {
+				const info = db.updateProfile(request.params.user_id, request.body);
 				reply.send(info);
 			} catch (err) {
 				throw err;
