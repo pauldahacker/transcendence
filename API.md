@@ -68,7 +68,12 @@ Response body:
   "avatar_url": "string",
   "bio": "string",
   "created_at": "string",
-  "friends": [ "number" ]
+  "friends": [ "number" ],
+  "stats": {
+    "total_games": "number",
+    "wins": "number",
+    "losses": "number",
+  }
 }
 ```
 Error responses:
@@ -93,7 +98,12 @@ Response body:
   "avatar_url": "string",
   "bio": "string",
   "created_at": "string",
-  "friends": [ "number" ]
+  "friends": [ "number" ],
+  "stats": {
+    "total_games": "number",
+    "wins": "number",
+    "losses": "number",
+  }
 }
 ```
 Error responses:
