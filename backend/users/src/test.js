@@ -6,6 +6,7 @@ const { JSONError } = require('./app/schemas');
 
 const DB_PATH = 'test.db';
 let token;
+let profile;
 
 unlink(DB_PATH, (err) => {
   if (err && err.code !== 'ENOENT') throw err;
@@ -195,6 +196,7 @@ test('GET `/:user_id` route', async (t) => {
 
     t.assert.deepStrictEqual(Object.keys(response.body), ['username', 'display_name', 'avatar_url', 'bio', 'created_at', 'friends']);
     t.assert.strictEqual(response.body.username, 'myuser');
+    profile = response.body;
   });
 
   await t.test('Get non-existent user profile', async (t) => {
@@ -205,5 +207,81 @@ test('GET `/:user_id` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(response.body, JSONError('User not found', 404));
+  });
+});
+
+test('PUT `/:user_id` route', async (t) => {
+  const app = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Update profile with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .put('/1')
+    .send({ display_name: 'New Name' })
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('Token not valid', 401));
+  });
+
+  await t.test('No updates provided', async (t) => {
+    const response = await supertest(app.server)
+    .put('/1')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, profile);
+  });
+
+  await t.test('Update profile with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .put('/1')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ display_name: 'New Name', bio: 'This is my bio' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), ['username', 'display_name', 'avatar_url', 'bio', 'created_at', 'friends']);
+    t.assert.strictEqual(response.body.username, 'myuser');
+    t.assert.strictEqual(response.body.display_name, 'New Name');
+    t.assert.strictEqual(response.body.bio, 'This is my bio');
+    profile = response.body;
+  });
+
+  await t.test('Update non-existent user profile', async (t) => {
+    const response = await supertest(app.server)
+    .put('/999')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ display_name: 'Name' })
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('User not found', 404));
+  });
+
+  await t.test('Create another user', async (t) => {
+    const response = await supertest(app.server)
+    .post('/register')
+    .send({ username: 'otheruser', password: 'otherpass' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), ['id', 'username', 'created_at']);
+    t.assert.strictEqual(response.body.username, 'otheruser');
+  });
+
+  await t.test('Update another user profile', async (t) => {
+    const response = await supertest(app.server)
+    .put('/2')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ display_name: 'Name' })
+    .expect(403)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, JSONError('User not authorized', 403));
   });
 });
