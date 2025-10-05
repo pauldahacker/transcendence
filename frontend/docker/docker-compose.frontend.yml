@@ -13,10 +13,10 @@ services:
     develop:
       watch:
         - action: sync+restart
-          path: ../src
+          path: ../
           target: /app
           initial_sync: true
           ignore:
             - node_modules/
         - action: rebuild
-          path: ../src/package.json
+          path: ../package.json
