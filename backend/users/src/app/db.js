@@ -37,12 +37,13 @@ class UsersDatabase extends Database {
 
       CREATE TABLE IF NOT EXISTS friends (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        friend_id INTEGER NOT NULL,
+        user_id1 INTEGER NOT NULL,
+        user_id2 INTEGER NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (friend_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        UNIQUE(user_id, friend_id)
+        confirmed BOOLEAN DEFAULT 0,
+        FOREIGN KEY (user_id1) REFERENCES users_auth(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id2) REFERENCES users_auth(id) ON DELETE CASCADE,
+        UNIQUE(user_id1, user_id2)
       );
 
       CREATE TABLE IF NOT EXISTS match_history (
@@ -89,18 +90,28 @@ class UsersDatabase extends Database {
     }
   }
 
-  getProfile(username) {
+  getProfile(user_id) {
     try {
       const stmt = this.prepare(`
-        SELECT up.user_id, ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
-        WHERE ua.username = ?
+        WHERE up.user_id = ?
       `);
-      const row = stmt.get(username);
-      if (!row) {
+      const row = stmt.get(user_id);
+      if (!row)
         throw JSONError('User not found', 404);
-      }
+      row.friends = this.prepare(`
+        SELECT f.user_id2 as friend_user_id
+        FROM friends f
+        WHERE f.user_id1 = ?
+
+        UNION
+
+        SELECT f.user_id1 as friend_user_id
+        FROM friends f
+        WHERE f.user_id2 = ?;
+      `).all(user_id, user_id);
       return row;
     } catch (error) {
       throw error;

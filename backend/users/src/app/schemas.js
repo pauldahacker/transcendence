@@ -12,15 +12,18 @@ const usernameAndPasswordSchema = {
     username: { type: 'string' },
     password: { type: 'string' }
   },
-  required: ['username', 'password']
+  required: ['username', 'password'],
+  additionalProperties: false
 };
 
-const usernameParamSchema = {
+const profileParamSchema = {
   type: 'object',
   properties: {
-    username: { type: 'string' }
+    display_name: { type: 'string' },
+    avatar_url: { type: 'string' },
+    bio: { type: 'string' }
   },
-  required: ['username']
+  additionalProperties: false
 };
 
-module.exports = { JSONError, usernameAndPasswordSchema, usernameParamSchema };
+module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema };
