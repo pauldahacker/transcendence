@@ -1,5 +1,6 @@
 const Database = require('better-sqlite3');
 const { JSONError } = require('./schemas');
+const bcrypt = require('bcrypt');
 
 class UsersDatabase extends Database {
   constructor(filename) {
@@ -45,12 +46,20 @@ class UsersDatabase extends Database {
         FOREIGN KEY (user2_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
     `);
+    try {
+      this.addUser('admin', process.env.ADMIN_PASSWORD, 1);
+    } catch (error) {
+      if (error.code !== 'SQLITE_CONSTRAINT_UNIQUE') {
+        return;
+      }
+    }
   }
 
-  addUser(username, password) {
+  addUser(username, password, is_admin = 0) {
     try {
-      const stmt = this.prepare('INSERT INTO users_auth (username, password, created_at) VALUES (?, ?, datetime(\'now\'))');
-      stmt.run(username, password);
+      const stmt = this.prepare('INSERT INTO users_auth (username, password, created_at, is_admin) VALUES (?, ?, datetime(\'now\'), ?)');
+      stmt.run(username, bcrypt.hashSync(password, 10), is_admin);
+
       const info = this.prepare('SELECT id, username, created_at FROM users_auth WHERE username = ?').get(username);
 
       const profileStmt = this.prepare('INSERT INTO users_profile (user_id) VALUES (?)');
