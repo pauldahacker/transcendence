@@ -1,5 +1,11 @@
 ## API endpoints
 
+> [!TIP]
+> All endpoints except `/api/users/register` and `/api/users/login` require authentication via JWT in the `Authorization` header as `Bearer {token}`. Such token is obtained upon successful login.
+
+> [!TIP]
+> For frontend integration, the base URL to use is `https://api:3000/`.
+
 ### User endpoints
 
 #### Endpoint: `POST   /api/users/register`
