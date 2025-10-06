@@ -19,4 +19,4 @@ COPY --chown=app:app . /app
 RUN mkdir -p /app/certs && \
 	openssl req -x509 -newkey rsa:4096 -keyout /app/certs/key.pem -out /app/certs/cert.pem -days 365 -nodes -subj "/C=ES/L=Barcelona/O=42/CN=localhost"
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

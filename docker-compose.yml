@@ -16,6 +16,8 @@ services:
       service: frontend
 
   api:
+    env_file:
+      - .env
     depends_on:
       - users
       - tournaments
@@ -26,14 +28,14 @@ services:
   users:
     env_file:
       - .env
-    environment:
-      - JWT_SECRET
     extends:
       file: backend/users/docker/docker-compose.users.yml
       service: users
     
 
   tournaments:
+    env_file:
+      - .env
     extends:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments
