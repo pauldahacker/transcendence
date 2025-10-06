@@ -1,4 +1,4 @@
-## API endpoints
+# API endpoints
 
 > [!TIP]
 > All endpoints except `/api/users/register` and `/api/users/login` require authentication via JWT in the `Authorization` header as `Bearer {token}`. Such token is obtained upon successful login.
@@ -6,23 +6,9 @@
 > [!TIP]
 > For frontend integration, the base URL to use is `https://api:3000/`.
 
-### User endpoints
+## User endpoints
 
-#### Endpoint: `GET    /api/users/`
-
-Response body:
-```json
-[
-  {
-    "id": "number",
-    "username": "string"
-  }
-]
-```
-Error responses:
-- `401`: Invalid token header
-
-#### Endpoint: `POST   /api/users/register`
+### Endpoint: `POST   /api/users/register`
 
 Request body:
 ```json
@@ -42,7 +28,7 @@ Response body:
 Error responses:
 - `409`: Username already exists
 
-#### Endpoint: `POST   /api/users/login`
+### Endpoint: `POST   /api/users/login`
 
 Request body:
 ```json
@@ -61,7 +47,7 @@ Error responses:
 - `401`: Password not valid
 - `404`: User not found
 
-#### Endpoint: `POST   /api/users/logout`
+### Endpoint: `POST   /api/users/logout`
 
 Response body:
 ```json
@@ -72,7 +58,21 @@ Response body:
 Error responses:
 - `401`: Invalid token header
 
-#### Endpoint: `GET    /api/users/{user_id}/`
+### Endpoint: `GET    /api/users/`
+
+Response body:
+```json
+[
+  {
+    "id": "number",
+    "username": "string"
+  }
+]
+```
+Error responses:
+- `401`: Invalid token header
+
+### Endpoint: `GET    /api/users/{user_id}/`
 
 Response body:
 ```json
@@ -94,7 +94,7 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-#### Endpoint: `PUT    /api/users/{user_id}/`
+### Endpoint: `PUT    /api/users/{user_id}/`
 
 Request body:
 ```json
@@ -125,17 +125,12 @@ Error responses:
 - `404`: User not found
 - `403`: User not authorized
 
+## Tournament endpoints
+
+
+
 <!-- 
 
-# Diseño de API REST para Sistema de Pong con Arquitectura de Microservicios
-
-Basándome en los requerimientos, aquí está el diseño completo de la API REST organizada por microservicios:
-
----
-
-## **2. Tournament Service** (Gestión de Torneos)
-
-### Endpoints:
 
 ```
 POST   /api/tournaments

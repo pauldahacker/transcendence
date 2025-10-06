@@ -14,14 +14,14 @@ const server = Fastify({
           ignore: 'pid,hostname'
         }
       }
-    },
-    https: {
-      key: fs.readFileSync("/app/certs/key.pem"),
-      cert: fs.readFileSync("/app/certs/cert.pem"),
-    }
+  },
+  https: {
+    allowHTTP1: true,
+    key: fs.readFileSync("/app/certs/key.pem"),
+    cert: fs.readFileSync("/app/certs/cert.pem"),
+  },
+	http2: true
 });
-
-const proxy = require('@fastify/http-proxy');
 
 const routes = [
   { prefix: '/users', url: `https://users:${USERS_PORT}` },
@@ -29,17 +29,17 @@ const routes = [
 ];
 
 routes.forEach((route) => {
-  server.register(proxy, {
+  server.register(require('@fastify/http-proxy'), {
     upstream: route.url,
-    prefix: route.prefix
+    prefix: route.prefix,
   });
 });
 
-server.get('/', async (request, reply) => {
+server.get('/', async (_request, _reply) => {
   return { message: 'API Gateway is running' };
 });
 
-server.get('/health', async (request, reply) => {
+server.get('/health', async (_request, _reply) => {
   return { status: 'ok' };
 });
 

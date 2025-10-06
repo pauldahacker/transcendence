@@ -1,6 +1,6 @@
 const fs = require('fs')
 const Fastify = require('fastify');
-const { request } = require('http');
+const { applyRelaxedSecurityHeaders, applySecurityHeaders } = require('./securityHeaders');
 
 const PORT = 443;
 const API_PORT = 3000;
@@ -17,9 +17,11 @@ const server = Fastify({
 	  }
 	},
 	https: {
+		allowHTTP1: true,
 	  key: fs.readFileSync("/app/certs/key.pem"),
 	  cert: fs.readFileSync("/app/certs/cert.pem"),
-	}
+	},
+	http2: true
 });
 
 const routes = [
@@ -31,22 +33,10 @@ routes.forEach((route) => {
   server.register(require('@fastify/http-proxy'), {
 		upstream: route.url,
 		prefix: route.prefix,
-		http2: false
 	});
 });
 
-app.decorate('verifyAdmin', async (request, _reply, done) => {
-    try {
-      const user = db.getUser(request.user.username);
-      if (!user || !user.is_admin)
-        throw done(JSONError('Admin privileges required', 403));
-    } catch (err) {
-      return done(err);
-    }
-    return done();
-  });
-
-server.setErrorHandler((error, request, reply) => {
+server.setErrorHandler((error, _request, reply) => {
   if (error.code === 'UND_ERR_SOCKET' || error.code === 'ECONNREFUSED') {
 	server.log.error(`Upstream service unavailable: ${error.message}`);
 	reply.code(503).send({ 
@@ -59,7 +49,16 @@ server.setErrorHandler((error, request, reply) => {
   }
 });
 
-server.get('/health', async (request, reply) => {
+server.addHook('onRequest', async (request, reply) => {
+  const url = request.url;
+
+  if (url.endsWith('/health'))
+    applyRelaxedSecurityHeaders(reply);
+	else if (url.startsWith('/api'))
+		applySecurityHeaders(reply);
+});
+
+server.get('/health', async (_request, _reply) => {
   return { status: 'ok' };
 });
 
