@@ -9,8 +9,8 @@ function JSONError(message, statusCode, code) {
 const usernameAndPasswordSchema = {
   type: 'object',
   properties: {
-    username: { type: 'string' },
-    password: { type: 'string' }
+    username: { type: 'string', minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' },
+    password: { type: 'string', minLength: 6, maxLength: 100, pattern: '^[a-zA-Z0-9_!@#$%^&*()-+=]+$' }
   },
   required: ['username', 'password'],
   additionalProperties: false
@@ -19,9 +19,9 @@ const usernameAndPasswordSchema = {
 const profileParamSchema = {
   type: 'object',
   properties: {
-    display_name: { type: 'string' },
-    avatar_url: { type: 'string' },
-    bio: { type: 'string' }
+    display_name: { type: 'string', minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_ ]+$' },
+    avatar_url: { type: 'string', format: 'uri' },
+    bio: { type: 'string', maxLength: 160 }
   },
   additionalProperties: false
 };
