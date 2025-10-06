@@ -2,7 +2,6 @@ const { test } = require('node:test');
 const supertest = require('supertest');
 const buildFastify = require('./app/app');
 const schemas = require('./app/schemas');
-const { JSONError } = require('./app/schemas');
 
 let token;
 
@@ -32,7 +31,7 @@ test('POST `/admin` route with incorrect admin password', async (t) => {
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, JSONError('Admin credentials are invalid', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401));
 });
 
 test('POST `/admin` route with correct admin password', async (t) => {
@@ -146,7 +145,7 @@ test('GET `/users/health` route with invalid internal API key', async (t) => {
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, JSONError('Invalid API Key', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
 });
 
 test('GET `/tournaments/health` route with invalid internal API key', async (t) => {
@@ -161,7 +160,20 @@ test('GET `/tournaments/health` route with invalid internal API key', async (t) 
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, JSONError('Invalid API Key', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
 });
 
-test('')
+test('GET `/users/` route with token to fetch all users', async (t) => {
+  const app = buildFastify(opts = {});
+
+  t.after(() => app.close());
+  await app.ready();
+
+  const response = await supertest(app.server)
+  .get('/users/')
+  .set('Authorization', `Bearer ${token}`)
+  .expect(200)
+  .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.ok(Array.isArray(response.body));
+});

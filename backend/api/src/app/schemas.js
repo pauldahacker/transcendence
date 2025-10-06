@@ -14,4 +14,13 @@ const adminPasswordSchema = {
   },
 };
 
-module.exports = { JSONError, adminPasswordSchema };
+const userSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'integer' },
+    username: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' },
+  },
+};
+
+module.exports = { JSONError, adminPasswordSchema, userSchema };
