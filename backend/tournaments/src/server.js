@@ -1,7 +1,9 @@
-const fs = require('fs')
-const Fastify = require('fastify');
+import fs from 'fs';
+import Fastify from 'fastify';
+import got from 'got';
 
 const PORT = 3003;
+const API_PORT = 3000;
 
 const server = Fastify({
   logger: {
@@ -20,7 +22,14 @@ const server = Fastify({
 });
 
 server.get('/', async (request, reply) => {
-  return { message: 'tournaments' };
+    const data = await got.get(`https://api:${API_PORT}/`, {
+      https: {
+        rejectUnauthorized: false
+      },
+      headers: { 'x-internal-api-key': process.env.INTERNAL_API_KEY }
+    }).json();
+
+  return data;
 });
 
 server.get('/health', async (request, reply) => {

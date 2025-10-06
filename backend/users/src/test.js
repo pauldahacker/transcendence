@@ -102,24 +102,6 @@ test('POST `/login` route', async (t) => {
   });
 });
 
-test('GET `/` route', async (t) => {
-  const { app } = buildFastify(opts = {}, DB_PATH);
-
-  t.after(() => app.close());
-  await app.ready();
-
-  const response = await supertest(app.server)
-  .get('/')
-  .set('Authorization', `Bearer ${token_1}`)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
-
-  t.assert.deepStrictEqual(response.body[0].id, 1);
-  t.assert.deepStrictEqual(response.body[0].username, 'admin');
-  t.assert.deepStrictEqual(response.body[1].id, 2);
-  t.assert.deepStrictEqual(response.body[1].username, 'myuser');
-});
-
 test('POST `/logout` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
@@ -164,7 +146,7 @@ test('GET `/:user_id` route', async (t) => {
   
   await t.test('Get profile with missing token', async (t) => {
     const response = await supertest(app.server)
-    .get('/2')
+    .get('/1')
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -173,7 +155,7 @@ test('GET `/:user_id` route', async (t) => {
 
   await t.test('Get profile with blacklisted token', async (t) => {
     const response = await supertest(app.server)
-    .get('/2')
+    .get('/1')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -192,7 +174,7 @@ test('GET `/:user_id` route', async (t) => {
     token_1 = loginResponse.body.token;
 
     const response = await supertest(app.server)
-    .get('/2')
+    .get('/1')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -221,7 +203,7 @@ test('PUT `/:user_id` route', async (t) => {
   
   await t.test('Update profile with missing token', async (t) => {
     const response = await supertest(app.server)
-    .put('/2')
+    .put('/1')
     .send({ display_name: 'New Name' })
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -231,7 +213,7 @@ test('PUT `/:user_id` route', async (t) => {
 
   await t.test('No updates provided', async (t) => {
     const response = await supertest(app.server)
-    .put('/2')
+    .put('/1')
     .set('Authorization', `Bearer ${token_1}`)
     .send({ })
     .expect(200)
@@ -242,7 +224,7 @@ test('PUT `/:user_id` route', async (t) => {
 
   await t.test('Update profile with valid token', async (t) => {
     const response = await supertest(app.server)
-    .put('/2')
+    .put('/1')
     .set('Authorization', `Bearer ${token_1}`)
     .send({ display_name: 'New Name', bio: 'This is my bio' })
     .expect(200)
@@ -277,7 +259,7 @@ test('PUT `/:user_id` route', async (t) => {
     t.assert.strictEqual(registerResponse.body.username, 'otheruser');
 
     const response = await supertest(app.server)
-    .put('/3')
+    .put('/2')
     .set('Authorization', `Bearer ${token_1}`)
     .send({ display_name: 'Name' })
     .expect(403)
@@ -287,17 +269,35 @@ test('PUT `/:user_id` route', async (t) => {
   });
 });
 
+test('GET `/` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  const response = await supertest(app.server)
+  .get('/')
+  .set('Authorization', `Bearer ${token_1}`)
+  .expect(200)
+  .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.deepStrictEqual(response.body[0].id, 1);
+  t.assert.deepStrictEqual(response.body[0].username, 'myuser');
+  t.assert.deepStrictEqual(response.body[1].id, 2);
+  t.assert.deepStrictEqual(response.body[1].username, 'otheruser');
+});
+
 test('Dump database', async (t) => {
   const { db } = buildFastify(opts = {}, DB_PATH);
     db.exec(`
       INSERT OR IGNORE INTO friends (user1_id, user2_id, created_at, confirmed) VALUES
-      (2, 3, datetime('now'), 1);
+      (1, 2, datetime('now'), 1);
 
       INSERT OR IGNORE INTO match_history (user1_id, user2_id, winner_id, user1_wins, user2_wins, match_date) VALUES
-      (2, 3, 2, 1, 0, datetime('now')),
-      (2, 3, 2, 1, 0, datetime('now')),
-      (2, 3, 3, 0, 1, datetime('now')),
-      (2, 3, 2, 1, 0, datetime('now'));
+      (1, 2, 1, 1, 0, datetime('now')),
+      (1, 2, 2, 0, 1, datetime('now')),
+      (1, 2, 1, 1, 0, datetime('now')),
+      (1, 2, 1, 1, 0, datetime('now'));
     `);
 });
 
@@ -309,7 +309,7 @@ test('Check profile updates', async (t) => {
 
   await t.test('Get profile with valid token', async (t) => {
     const response = await supertest(app.server)
-    .get('/2')
+    .get('/1')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -318,7 +318,7 @@ test('Check profile updates', async (t) => {
     t.assert.deepStrictEqual(response.body.username, 'myuser');
     t.assert.deepStrictEqual(response.body.display_name, 'New Name');
     t.assert.deepStrictEqual(response.body.bio, 'This is my bio');
-    t.assert.deepStrictEqual(response.body.friends, [3]);
+    t.assert.deepStrictEqual(response.body.friends, [2]);
     t.assert.deepStrictEqual(response.body.stats.total_matches, 4);
     t.assert.deepStrictEqual(response.body.stats.wins, 3);
     t.assert.deepStrictEqual(response.body.stats.losses, 1);
@@ -336,7 +336,7 @@ test('Check profile updates', async (t) => {
     token_2 = loginResponse.body.token;
 
     const response = await supertest(app.server)
-    .get('/3')
+    .get('/2')
     .set('Authorization', `Bearer ${token_2}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
@@ -345,45 +345,9 @@ test('Check profile updates', async (t) => {
     t.assert.deepStrictEqual(response.body.username, 'otheruser');
     t.assert.deepStrictEqual(response.body.display_name, null);
     t.assert.deepStrictEqual(response.body.bio, null);
-    t.assert.deepStrictEqual(response.body.friends, [2]);
+    t.assert.deepStrictEqual(response.body.friends, [1]);
     t.assert.deepStrictEqual(response.body.stats.total_matches, 4);
     t.assert.deepStrictEqual(response.body.stats.wins, 1);
     t.assert.deepStrictEqual(response.body.stats.losses, 3);
-  });
-});
-
-test('GET `/admin` route', async (t) => {
-  const { app } = buildFastify(opts = {}, DB_PATH);
-
-  t.after(() => app.close());
-  await app.ready();
-  
-  await t.test('Get admin data with user token', async (t) => {
-    const response = await supertest(app.server)
-    .get('/admin')
-    .set('Authorization', `Bearer ${token_1}`)
-    .expect(403)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin privileges required', 403));
-  });
-
-  await t.test('Get admin data with admin token', async (t) => {
-    const response = await supertest(app.server)
-    .post('/login')
-    .send({ username: 'admin', password: process.env.ADMIN_PASSWORD })
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.ok(response.body.token);
-    const admin_token = response.body.token;
-
-    const admin_response = await supertest(app.server)
-    .get('/admin')
-    .set('Authorization', `Bearer ${admin_token}`)
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(admin_response.body, { message: 'damn, u admin' });
   });
 });
