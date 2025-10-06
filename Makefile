@@ -33,6 +33,10 @@ all:
 $(ENV_FILE):
 	$(call help_message, "Creating the .env file from .env.example...")
 	cp .env.example .env
+	echo -n "JWT_SECRET=" >> .env
+	openssl rand -hex 32 >> .env
+	echo -n "INTERNAL_API_KEY=" >> .env
+	openssl rand -hex 32 >> .env
 
 up: $(ENV_FILE)
 	$(call help_message, "Running the containerized application...")
