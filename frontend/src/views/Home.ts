@@ -44,7 +44,7 @@ export function renderHome(root: HTMLElement) {
       </a>
       <span class="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-black text-gray-100 
                    text-[2vh] font-bit opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Play a local tournament (1–4 players)
+        Play a local tournament (1-4 players)
       </span>
     </div>
 

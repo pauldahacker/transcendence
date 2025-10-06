@@ -42,11 +42,6 @@ function applySecurityHeaders(reply, customCsp) {
   // Remove server fingerprinting
   reply.removeHeader('Server');
   reply.removeHeader('X-Powered-By');
-
-  // Optional: Custom server identifier in production
-  if (isProduction) {
-    reply.header('Server', 'TrophyHub-API');
-  }
 }
 
 function applyRelaxedSecurityHeaders(reply) {
