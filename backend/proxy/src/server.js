@@ -1,5 +1,6 @@
 const fs = require('fs')
 const Fastify = require('fastify');
+const { request } = require('http');
 
 const PORT = 443;
 const API_PORT = 3000;
@@ -21,20 +22,29 @@ const server = Fastify({
 	}
 });
 
-const proxy = require('@fastify/http-proxy');
-
 const routes = [
   { prefix: '/api', url: `https://api:${API_PORT}` },
   { prefix: '/', url: `https://frontend:${FRONTEND_PORT}` }
 ];
 
 routes.forEach((route) => {
-  server.register(proxy, {
-	upstream: route.url,
-	prefix: route.prefix,
-	http2: false
-  });
+  server.register(require('@fastify/http-proxy'), {
+		upstream: route.url,
+		prefix: route.prefix,
+		http2: false
+	});
 });
+
+app.decorate('verifyAdmin', async (request, _reply, done) => {
+    try {
+      const user = db.getUser(request.user.username);
+      if (!user || !user.is_admin)
+        throw done(JSONError('Admin privileges required', 403));
+    } catch (err) {
+      return done(err);
+    }
+    return done();
+  });
 
 server.setErrorHandler((error, request, reply) => {
   if (error.code === 'UND_ERR_SOCKET' || error.code === 'ECONNREFUSED') {

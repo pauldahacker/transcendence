@@ -3,9 +3,13 @@ const { v6: uuidv6 } = require('uuid');
 const tokenBlacklist = new Set();
 
 function routes(fastify, db) {
-	fastify.get('/', async (_request, _reply) => {
-		return { message: 'users' };
-	});
+	fastify.get('/', {
+		preHandler: fastify.auth([
+			fastify.verifyJWT
+		])}, async (_request, _reply) => {
+			return db.getAllUsers();
+		}
+	);
 
 	fastify.get('/health', async (_request, _reply) => {
 		return { status: 'ok' };

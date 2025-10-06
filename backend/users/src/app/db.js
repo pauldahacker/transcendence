@@ -74,6 +74,15 @@ class UsersDatabase extends Database {
     }
   }
 
+  getAllUsers() {
+    try {
+      const stmt = this.prepare('SELECT id, username, created_at FROM users_auth');
+      return stmt.all();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   getUser(username) {
     try {
       const stmt = this.prepare('SELECT * FROM users_auth WHERE username = ?');

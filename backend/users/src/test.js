@@ -13,19 +13,6 @@ unlink(DB_PATH, (err) => {
   if (err && err.code !== 'ENOENT') throw err;
 });
 
-test('GET `/` route', async (t) => {
-  const { app } = buildFastify(opts = {}, DB_PATH);
-
-  t.after(() => app.close());
-  await app.ready();
-
-  const response = await supertest(app.server)
-    .get('/')
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-  t.assert.deepStrictEqual(response.body, { message: 'users' });
-});
-
 test('GET `/health` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
@@ -66,7 +53,6 @@ test('POST `/register` route', async (t) => {
     t.assert.deepStrictEqual(response.body, schemas.JSONError('Username already exists', 409, 'SQLITE_CONSTRAINT_UNIQUE'));
   });
 });
-
 
 test('POST `/login` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
@@ -114,6 +100,24 @@ test('POST `/login` route', async (t) => {
 
     t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
   });
+});
+
+test('GET `/` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  const response = await supertest(app.server)
+  .get('/')
+  .set('Authorization', `Bearer ${token_1}`)
+  .expect(200)
+  .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.deepStrictEqual(response.body[0].id, 1);
+  t.assert.deepStrictEqual(response.body[0].username, 'admin');
+  t.assert.deepStrictEqual(response.body[1].id, 2);
+  t.assert.deepStrictEqual(response.body[1].username, 'myuser');
 });
 
 test('POST `/logout` route', async (t) => {

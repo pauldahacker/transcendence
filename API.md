@@ -8,6 +8,20 @@
 
 ### User endpoints
 
+#### Endpoint: `GET    /api/users/`
+
+Response body:
+```json
+[
+  {
+    "id": "number",
+    "username": "string"
+  }
+]
+```
+Error responses:
+- `401`: Invalid token header
+
 #### Endpoint: `POST   /api/users/register`
 
 Request body:
