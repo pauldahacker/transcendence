@@ -1,12 +1,14 @@
 # API endpoints
 
-> [!TIP]
-> All endpoints except `/api/users/register` and `/api/users/login` require authentication via JWT in the `Authorization` header as `Bearer {token}`. Such token is obtained upon successful login.
+This document describes the RESTful API endpoints provided by the User Service of the Pong application. The service is built using Fastify and provides user management functionalities including registration, authentication, profile management, and user listing.
 
 > [!TIP]
-> For frontend integration, the base URL to use is `https://api:3000/`.
+> For frontend integration, the base URL to use is `https://api:3000/`. Also, container authentication is done via API key in the `x-internal-api-key` header. Such key is set in the environment variable `INTERNAL_API_KEY`.
 
 ## User endpoints
+
+> [!TIP]
+> All endpoints except `/api/users/register` and `/api/users/login` require user authentication via JWT in the `Authorization` header as `Bearer {token}`. Such token is obtained upon successful login.
 
 ### Endpoint: `POST   /api/users/register`
 

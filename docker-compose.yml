@@ -1,6 +1,8 @@
 name: trascendence
 services:
   proxy:
+    env_file:
+      - .env
     depends_on:
       - frontend
       - api

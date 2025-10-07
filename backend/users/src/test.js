@@ -36,7 +36,7 @@ test('POST `/register` route', async (t) => {
     const response = await supertest(app.server)
     .post('/register')
     .send({ username: 'myuser', password: 'mypass' })
-    .expect(200)
+    .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(Object.keys(response.body), schemas.userResponseKeys);
@@ -252,7 +252,7 @@ test('PUT `/:user_id` route', async (t) => {
      const registerResponse = await supertest(app.server)
     .post('/register')
     .send({ username: 'otheruser', password: 'otherpass' })
-    .expect(200)
+    .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseKeys);
