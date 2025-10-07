@@ -79,9 +79,7 @@ class UsersDatabase extends Database {
     try {
       const stmt = this.prepare('SELECT * FROM users_auth WHERE username = ?');
       const row = stmt.get(username);
-      if (!row) {
-        throw JSONError('User not found', 404);
-      }
+      if (!row) throw JSONError('User not found', 404);
       return row;
     } catch (error) {
       throw error;
@@ -92,9 +90,7 @@ class UsersDatabase extends Database {
     try {
       const stmt = this.prepare('SELECT * FROM users_auth WHERE id = ?');
       const row = stmt.get(user_id);
-      if (!row) {
-        throw JSONError('User not found', 404);
-      }
+      if (!row) throw JSONError('User not found', 404);
       return row;
     } catch (error) {
       throw error;
@@ -110,8 +106,7 @@ class UsersDatabase extends Database {
         WHERE up.user_id = ?
       `);
       const row = stmt.get(user_id);
-      if (!row)
-        throw JSONError('User not found', 404);
+      if (!row) throw JSONError('User not found', 404);
 
       row.friends = this.prepare(`
         SELECT f.user2_id as friend_user_id
@@ -150,14 +145,23 @@ class UsersDatabase extends Database {
         WHERE user_id = ?
       `);
       const info = stmt.run(display_name, avatar_url, bio, user_id);
-      if (info.changes === 0) {
-        throw JSONError('User not found', 404);
-      }
+      if (info.changes === 0) throw JSONError('User not found', 404);
       return this.getProfile(user_id);
     } catch (error) {
       if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
         error = JSONError('Display name is already taken', 409, error.code);
       }
+      throw error;
+    }
+  }
+
+  deleteUser(user_id) {
+    try {
+      const stmt = this.prepare('DELETE FROM users_auth WHERE id = ?');
+      const info = stmt.run(user_id);
+
+      if (info.changes === 0) throw JSONError('User not found', 404);
+    } catch (error) {
       throw error;
     }
   }

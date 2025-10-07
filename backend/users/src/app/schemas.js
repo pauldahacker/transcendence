@@ -9,7 +9,13 @@ function JSONError(message, statusCode, code) {
 const usernameAndPasswordSchema = {
   type: 'object',
   properties: {
-    username: { type: 'string', minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' },
+    username: { 
+      type: 'string', 
+      minLength: 3, 
+      maxLength: 20, 
+      pattern: '^[a-zA-Z0-9_]+$',
+      not: { const: 'admin' }
+    },
     password: { type: 'string', minLength: 6, maxLength: 100, pattern: '^[a-zA-Z0-9_!@#$%^&*()-+=]+$' }
   },
   required: ['username', 'password'],

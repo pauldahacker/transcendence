@@ -23,48 +23,48 @@ function buildFastify(opts, dbFile) {
     routes(app, db);
   });
 
-  app.decorate('verifyJWT', async (request, reply) => {
+  app.decorate('verifyUserAndPassword', async (request, _reply) => {
     try {
-      await request.jwtVerify();
+      if (!request.body || !request.body.username) 
+        throw JSONError('Missing user in body', 400);
+
+      const user = db.getUser(request.body.username);
+      if (!await bcrypt.compare(request.body.password, user.password))
+        throw JSONError('Password not valid', 401);
     } catch (err) {
-      reply.code(401).send(JSONError('Token not valid', 401));
       throw err;
     }
   });
 
-  app.decorate('verifyUserAndPassword', async (request, _reply, done) => {
-    if (!request.body || !request.body.username) 
-      return done(JSONError('Missing user in body', 400));
-
-    try {
-      const user = db.getUser(request.body.username);
-      if (!await bcrypt.compare(request.body.password, user.password))
-        return done(JSONError('Password not valid', 401));
-    } catch (err) {
-      return done(err);
-    }
-    return done();
-  });
-
   app.decorate('verifyUserOwnership', async (request, _reply, done) => {
-    if (!request.params.user_id) 
-      return done(JSONError('Missing user ID in params', 400));
-
     try {
+      if (!request.params.user_id) 
+        throw JSONError('Missing user ID in params', 400);
+
+      await request.jwtVerify();
       const user = db.getUserById(request.params.user_id);
-      if (!user || user.username !== request.user.username)
-        throw done(JSONError('User not authorized', 403));
+      if (user.username !== request.user.username)
+        throw JSONError('User not authorized', 403);
     } catch (err) {
-      return done(err);
+      throw err;
     }
-    return done();
   });
 
-  app.decorate('verifyAdmin', async (request, _reply, done) => {
+  app.decorate('verifyAdminJWT', async (request, reply) => {
     try {
-      const user = db.getUser(request.user.username);
-      if (!user || !user.is_admin)
-        throw done(JSONError('Admin privileges required', 403));
+      await request.jwtVerify();
+      if (request.user.username !== "admin")
+        throw JSONError('User not authorized', 403);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  app.decorate('verifyInternalApiKey', (request, _reply, done) => {
+    try {
+      const apiKey = request.headers['x-internal-api-key'];
+      if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY)
+        throw JSONError('Invalid API Key', 401);
     } catch (err) {
       return done(err);
     }
