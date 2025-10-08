@@ -129,6 +129,37 @@ Error responses:
 
 ## Tournament endpoints
 
+## Admin endpoint
+
+### Endpoint: `POST   /api/admin/`
+
+Request body:
+```json
+{
+  "admin_password": "string"
+}
+```
+
+Response body:
+```json
+{
+  "token": "string"
+}
+```
+
+## Health endpoints
+
+All services expose a health check endpoint at `/health` that can be used to verify that the service is running and healthy.
+
+Response body:
+```json
+{
+  "status": "ok",
+}
+```
+
+
+
 
 
 <!-- 
