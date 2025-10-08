@@ -41,7 +41,6 @@ function buildFastify(opts, dbFile) {
       if (!request.params.user_id) 
         throw JSONError('Missing user ID in params', 400);
 
-      await request.jwtVerify();
       const user = db.getUserById(request.params.user_id);
       if (user.username !== request.user.username)
         throw JSONError('User not authorized', 403);
@@ -52,7 +51,6 @@ function buildFastify(opts, dbFile) {
 
   app.decorate('verifyAdminJWT', async (request, reply) => {
     try {
-      await request.jwtVerify();
       if (request.user.username !== "admin")
         throw JSONError('User not authorized', 403);
     } catch (err) {
@@ -69,6 +67,14 @@ function buildFastify(opts, dbFile) {
       return done(err);
     }
     return done();
+  });
+
+  app.decorate('verifyJWT', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.send(err);
+    }
   });
 
   return { app, db };

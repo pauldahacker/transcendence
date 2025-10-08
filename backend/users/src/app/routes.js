@@ -46,20 +46,27 @@ function routes(app, db) {
 		}
 	);
 
-	app.post('/logout', async (request, reply) => {
-			request.log.info('User logging out');
-			try {
-				await request.jwtVerify();
-				
-				tokenBlacklist.add(request.user.jti);
-				return reply.send({ message: 'Logged out successfully' });
-			} catch (err) {
+	app.post('/logout', {
+		preHandler: app.auth([
+			app.verifyJWT
+		])
+	}, async (request, reply) => {
+		request.log.info('User logging out');
+		try {
+			tokenBlacklist.add(request.user.jti);
+			return reply.send({ message: 'Logged out successfully' });
+		} catch (err) {
 					throw err;
 			}
 		}
 	);
 
-	app.get('/:user_id', async (request, reply) => {
+	app.get('/:user_id', {
+			preHandler: app.auth([
+				app.verifyJWT
+			])
+		},
+		async (request, reply) => {
 			request.log.info('Fetching user profile');
 			try {
 				const info = db.getProfile(request.params.user_id);
@@ -72,8 +79,9 @@ function routes(app, db) {
 
 	app.put('/:user_id', {
 			preHandler: app.auth([
+				app.verifyJWT,
 				app.verifyUserOwnership
-			])
+			], { relation: 'and' })
 		}, async (request, reply) => {
 			request.log.info('Updating user profile');
 			try {
