@@ -50,6 +50,6 @@ export function renderRegister(root: HTMLElement) {
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Register attempt:", { username, password });
-    // backend
+    
   });
 }
