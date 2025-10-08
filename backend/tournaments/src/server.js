@@ -2,8 +2,6 @@ import fs from 'fs';
 import Fastify from 'fastify';
 import got from 'got';
 
-const PORT = 3003;
-const API_PORT = 3000;
 
 const server = Fastify({
   logger: {
@@ -22,7 +20,7 @@ const server = Fastify({
 });
 
 server.get('/', async (request, reply) => {
-    const data = await got.get(`https://api:${API_PORT}/`, {
+    const data = await got.get(`https://api:${process.env.API_PORT}/`, {
       https: {
         rejectUnauthorized: false
       },
@@ -36,7 +34,7 @@ server.get('/health', async (request, reply) => {
   return { status: 'ok' };
 });
 
-server.listen({ host: '0.0.0.0', port: PORT }, (err) => {
+server.listen({ host: '0.0.0.0', port: process.env.TOURNAMENTS_PORT }, (err) => {
   if (err) {
     server.log.error(err);
     process.exit(1);

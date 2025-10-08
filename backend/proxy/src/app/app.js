@@ -1,12 +1,9 @@
 const Fastify = require('fastify');
 const { applyRelaxedSecurityHeaders, applySecurityHeaders } = require('./securityHeaders');
 
-const API_PORT = 3000;
-const FRONTEND_PORT = 3001;
-
 const routes = [
-  { prefix: '/api', url: `https://api:${API_PORT}` },
-  { prefix: '/', url: `https://frontend:${FRONTEND_PORT}` }
+  { prefix: '/api', url: `https://api:${process.env.API_PORT}` },
+  { prefix: '/', url: `https://frontend:${process.env.FRONTEND_PORT}` }
 ];
 
 function buildFastify(opts) {
