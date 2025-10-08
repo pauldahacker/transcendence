@@ -5,8 +5,6 @@ services:
       context: ../src
       dockerfile: ../docker/Dockerfile
     restart: always
-    volumes:
-      - tournaments_data:/var/lib/app
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:3003/health"]
       interval: 1m30s

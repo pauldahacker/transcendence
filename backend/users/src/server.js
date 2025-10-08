@@ -1,7 +1,7 @@
 const fs = require('fs')
 const { buildFastify } = require('./app/app');
 
-const DB_NAME = 'users.db'
+const DB_PATH = '/app/db/users.db'
 const PORT = 3002;
 
 const optsFastify = {
@@ -22,7 +22,7 @@ const optsFastify = {
     http2: true
 }
 
-const { app } = buildFastify(optsFastify, DB_NAME);
+const { app } = buildFastify(optsFastify, DB_PATH);
 
 app.listen({ host: '0.0.0.0', port: PORT }, (err) => {
   if (err) {
