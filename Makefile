@@ -21,13 +21,13 @@ all:
 	@echo
 	@echo -e "${BLUE}${BOLD}Available recipes:"
 
-	@echo -e "  ${GREEN}${BOLD}up                 ${CYAN}- Run the containerized application"
-	@echo -e "  ${GREEN}${BOLD}build              ${CYAN}- Build the container image"
-	@echo -e "  ${GREEN}${BOLD}test ARG=<service> ${CYAN}- Run tests for the specified container"
-	@echo -e "  ${GREEN}${BOLD}down               ${CYAN}- Stop the containerized application"
-	@echo -e "  ${GREEN}${BOLD}clean              ${CYAN}- Stop the application and remove the database volume"
-	@echo -e "  ${GREEN}${BOLD}fclean             ${CYAN}- Remove container images"
-	@echo -e "  ${GREEN}${BOLD}re                 ${CYAN}- Rebuild and restart the application"
+	@echo -e "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
+	@echo -e "  ${GREEN}${BOLD}build   ${CYAN}- Build the container image"
+	@echo -e "  ${GREEN}${BOLD}test    ${CYAN}- Run integration tests"
+	@echo -e "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
+	@echo -e "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
+	@echo -e "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
+	@echo -e "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application"
 	@echo
 
 $(ENV_FILE):
@@ -47,12 +47,12 @@ build:
 	docker compose build
 
 test:
-ifndef ARG
-	$(call error_message, "ARG variable is not set.")
-	@exit 1
-endif
-	$(call help_message, "Running test of ${ARG} service...")
-	docker compose run --build --rm $(ARG) npm test
+	$(call help_message, "Running unit tests...")
+	docker compose exec api npm run test
+	docker compose exec users npm run test
+	$(call help_message, "Running integration tests...")
+	docker compose up -d
+	docker compose exec proxy npm test
 
 down:
 	$(call help_message, "Stopping the containerized application...")

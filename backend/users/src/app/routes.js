@@ -2,22 +2,19 @@ const schemas = require('./schemas');
 const { v6: uuidv6 } = require('uuid');
 const tokenBlacklist = new Set();
 
-function routes(fastify, db) {
-	fastify.get('/', async (request, reply) => {
+function routes(app, db) {
+	app.get('/', async (request, reply) => {
 			request.log.info('Fetching all users');
 			const users = db.getAllUsers();
-			fastify.log.info("Users: ", users);
-			if (!users)
-				return reply.status(404).send(schemas.JSONError('No users found', 404));
 			return reply.send(users);
 		}
 	);
 
-	fastify.get('/health', async (_request, reply) => {
+	app.get('/health', async (_request, reply) => {
 		return reply.send({ status: 'ok' });
 	});
 
-	fastify.post('/register',
+	app.post('/register',
 		{ schema: { body: schemas.usernameAndPasswordSchema } },
 		async (request, reply) => {
 			request.log.info('Creating new user');
@@ -31,15 +28,15 @@ function routes(fastify, db) {
 		}
 	);
 
-	fastify.post('/login', {
+	app.post('/login', {
 			schema: { body: schemas.usernameAndPasswordSchema },
-			preHandler: fastify.auth([
-				fastify.verifyUserAndPassword,
+			preHandler: app.auth([
+				app.verifyUserAndPassword,
 			]),
 		}, async (request, reply) => {
 			request.log.info('User logging in');
 			try {
-				const token = fastify.jwt.sign({
+				const token = app.jwt.sign({
 					username: request.body.username,
 					jti: uuidv6()}, { expiresIn: '1h' });
 				return reply.send({ token });
@@ -49,18 +46,27 @@ function routes(fastify, db) {
 		}
 	);
 
-	fastify.post('/logout', async (request, reply) => {
-			request.log.info('User logging out');
-			try {				
-				tokenBlacklist.add(request.user.jti);
-				return reply.send({ message: 'Logged out successfully' });
-			} catch (err) {
+	app.post('/logout', {
+		preHandler: app.auth([
+			app.verifyJWT
+		])
+	}, async (request, reply) => {
+		request.log.info('User logging out');
+		try {
+			tokenBlacklist.add(request.user.jti);
+			return reply.send({ message: 'Logged out successfully' });
+		} catch (err) {
 					throw err;
 			}
 		}
 	);
 
-	fastify.get('/:user_id', async (request, reply) => {
+	app.get('/:user_id', {
+			preHandler: app.auth([
+				app.verifyJWT
+			])
+		},
+		async (request, reply) => {
 			request.log.info('Fetching user profile');
 			try {
 				const info = db.getProfile(request.params.user_id);
@@ -71,10 +77,11 @@ function routes(fastify, db) {
 		}
 	);
 
-	fastify.put('/:user_id', {
-			preHandler: fastify.auth([
-				fastify.verifyUserOwnership
-			], { relation: 'and' }),
+	app.put('/:user_id', {
+			preHandler: app.auth([[
+				app.verifyJWT,
+				app.verifyUserOwnership
+			], app.verifyAdminJWT], { relation: 'or' }),
 		}, async (request, reply) => {
 			request.log.info('Updating user profile');
 			try {
@@ -85,6 +92,21 @@ function routes(fastify, db) {
 			}
 		}
 	);
+
+	app.delete('/:user_id', {
+		preHandler: app.auth([
+			app.verifyUserOwnership,
+			app.verifyAdminJWT
+		], { relation: 'or' })
+	}, async (request, reply) => {
+		request.log.info('Deleting user');
+		try {
+			db.deleteUser(request.params.user_id);
+			return reply.send({ message: 'User deleted' });
+		} catch (err) {
+			throw err;
+		}
+	});
 }
 
 module.exports = { routes, tokenBlacklist };

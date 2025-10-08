@@ -3,268 +3,522 @@ const supertest = require('supertest');
 const buildFastify = require('./app/app');
 const schemas = require('./app/schemas');
 
-// Proxy tests
+let tokens = {
+  adminToken: null,
+  user1Token: null,
+  user2Token: null,
+};
 
-test('GET `/health` route', async (t) => {
+test('`proxy` tests', async (t) => {
   const app = buildFastify(opts = {});
 
   t.after(() => app.close());
   await app.ready();
 
-  const response = await supertest(app.server)
-  .get('/health')
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+  await t.test('GET `/health` route', async (t) => {
+    const response = await supertest(app.server)
+    .get('/health')
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepEqual(response.body, { status: 'ok' });
+    t.assert.deepEqual(response.body, { status: 'ok' });
+  });
+
+  await t.test('GET `/` route', async (t) => {
+    const response = await supertest(app.server)
+    .get('/')
+    .expect(200)
+    .expect('Content-Type', 'text/html');
+  });
 });
 
-test('GET `/` route', async (t) => {
+test('`api` tests', async (t) => {
   const app = buildFastify(opts = {});
 
   t.after(() => app.close());
   await app.ready();
 
-  const response = await supertest(app.server)
-  .get('/')
-  .expect(200)
-  .expect('Content-Type', 'text/html');
+  await t.test('GET `/api/health` route', async (t) => {
+    const response = await supertest(app.server)
+    .get('/api/health')
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepEqual(response.body, { status: 'ok' });
+  });
+
+  await t.test('POST `/api/admin` route', async (t) => {
+    
+    await t.test('Login as admin with incorrect admin password', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/admin')
+      .send({ admin_password: 'wrong-password' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401));
+    });
+
+    await t.test('Login as admin route with correct admin password', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/admin')
+      .send({ admin_password: process.env.ADMIN_PASSWORD })
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(response.body.token);
+      tokens.adminToken = response.body.token;
+    });
+  });
+
+    await t.test('GET `/api/users/health` route: Admin JWT and API key authorization', async (t) => {
+
+      await t.test('Access without admin token nor internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/users/health')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+      });
+
+      await t.test('Access with admin token', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/users/health')
+        .set('Authorization', `Bearer ${tokens.adminToken}`)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, { status: 'ok' });
+      });
+
+      await t.test('Access with internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/users/health')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, { status: 'ok' });
+      });
+
+      await t.test('Access with invalid internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/users/health')
+        .set('x-internal-api-key', 'invalid-api-key')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+      });
+    });
+
+    await t.test('GET `/api/tournaments/health` route: Admin JWT and API key authorization', async (t) => {
+
+      await t.test('Access without admin token nor internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/tournaments/health')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+      });
+
+      await t.test('Access with admin token', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/tournaments/health')
+        .set('Authorization', `Bearer ${tokens.adminToken}`)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, { status: 'ok' });
+      });
+
+      await t.test('Access with internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/tournaments/health')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, { status: 'ok' });
+      });
+
+      await t.test('Access with invalid internal API key', async (t) => {
+        const response = await supertest(app.server)
+        .get('/api/tournaments/health')
+        .set('x-internal-api-key', 'invalid-api-key')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+      });
+    });
 });
 
-// API tests
-
-test('GET `/api/health` route', async (t) => {
+test('`users` tests', async (t) => {
   const app = buildFastify(opts = {});
 
   t.after(() => app.close());
   await app.ready();
 
-  const response = await supertest(app.server)
-  .get('/api/health')
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+  await t.test('GET `/api/users/` route', async (t) => {
+    
+    await t.test('Fetch users without token nor internal API key', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/')
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+    });
 
-  t.assert.deepEqual(response.body, { status: 'ok' });
-});
+    await t.test('Fetch users with internal API key', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('POST `/api/admin` route with incorrect admin password', async (t) => {
-  const app = buildFastify(opts = {});
+      t.assert.ok(Array.isArray(response.body));
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Fetch users with admin token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/')
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .post('/api/admin')
-  .send({ admin_password: 'wrong-password' })
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+      t.assert.ok(Array.isArray(response.body));
+    });
+  });
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401));
-});
+  await t.test('POST `/api/users/register` route', async (t) => {
+    
+    await t.test('Register with valid data', async (t) => {
+      
+      await t.test('First registration', async (t) => {
+        const user1Response = await supertest(app.server)
+        .post('/api/users/register')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ username: 'testuser', password: 'testpassword' })
+        .expect(201)
+        .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('POST `/api/admin` route with correct admin password', async (t) => {
-  const app = buildFastify(opts = {});
+        t.assert.ok(user1Response.body.id);
 
-  t.after(() => app.close());
-  await app.ready();
+        const response = await supertest(app.server)
+        .post('/api/users/register')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ username: 'testuser2', password: 'testpassword2' })
+        .expect(201)
+        .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .post('/api/admin')
-  .send({ admin_password: process.env.ADMIN_PASSWORD })
-  .expect('Content-Type', 'application/json; charset=utf-8');
+        t.assert.ok(response.body.id);
+      });
 
-  t.assert.ok(response.body.token);
-  token = response.body.token;
-});
+      await t.test('Duplicate registration', async (t) => {
+        const response = await supertest(app.server)
+        .post('/api/users/register')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ username: 'testuser', password: 'testpassword' })
+        .expect(409)
+        .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('GET `/api/users/health` route without token nor internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Username already exists', 409, 'SQLITE_CONSTRAINT_UNIQUE'));
+      });
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('POST `/api/users/register` route with invalid username `admin`', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/register')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ username: 'admin', password: 'somepassword' })
+      .expect(400)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+  });
+  
+  await t.test('POST `/api/users/login` route', async (t) => {
 
-  const response = await supertest(app.server)
-  .get('/api/users/health')
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
-});
+    await t.test('Login without previous registration', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/login')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ username: 'nouser', password: 'mypass' })
+      .expect(404);
 
-test('GET `/api/users/health` route with token', async (t) => {
-  const app = buildFastify(opts = {});
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Login with correct credentials', async (t) => {
+      const user1Response = await supertest(app.server)
+      .post('/api/users/login')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ username: 'testuser', password: 'testpassword' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .get('/api/users/health')
-  .set('Authorization', `Bearer ${token}`)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+      t.assert.ok(user1Response.body.token);
+      tokens.user1Token = user1Response.body.token;
 
-  t.assert.deepStrictEqual(response.body, { status: 'ok' });
-});
+      const user2Response = await supertest(app.server)
+      .post('/api/users/login')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ username: 'testuser2', password: 'testpassword2' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('GET `/api/tournaments/health` route without token nor internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+      t.assert.ok(user2Response.body.token);
+      tokens.user2Token = user2Response.body.token;
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Login with incorrect credentials', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/login')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ username: 'testuser', password: 'wrongpass' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .get('/api/tournaments/health')
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
-});
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401));
+    });
+  });
 
-test('GET `/api/tournaments/health` route with token', async (t) => {
-  const app = buildFastify(opts = {});
+  await test('POST `/api/users/logout` route', async (t) => {
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Logout with missing token', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/logout')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .get('/api/tournaments/health')
-  .set('Authorization', `Bearer ${token}`)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
 
-  t.assert.deepStrictEqual(response.body, { status: 'ok' });
-});
+    await t.test('Logout with valid token', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/logout')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('GET `/api/tournaments/health` route with internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+      t.assert.deepStrictEqual(response.body, { message: 'Logged out successfully' });
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Logout with blacklisted token', async (t) => {
+      const response = await supertest(app.server)
+      .post('/api/users/logout')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .get('/api/tournaments/health')
-  .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+  });
 
-  t.assert.deepStrictEqual(response.body, { status: 'ok' });
-});
+  await t.test('GET `/api/users/:user_id` route', async (t) => {
 
-test('GET `/api/users/health` route with internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+    await t.test('Get profile without token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.after(() => app.close());
-  await app.ready();
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
 
-  const response = await supertest(app.server)
-  .get('/api/users/health')
-  .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+    await t.test('Get profile with blacklisted token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, { status: 'ok' });
-});
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
 
-test('GET `/api/users/health` route with invalid internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+    await t.test('Get profile with valid token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/2')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.after(() => app.close());
-  await app.ready();
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser2');
+      profile = response.body;
+    });
 
-  const response = await supertest(app.server)
-  .get('/api/users/health')
-  .set('x-internal-api-key', 'invalid-api-key')
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+    await t.test('Get profile with admin token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
-});
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser');
+    });
 
-test('GET `/api/tournaments/health` route with invalid internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+    await t.test('Get profile as a different user', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.after(() => app.close());
-  await app.ready();
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser');
+    });
 
-  const response = await supertest(app.server)
-  .get('/api/tournaments/health')
-  .set('x-internal-api-key', 'invalid-api-key')
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+    await t.test('Get profile of non-existing user', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/9999')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .expect(404)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
-});
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    });
+  });
 
-// Users tests
+  await t.test('PUT `/api/users/:user_id` route', async (t) => {
+    
+    await t.test('Update profile without token', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ display_name: 'New Name' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-test('GET `/api/users/` route without token nor internal API key', async (t) => {
-  const app = buildFastify(opts = {});
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
 
-  t.after(() => app.close());
-  await app.ready();
+    await t.test('Update profile with blacklisted token', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .get('/api/users/')
-  .expect(401)
-  .expect('Content-Type', 'application/json; charset=utf-8');
-});
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
 
-test('POST `/api/users/register` route with valid token', async (t) => {
-  const app = buildFastify(opts = {});
+    await t.test('Update profile while logged in as different user', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(403)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.after(() => app.close());
-  await app.ready();
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
+    });
 
-  const response = await supertest(app.server)
-  .post('/api/users/register')
-  .set('Authorization', `Bearer ${token}`)
-  .send({ username: 'testuser', password: 'testpassword' })
-  .expect(201)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+    await t.test('Update profile while logged in as admin', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .send({ display_name: 'Admin Changed Name' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.ok(response.body.id);
-});
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.display_name, 'Admin Changed Name');
+    });
 
-test('POST `/api/users/register` route with valid API key', async (t) => {
-  const app = buildFastify(opts = {});
+    await t.test('Update profile while logged in as the same user', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/2')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.after(() => app.close());
-  await app.ready();
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.display_name, 'New Name');
+      profile = response.body;
+    });
 
-  const response = await supertest(app.server)
-  .post('/api/users/register')
-  .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  .send({ username: 'testuser2', password: 'testpassword2' })
-  .expect(201)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+    await t.test('Update profile with empty body', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/2')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.ok(response.body.id);
-});
+      t.assert.deepStrictEqual(response.body, profile);
+    });
+  });
 
-test('GET `/api/users/` route with token to fetch users', async (t) => {
-  const app = buildFastify(opts = {});
+  // await t.test('DELETE `/api/users/:user_id` route', async (t) => {
+  //   await t.test('Delete without user ownership token', async (t) => { 
+  //     const app = buildFastify(opts = {});
 
-  t.after(() => app.close());
-  await app.ready();
+  //     t.after(() => app.close());
+  //     await app.ready();
 
-  const response = await supertest(app.server)
-  .get('/api/users/')
-  .set('Authorization', `Bearer ${token}`)
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+  //     const response = await supertest(app.server)
+  //     .delete('/api/users/1')
+  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+  //     .expect(401)
+  //     .expect('Content-Type', 'application/json; charset=utf-8');
+  //   });
 
-  t.assert.ok(Array.isArray(response.body));
-  t.assert.ok(response.body.length === 2);
-});
+  //   await t.test('Delete route while logged in as different user', async (t) => {
+  //     const app = buildFastify(opts = {});
 
-test('POST `/api/users/login` route with correct username and password', async (t) => {
-  const app = buildFastify(opts = {});
+  //     t.after(() => app.close());
+  //     await app.ready();
 
-  t.after(() => app.close());
-  await app.ready();
+  //     const response = await supertest(app.server)
+  //     .delete('/api/users/1')
+  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+  //     .set('Authorization', `Bearer ${tokens.user2Token}`)
+  //     .expect(403)
+  //     .expect('Content-Type', 'application/json; charset=utf-8');
 
-  const response = await supertest(app.server)
-  .post('/api/users/login')
-  .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  .send({ username: 'testuser', password: 'testpassword' })
-  .expect(200)
-  .expect('Content-Type', 'application/json; charset=utf-8');
+  //     t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
+  //   });
 
-  t.assert.ok(response.body.token);
+  //   await t.test('Delete while logged in as the same user', async (t) => {
+  //     const app = buildFastify(opts = {});
+
+  //     t.after(() => app.close());
+  //     await app.ready();
+
+  //     const response = await supertest(app.server)
+  //     .delete('/api/users/2')
+  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+  //     .set('Authorization', `Bearer ${tokens.user2Token}`)
+  //     .expect(200)
+  //     .expect('Content-Type', 'application/json; charset=utf-8');
+
+  //     t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
+  //   });
+
+  //   await t.test('Delete while logged in as admin', async (t) => {
+  //     const app = buildFastify(opts = {});
+
+  //     t.after(() => app.close());
+  //     await app.ready();
+
+  //     const response = await supertest(app.server)
+  //     .delete('/api/users/1')
+  //     .set('Authorization', `Bearer ${tokens.adminToken}`)
+  //     .expect(200)
+  //     .expect('Content-Type', 'application/json; charset=utf-8');
+
+  //     t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
+  //   });
+  // });
 });
