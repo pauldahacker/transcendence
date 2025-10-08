@@ -5,7 +5,7 @@ services:
       - frontend
       - api
     ports:
-      - '127.0.0.1:443:443'
+      - '127.0.0.1:4433:443'
     extends:
       file: backend/proxy/docker/docker-compose.proxy.yml
       service: proxy

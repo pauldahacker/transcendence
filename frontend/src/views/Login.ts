@@ -54,11 +54,22 @@ export function renderLogin(root: HTMLElement) {
   root.appendChild(container);
 
   const form = container.querySelector("#login-form") as HTMLFormElement;
-  form.addEventListener("submit", (e) => {
+  
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Login attempt:", { username, password });
-    //backend
+    
+    const response = await window.fetch('https://api:3000', {
+		method: 'POST',
+		headers: {
+			'content-type': 'application/json;charset=UTF-8',
+		},
+		body: JSON.stringify({
+			query: pokemonQuery,
+			variables: { name: name.toLowerCase() },
+		}),
+	})
   });
 }
