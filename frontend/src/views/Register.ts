@@ -45,11 +45,32 @@ export function renderRegister(root: HTMLElement) {
   root.appendChild(container);
 
   const form = container.querySelector("#register-form") as HTMLFormElement;
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Register attempt:", { username, password });
-    
+
+    try {
+      const response = await window.fetch(`https://localhost/api/users/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-api-key": (import.meta as any).env.VITE_INTERNAL_API_KEY,
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (response.ok) {
+        alert("Registration successful! You can now log in.");
+        window.location.hash = "#/login";
+      } else {
+        const errorData = await response.json();
+        alert(`Registration failed: ${errorData.message}`);
+      }
+    } catch (error) {
+      alert("Network error. Please try again later.");
+    }
   });
+
 }
