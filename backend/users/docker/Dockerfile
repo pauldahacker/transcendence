@@ -16,7 +16,7 @@ RUN npm install
 COPY --chown=app:app . /app
 
 # Generate self-signed SSL certificates
-RUN mkdir -p /app/certs && \
+RUN mkdir -p /app/certs /app/db && \
 	openssl req -x509 -newkey rsa:4096 -keyout /app/certs/key.pem -out /app/certs/cert.pem -days 365 -nodes -subj "/C=ES/L=Barcelona/O=42/CN=localhost"
 
 CMD ["dumb-init", "node", "server.js"]
