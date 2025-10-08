@@ -7,6 +7,14 @@ export function renderHome(root: HTMLElement) {
     "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen mx-auto my-auto";
 
     container.innerHTML = `
+    <div class="absolute top-[2vh] right-[3vw] group">
+      <a href="#/login"
+        class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-6 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900">
+        Login
+      </a>
+    </div>
+  
     <h1 class="font-honk text-[20vh] animate-wobble">Pong</h1>
 
     <div class="relative group flex items-center">
