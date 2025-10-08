@@ -1,11 +1,22 @@
 name: trascendence
+
+x-internal-ports: &internal-ports
+  environment:
+    - API_PORT
+    - USERS_PORT
+    - TOURNAMENTS_PORT
+    - FRONTEND_PORT
+    - PROXY_PORT
+    - APP_PORT
+
 services:
   proxy:
+    <<: *internal-ports
     depends_on:
       - frontend
       - api
     ports:
-      - '443:443'
+      - '$APP_PORT:$PROXY_PORT'
     env_file:
       - .env
     extends:
@@ -13,11 +24,13 @@ services:
       service: proxy
 
   frontend:
+    <<: *internal-ports
     extends:
       file: frontend/docker/docker-compose.frontend.yml
       service: frontend
 
   api:
+    <<: *internal-ports
     depends_on:
       - users
       - tournaments
@@ -28,6 +41,7 @@ services:
       service: api
 
   users:
+    <<: *internal-ports
     volumes:
       - users_db:/app/db
     env_file:
@@ -37,6 +51,7 @@ services:
       service: users
 
   tournaments:
+    <<: *internal-ports
     volumes:
       - tournaments_db:/app/db
     env_file:

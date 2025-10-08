@@ -5,8 +5,10 @@ services:
       context: ../src
       dockerfile: ../docker/Dockerfile
     restart: always
+    environment:
+      - TOURNAMENTS_PORT
     healthcheck:
-      test: ["CMD", "curl", "-fk", "https://localhost:3003/health"]
+      test: ["CMD", "curl", "-fk", "https://localhost:$TOURNAMENTS_PORT/health"]
       interval: 1m30s
       timeout: 30s
       retries: 5

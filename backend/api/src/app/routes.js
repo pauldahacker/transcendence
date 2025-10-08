@@ -1,9 +1,6 @@
 const { v6: uuidv6 } = require('uuid');
 const schemas = require('./schemas');
 
-const USERS_PORT = 3002;
-const TOURNAMENTS_PORT = 3003;
-
 function routes(app) {
   app.get('/health', async (_request, _reply) => {
     return { status: 'ok' };
@@ -34,12 +31,12 @@ function routes(app) {
   const proxyRoutes = [
     {
       prefix: '/users',
-      url: `https://users:${USERS_PORT}`,
+      url: `https://users:${process.env.USERS_PORT}`,
       preHandler: preHandler,
     },
     {
       prefix: '/tournaments',
-      url: `https://tournaments:${TOURNAMENTS_PORT}`,
+      url: `https://tournaments:${process.env.TOURNAMENTS_PORT}`,
       preHandler: preHandler,
     }
   ];

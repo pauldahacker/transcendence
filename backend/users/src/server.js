@@ -2,7 +2,6 @@ const fs = require('fs')
 const { buildFastify } = require('./app/app');
 
 const DB_PATH = '/app/db/users.db'
-const PORT = 3002;
 
 const optsFastify = {
   logger: {
@@ -24,7 +23,7 @@ const optsFastify = {
 
 const { app } = buildFastify(optsFastify, DB_PATH);
 
-app.listen({ host: '0.0.0.0', port: PORT }, (err) => {
+app.listen({ host: '0.0.0.0', port: process.env.USERS_PORT }, (err) => {
   if (err) {
     app.log.error(err);
     process.exit(1);

@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 
-const PORT = 3001;
-
 export default defineConfig({
   resolve: {
     alias: {
@@ -11,7 +9,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: PORT,
+    port: process.env.FRONTEND_PORT,
 
     https: {
       key: '/app/certs/key.pem',
