@@ -13,11 +13,13 @@ const optsFastify = {
       }
     }
   },
-    https: {
-      key: fs.readFileSync("/app/certs/key.pem"),
-      cert: fs.readFileSync("/app/certs/cert.pem"),
-    }
-}
+  https: {
+    allowHTTP1: true,
+    key: fs.readFileSync("/app/certs/key.pem"),
+    cert: fs.readFileSync("/app/certs/cert.pem"),
+  },
+  http2: true
+};
 
 const app = buildFastify(optsFastify);
 
