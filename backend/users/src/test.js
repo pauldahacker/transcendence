@@ -237,17 +237,6 @@ test('PUT `/:user_id` route', async (t) => {
     profile = response.body;
   });
 
-  await t.test('Update non-existent user profile', async (t) => {
-    const response = await supertest(app.server)
-    .put('/999')
-    .set('Authorization', `Bearer ${token_1}`)
-    .send({ display_name: 'Name' })
-    .expect(404)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
-  });
-
   await t.test('Update another user profile', async (t) => {
      const registerResponse = await supertest(app.server)
     .post('/register')

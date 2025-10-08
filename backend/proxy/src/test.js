@@ -316,6 +316,150 @@ test('`users` tests', async (t) => {
     });
   });
 
+  await t.test('GET `/api/users/:user_id` route', async (t) => {
+
+    await t.test('Get profile without token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Get profile with blacklisted token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Get profile with valid token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/2')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser2');
+      profile = response.body;
+    });
+
+    await t.test('Get profile with admin token', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser');
+    });
+
+    await t.test('Get profile as a different user', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.username, 'testuser');
+    });
+
+    await t.test('Get profile of non-existing user', async (t) => {
+      const response = await supertest(app.server)
+      .get('/api/users/9999')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .expect(404)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    });
+  });
+
+  await t.test('PUT `/api/users/:user_id` route', async (t) => {
+    
+    await t.test('Update profile without token', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ display_name: 'New Name' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Update profile with blacklisted token', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Update profile while logged in as different user', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(403)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
+    });
+
+    await t.test('Update profile while logged in as admin', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/1')
+      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .send({ display_name: 'Admin Changed Name' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.display_name, 'Admin Changed Name');
+    });
+
+    await t.test('Update profile while logged in as the same user', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/2')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ display_name: 'New Name' })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.strictEqual(response.body.display_name, 'New Name');
+      profile = response.body;
+    });
+
+    await t.test('Update profile with empty body', async (t) => {
+      const response = await supertest(app.server)
+      .put('/api/users/2')
+      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .send({ })
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, profile);
+    });
+  });
+
   // await t.test('DELETE `/api/users/:user_id` route', async (t) => {
   //   await t.test('Delete without user ownership token', async (t) => { 
   //     const app = buildFastify(opts = {});

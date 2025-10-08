@@ -6,4 +6,20 @@ function JSONError(message, statusCode, code) {
   return result;
 }
 
-module.exports = { JSONError };
+const userResponseKeys = [
+  'id',
+  'username',
+  'created_at'
+]
+
+const profileResponseKeys = [
+  'username',
+  'display_name',
+  'avatar_url',
+  'bio',
+  'created_at',
+  'friends',
+  'stats'
+]
+
+module.exports = { JSONError, userResponseKeys, profileResponseKeys };
