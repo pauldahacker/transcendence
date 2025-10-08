@@ -78,10 +78,10 @@ function routes(app, db) {
 	);
 
 	app.put('/:user_id', {
-			preHandler: app.auth([
+			preHandler: app.auth([[
 				app.verifyJWT,
 				app.verifyUserOwnership
-			], { relation: 'and' })
+			], app.verifyAdminJWT], { relation: 'or' }),
 		}, async (request, reply) => {
 			request.log.info('Updating user profile');
 			try {
