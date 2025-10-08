@@ -1,4 +1,142 @@
+const { test } = require('node:test');
+const supertest = require('supertest');
+const unlink = require('fs').unlink;
+const { buildFastify } = require('./app/app');
+const schemas = require('./app/schemas');
 
+const DB_PATH = 'test.db';
+let token_1;
+let token_2;
+let profile;
+
+unlink(DB_PATH, (err) => {
+  if (err && err.code !== 'ENOENT') throw err;
+});
+
+test('GET `/health` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  const response = await supertest(app.server)
+  .get('/health')
+  .expect(200)
+  .expect('Content-Type', 'application/json; charset=utf-8');
+  t.assert.deepStrictEqual(response.body, { status: 'ok' });
+});
+
+test('POST `/register` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('First registration', async (t) => {
+    const response = await supertest(app.server)
+    .post('/register')
+    .send({ username: 'myuser', password: 'mypass' })
+    .expect(201)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.userResponseKeys);
+    t.assert.strictEqual(response.body.username, 'myuser');
+  });
+
+  await t.test('Second registration', async (t) => {
+    const response = await supertest(app.server)
+    .post('/register')
+    .send({ username: 'myuser', password: 'mypass' })
+    .expect(409)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Username already exists', 409, 'SQLITE_CONSTRAINT_UNIQUE'));
+  });
+});
+
+test('POST `/login` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('Login without previous registration', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'nouser', password: 'mypass' })
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+
+  await t.test('Login with correct credentials', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'myuser', password: 'mypass' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.ok(response.body.token);
+    token_1 = response.body.token;
+  });
+
+  await t.test('Login with incorrect password', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'myuser', password: 'wrongpass' })
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401));
+  });
+
+  await t.test('Login with non-existent user', async (t) => {
+    const response = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'nouser', password: 'mypass' })
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+});
+
+test('POST `/logout` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Logout with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+  });
+
+  await t.test('Logout with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, { message: 'Logged out successfully' });
+  });
+
+  await t.test('Logout with blacklisted token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/logout')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+  });
+});
 
 test('GET `/:user_id` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
@@ -12,7 +150,7 @@ test('GET `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
   await t.test('Get profile with blacklisted token', async (t) => {
@@ -22,7 +160,7 @@ test('GET `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
   });
 
   await t.test('Get profile with valid token', async (t) => {
@@ -70,7 +208,7 @@ test('PUT `/:user_id` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Token not valid', 401));
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
   await t.test('No updates provided', async (t) => {

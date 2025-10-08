@@ -47,8 +47,12 @@ build:
 	docker compose build
 
 test:
+	$(call help_message, "Running unit tests...")
+	docker compose exec api npm run test
+	docker compose exec users npm run test
 	$(call help_message, "Running integration tests...")
-	docker compose run --build --rm proxy npm test
+	docker compose up -d
+	docker compose exec proxy npm test
 
 down:
 	$(call help_message, "Stopping the containerized application...")
