@@ -1,13 +1,13 @@
 name: trascendence
 services:
   proxy:
-    env_file:
-      - .env
     depends_on:
       - frontend
       - api
     ports:
       - '443:443'
+    env_file:
+      - .env
     extends:
       file: backend/proxy/docker/docker-compose.proxy.yml
       service: proxy
@@ -18,24 +18,27 @@ services:
       service: frontend
 
   api:
-    env_file:
-      - .env
     depends_on:
       - users
       - tournaments
+    env_file:
+      - .env
     extends:
       file: backend/api/docker/docker-compose.api.yml
       service: api
 
   users:
+    volumes:
+      - users_db:/app/db
     env_file:
       - .env
     extends:
       file: backend/users/docker/docker-compose.users.yml
       service: users
-    
 
   tournaments:
+    volumes:
+      - tournaments_db:/app/db
     env_file:
       - .env
     extends:
@@ -43,5 +46,5 @@ services:
       service: tournaments
 
 volumes:
-  users_data: null
-  tournaments_data: null
+  users_db: null
+  tournaments_db: null

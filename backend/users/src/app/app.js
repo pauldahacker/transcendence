@@ -1,14 +1,14 @@
 'use strict';
-
-const { UsersDatabase } = require('./db');
 const Fastify = require('fastify');
 const bcrypt = require('bcrypt');
+
+const { UsersDatabase } = require('./db');
 const { routes, tokenBlacklist } = require('./routes');
 const { JSONError } = require('./schemas');
 
-function buildFastify(opts, dbFile) {
+function buildFastify(opts, dbPath) {
   const app = Fastify(opts);
-  const db = new UsersDatabase(dbFile);
+  const db = new UsersDatabase(dbPath);
 
   app.register(require('@fastify/jwt'), {
     secret: process.env.JWT_SECRET,
