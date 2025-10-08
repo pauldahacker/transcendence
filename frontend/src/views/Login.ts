@@ -60,16 +60,33 @@ export function renderLogin(root: HTMLElement) {
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     console.log("Login attempt:", { username, password });
-    
-    const response = await window.fetch('https://api:3000', {
+     
+    try{
+    const response = await window.fetch('https://localhost/api/users/login', {
 		method: 'POST',
 		headers: {
 			'content-type': 'application/json;charset=UTF-8',
+      'x-internal-api-key': 'd76cc0f53fc1ff04eecd8a899f5ce6149ca9e0eae746c0cbf72563b8c6332eae',
 		},
 		body: JSON.stringify({
-			query: pokemonQuery,
-			variables: { name: name.toLowerCase() },
+			username: username,
+			password: password,
 		}),
 	})
+
+  console.log("faafasarraw");
+  
+  const { data, errors } = await response.json()
+	if (response.ok) {
+		console.log(data);
+    console.log("response ok");
+	} else {
+		// handle the graphql errors
+		console.log(errors);
+    console.log("error");
+	}
+} catch (err) {
+  console.error("Login failed:", err);
+}
   });
 }
