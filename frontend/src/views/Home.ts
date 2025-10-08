@@ -1,4 +1,4 @@
-import { is3DActive, toggle3D } from "../tournament/state";
+import { is3DActive } from "../tournament/state";
 import { setup3DSwitch } from "../3d/3dswitch";
 
 export function renderHome(root: HTMLElement) {
