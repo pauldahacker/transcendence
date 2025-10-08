@@ -19,7 +19,6 @@ services:
         - action: sync+restart
           path: ../
           target: /app
-          #initial_sync: true
           ignore:
             - node_modules/
         - action: rebuild
