@@ -3,7 +3,7 @@ services:
     container_name: tournaments
     build:
       context: ../src
-      dockerfile: ../docker/Dockerfile
+      dockerfile: ../../../common/docker/Dockerfile
     restart: always
     environment:
       - TOURNAMENTS_PORT

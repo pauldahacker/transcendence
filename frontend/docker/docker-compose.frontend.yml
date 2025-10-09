@@ -3,7 +3,8 @@ services:
     container_name: frontend
     build:
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: ../common/docker/Dockerfile
+    command: npm run dev
     restart: always
     environment:
       - FRONTEND_PORT
