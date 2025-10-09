@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 01:08:01 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 01:38:06 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ function routes(app, db) {
   }); 
 
   // --- Domain: create tournament (draft) ---
-  app.post('/tournaments', {
+  app.post('/', {
     schema: {
       body: schemas.tournamentCreateSchema,
       response: { 201: { type: 'object', required: ['id'], properties: { id: { type: 'integer' } } } }
@@ -32,7 +32,7 @@ function routes(app, db) {
   });
 
   // --- Domain: get tournament by id ---
-  app.get('/tournaments/:id', {
+  app.get('/:id', {
     schema: {
       params: {
         type: 'object',
