@@ -1,21 +1,19 @@
 const Fastify = require('fastify');
 const { applyRelaxedSecurityHeaders, applySecurityHeaders } = require('./securityHeaders');
 
-const routes = [
-  { prefix: '/api', url: `https://api:${process.env.API_PORT}` },
-  { prefix: '/', url: `https://frontend:${process.env.FRONTEND_PORT}` }
-];
-
 function buildFastify(opts) {
 	const app = Fastify(opts);
 
-	routes.forEach((route) => {
-		app.register(require('@fastify/http-proxy'), {
-			upstream: route.url,
-			prefix: route.prefix,
-		});
+	app.register(require('@fastify/http-proxy'), {
+		upstream: "https://frontend:" + process.env.FRONTEND_PORT,
+		prefix: '/',
 	});
-	
+
+	app.register(require('@fastify/http-proxy'), {
+		upstream: "https://api:" + process.env.API_PORT,
+		prefix: '/api',
+	});
+
 	app.addHook('onRequest', async (request, reply) => {
 		const url = request.url;
 
