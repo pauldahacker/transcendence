@@ -6,19 +6,54 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/09 23:45:08 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 01:08:01 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 'use strict';
+const schemas = require('./schemas');
+const { repo } = require('./repo');
 
 function routes(app, db) {
+  const r = repo(db);
   app.get('/health', async (_req, reply) => {
     return reply.send({ status: 'ok' });
   }); 
 
+  // --- Domain: create tournament (draft) ---
+  app.post('/tournaments', {
+    schema: {
+      body: schemas.tournamentCreateSchema,
+      response: { 201: { type: 'object', required: ['id'], properties: { id: { type: 'integer' } } } }
+   },
+  }, async (request, reply) => {
+    const id = r.createTournament(request.body);
+    return reply.code(201).send({ id });
+  });
+
+  // --- Domain: get tournament by id ---
+  app.get('/tournaments/:id', {
+    schema: {
+      params: {
+        type: 'object',
+        required: ['id'],
+        properties: { id: { type: 'integer', minimum: 1 } },
+      },
+      response: {
+        200: schemas.tournamentEntity,
+        404: { type: 'object', required: ['status'], properties: { status: { type: 'string', const: 'not_found' } } }
+      },
+    },
+  }, async (request, reply) => {
+    const id = Number(request.params.id);
+    const t = r.getTournamentById(id);
+    if (!t) return reply.code(404).send({ status: 'not_found' });
+    return t;
+  });
+
+
 // simple SELECT to check if db is connected properlly 
-  app.get('/health/db', async (_req, reply) => {
+  app.get('/health/db', async (request, reply) => {
     try {
       db.prepare('SELECT 1').get();
       return reply.send({ status: 'ok' });
@@ -28,4 +63,5 @@ function routes(app, db) {
     }
   });
 }
+
 module.exports = routes;
