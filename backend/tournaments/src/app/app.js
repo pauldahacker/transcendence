@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/09 23:15:00 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/09 23:33:15 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 const Fastify = require('fastify');
 const routes = require('./routes');
 // const { config } = require('./config');
+const { TournamentsDatabase } = require('./db');
 
-function buildFastify(opts) {
+function buildFastify(opts, dbPath) {
   const app = Fastify(opts);
+  const db = new TournamentsDatabase(dbPath);
   //small guard for missing jwt secret
   if (!process.env.JWT_SECRET) {
     app.log.error('Missing JWT_SECRET');
@@ -28,10 +30,10 @@ function buildFastify(opts) {
   app.register(require('@fastify/auth'));
 
   app.after(() => {
-    routes(app);
+    routes(app, db);
   });
 
-  return { app };
+  return { app, db };
 }
 
 module.exports = { buildFastify };
