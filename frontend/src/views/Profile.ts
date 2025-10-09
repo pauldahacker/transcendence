@@ -1,10 +1,18 @@
+import { getUsernameFromToken } from "@/userUtils/LoginUser";
+
 export function renderProfile(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
 
   // Datos base
-  const username = "PlayerOne";
+  const token = localStorage.getItem("auth_token");
+  let username = "Player"; // valor por defecto
+
+  if (token) {
+    const decoded = getUsernameFromToken(token);
+    if (decoded) username = decoded;
+  }
   const avatarUrl = new URL("../avatarDefault/avatar.png", import.meta.url).href;
   const wins = 15;
   const losses = 10;
