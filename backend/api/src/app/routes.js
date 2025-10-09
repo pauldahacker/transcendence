@@ -34,6 +34,25 @@ function routes(app) {
     preHandler: preHandler,
   });
 
+  app.addHook('onRequest', (req, reply, done) => {
+    if (req.method !== 'OPTIONS') return done();
+    if (!req.url.startsWith('/tournaments/')) return done();
+
+    const origin = req.headers.origin || '*';
+    reply
+      .header('access-control-allow-origin', origin)
+      .header('vary', 'Origin')
+      .header('access-control-allow-methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
+      .header(
+        'access-control-allow-headers',
+        req.headers['access-control-request-headers'] ||
+          'authorization,content-type,x-internal-api-key'
+      )
+      .header('access-control-allow-credentials', 'true')
+      .code(204)
+      .send();
+  });
+
   app.register(require('@fastify/http-proxy'), {
     upstream: "https://tournaments:" + process.env.TOURNAMENTS_PORT,
     prefix: '/tournaments',
