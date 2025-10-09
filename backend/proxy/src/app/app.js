@@ -19,12 +19,12 @@ function buildFastify(opts) {
 	app.addHook('onRequest', async (request, reply) => {
 		const url = request.url;
 
-		/* if (url === '/')
-			applySecurityHeaders(reply, "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com");
+		if (url === '/')
+			applySecurityHeaders(reply, "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src https: wss:");
 		else if (url.endsWith('/health'))
 			applyRelaxedSecurityHeaders(reply);
 		else if (url.startsWith('/api'))
-			applySecurityHeaders(reply); */
+			applySecurityHeaders(reply);
 	});
 
 	app.get('/health', async (_request, _reply) => {
