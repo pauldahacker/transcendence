@@ -26,13 +26,11 @@ all:
 	@echo "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application$(RESET)"
 	@echo
 
-$(ENV_FILE):
+$(ENV_FILE): $(ENV_FILE).example
 	$(call help_message, "Creating the .env file from .env.example...")
 	cp .env.example .env
-	echo -n "JWT_SECRET=" >> .env
-	openssl rand -hex 32 >> .env
-	echo -n "INTERNAL_API_KEY=" >> .env
-	openssl rand -hex 32 >> .env
+	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
+	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 
 up: $(ENV_FILE)
 	$(call help_message, "Running the containerized application...")
