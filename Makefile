@@ -1,17 +1,13 @@
-YELLOW=\033[1;33m
-RED=\033[1;31m
-BLUE=\033[1;34m
-GREEN=\033[1;32m
-CYAN=\033[1;36m
-BOLD=\033[1m
-RESET=\033[0m
+YELLOW:=$(shell tput bold; tput setaf 3)
+RED:=$(shell tput bold; tput setaf 1)
+BLUE:=$(shell tput bold; tput setaf 4)
+GREEN:=$(shell tput bold; tput setaf 2)
+CYAN:=$(shell tput bold; tput setaf 6)
+BOLD:=$(shell tput bold)
+RESET:=$(shell tput sgr0)
 
 define help_message =
-	@echo -e "$(YELLOW)$(BOLD)[Makefile]$(RESET)$(BOLD)${1}$(RESET)"
-endef
-
-define error_message =
-	@echo -e "$(RED)$(BOLD)[Makefile]$(RESET)$(BOLD)${1}$(RESET)" >&2
+	@echo "$(YELLOW)$(BOLD)[Makefile]$(RESET)$(BOLD)${1}$(RESET)"
 endef
 
 PROJECT_NAME=trascendence
@@ -19,24 +15,22 @@ ENV_FILE=.env
 
 all:
 	@echo
-	@echo -e "${BLUE}${BOLD}Available recipes:"
+	@echo "${BLUE}${BOLD}Available recipes:${RESET}"
 
-	@echo -e "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
-	@echo -e "  ${GREEN}${BOLD}build   ${CYAN}- Build the container image"
-	@echo -e "  ${GREEN}${BOLD}test    ${CYAN}- Run integration tests"
-	@echo -e "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
-	@echo -e "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
-	@echo -e "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
-	@echo -e "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application"
+	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
+	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Build the container image"
+	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run integration tests"
+	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
+	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
+	@echo "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
+	@echo "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application$(RESET)"
 	@echo
 
-$(ENV_FILE):
+$(ENV_FILE): $(ENV_FILE).example
 	$(call help_message, "Creating the .env file from .env.example...")
 	cp .env.example .env
-	echo -n "JWT_SECRET=" >> .env
-	openssl rand -hex 32 >> .env
-	echo -n "INTERNAL_API_KEY=" >> .env
-	openssl rand -hex 32 >> .env
+	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
+	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 
 up: $(ENV_FILE)
 	$(call help_message, "Running the containerized application...")
@@ -68,4 +62,4 @@ fclean: clean
 
 re: clean build up
 
-.PHONY: all up build down clean fclean re
+.PHONY: all up test build down clean fclean re
