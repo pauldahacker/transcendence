@@ -16,7 +16,7 @@ services:
       - frontend
       - api
     ports:
-      - '$APP_PORT:$PROXY_PORT'
+      - '127.0.0.1:$APP_PORT:$PROXY_PORT'
     env_file:
       - .env
     extends:
