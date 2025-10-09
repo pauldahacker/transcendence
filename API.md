@@ -129,6 +129,52 @@ Error responses:
 
 ## Tournament endpoints
 
+> [!TIP]
+> These endpoints are proxied by the API Gateway at `https://api:3000/`. Access via:
+> - Server-to-server: `x-internal-api-key: {INTERNAL_API_KEY}`
+> - End-user flows: `Authorization: Bearer {jwt}` (same JWT as Users)
+> 
+> CORS: `OPTIONS /api/tournaments/*` preflight is allowed **without auth** and returns `204` with CORS headers.
+
+### Endpoint: `POST   /api/tournaments`
+
+Creates a **draft** tournament.
+
+Request body:
+```json
+{
+  "mode": "single_elimination",
+  "points_to_win": 11,
+  "owner_user_id": null
+}
+```
+
+Response body (201):
+```json
+{
+  "id": 1
+}
+```
+
+Error responses:
+
+- `400`: Validation error (e.g., points_to_win out of range)
+
+### Endpoint: 'GET /api/tournaments/{id}'
+Response body (200):
+```
+{
+  "id": 1,
+  "owner_user_id": null,
+  "mode": "single_elimination",
+  "points_to_win": 11,
+  "status": "draft",
+  "created_at": "2025-10-10T00:00:00Z"
+}
+```
+
+Error responses:
+`404`: Tournament  not found
 ## Admin endpoint
 
 ### Endpoint: `POST   /api/admin/`
@@ -147,6 +193,11 @@ Response body:
 }
 ```
 
+> **Coming next**
+> - `POST /api/tournaments/{id}/participants` (join)
+> - `DELETE /api/tournaments/{id}/participants/{participant_id}` (remove)
+> - Bracket generation and match lifecycle endpoints
+
 ## Health endpoints
 
 All services expose a health check endpoint at `/health` that can be used to verify that the service is running and healthy.
@@ -158,7 +209,14 @@ Response body:
 }
 ```
 
+- **Direct service (internal):**
+  - `GET https://tournaments:${TOURNAMENTS_PORT}/health` → `{"status":"ok"}`
+  - `GET https://tournaments:${TOURNAMENTS_PORT}/health/db` → DB connectivity check
 
+- **Via API Gateway (protected):**
+  - `GET https://api:3000/api/tournaments/health` → requires JWT or `x-internal-api-key`
+  - `GET https://api:3000/api/tournaments/health/db` → requires JWT or `x-internal-api-key`
+  - `OPTIONS https://api:3000/api/tournaments/*` → returns `204` with CORS headers (no auth)
 
 
 
