@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 00:31:20 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 01:27:10 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,27 +28,27 @@ class TournamentsDatabase extends Database {
   
   ensureSchema() {
     this.exec(`
-      -- Tournaments (owner is a users_auth.id if present; nullable to allow alias-only mode)
+      -- Tournaments (owner_user_id kept for reference, no cross-DB FK)
       CREATE TABLE IF NOT EXISTS tournament (
         id               INTEGER PRIMARY KEY AUTOINCREMENT,
-        owner_user_id    INTEGER NULL,
+        owner_user_id    INTEGER NULL,                             -- note: not FK (users DB  is sepaarte)
         mode             TEXT    NOT NULL,                         -- e.g. "single_elimination"
         points_to_win    INTEGER NOT NULL,                         -- game rule snapshot
         status           TEXT    NOT NULL,                         -- draft|active|completed
-        created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (owner_user_id) REFERENCES users_auth(id) ON DELETE SET NULL
+        created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
+        -- FOREIGN KEY (owner_user_id) REFERENCES users_auth(id) ON DELETE SET NULL
       );
 
-      -- Participants (either linked to a user or alias-only, consistent with subject)
+      -- Participants (user_id kept for reference, no cross-DB FK)
       CREATE TABLE IF NOT EXISTS tournament_participant (
         id               INTEGER PRIMARY KEY AUTOINCREMENT,
         tournament_id    INTEGER NOT NULL,
-        user_id          INTEGER NULL,                              -- FK to users_auth if registered
+        user_id          INTEGER NULL,                              -- not FK (users DB is separate)
         display_name     TEXT    NOT NULL,
         is_bot           INTEGER NOT NULL DEFAULT 0,                -- BOOLEAN as 0/1
         joined_at        TEXT    NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id)       REFERENCES users_auth(id) ON DELETE SET NULL,
+        -- FOREIGN KEY (user_id)       REFERENCES users_auth(id) ON DELETE SET NULL,
         UNIQUE (tournament_id, display_name)
       );
 
