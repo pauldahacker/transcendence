@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/09 23:31:14 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 00:31:20 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,58 +17,67 @@ const Database = require('better-sqlite3');
 class TournamentsDatabase extends Database {
   constructor(filename) {
     super(filename);
-    // Lightweight pragmas & a trivial read to verify connectivity
+    // Run SQLite Pragmas first then create schema safely 
     this.pragma('journal_mode = WAL');
+    this.pragma('foreign_keys = ON');
+    this.ensureSchema();
+    // simple select read to  ensure connectivity
     this.prepare('SELECT 1').get();
+    
+  }
+  
+  ensureSchema() {
+    this.exec(`
+      -- Tournaments (owner is a users_auth.id if present; nullable to allow alias-only mode)
+      CREATE TABLE IF NOT EXISTS tournament (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_user_id    INTEGER NULL,
+        mode             TEXT    NOT NULL,                         -- e.g. "single_elimination"
+        points_to_win    INTEGER NOT NULL,                         -- game rule snapshot
+        status           TEXT    NOT NULL,                         -- draft|active|completed
+        created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (owner_user_id) REFERENCES users_auth(id) ON DELETE SET NULL
+      );
+
+      -- Participants (either linked to a user or alias-only, consistent with subject)
+      CREATE TABLE IF NOT EXISTS tournament_participant (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        tournament_id    INTEGER NOT NULL,
+        user_id          INTEGER NULL,                              -- FK to users_auth if registered
+        display_name     TEXT    NOT NULL,
+        is_bot           INTEGER NOT NULL DEFAULT 0,                -- BOOLEAN as 0/1
+        joined_at        TEXT    NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id)       REFERENCES users_auth(id) ON DELETE SET NULL,
+        UNIQUE (tournament_id, display_name)
+      );
+
+      -- Matches (single-elim friendly; stores pairing & result snapshot)
+      CREATE TABLE IF NOT EXISTS match (
+        id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+        tournament_id           INTEGER NOT NULL,
+        a_participant_id        INTEGER NOT NULL,
+        b_participant_id        INTEGER NOT NULL,
+        round                   INTEGER NOT NULL,                   -- 1..N
+        order_index             INTEGER NOT NULL,                   -- position inside round
+        status                  TEXT    NOT NULL,                   -- scheduled|in_progress|finished
+        score_a                 INTEGER NULL,
+        score_b                 INTEGER NULL,
+        winner_participant_id   INTEGER NULL,
+        updated_at              TEXT    NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (tournament_id)         REFERENCES tournament(id) ON DELETE CASCADE,
+        FOREIGN KEY (a_participant_id)      REFERENCES tournament_participant(id) ON DELETE CASCADE,
+        FOREIGN KEY (b_participant_id)      REFERENCES tournament_participant(id) ON DELETE CASCADE,
+        FOREIGN KEY (winner_participant_id) REFERENCES tournament_participant(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_match_tournament
+        ON match(tournament_id);
+      CREATE INDEX IF NOT EXISTS idx_tp_tournament
+        ON tournament_participant(tournament_id);
+    `);
   }
 }
 
 module.exports = { TournamentsDatabase };
 
-// const DB_PATH = process.env.TOURN_DB_PATH || '/var/lib/app/tournaments.db';
-
-// function connect() {
-//   const db = new Database(DB_PATH);
-//   db.pragma('journal_mode = WAL');
-//   db.pragma('synchronous = NORMAL');
-
-//   db.exec(`
-//     CREATE TABLE IF NOT EXISTS tournament (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       owner_user_id INTEGER NOT NULL,
-//       mode TEXT NOT NULL,
-//       points_to_win INTEGER NOT NULL,
-//       status TEXT NOT NULL,
-//       created_at TEXT NOT NULL
-//     );
-
-//     CREATE TABLE IF NOT EXISTS tournament_participant (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       tournament_id INTEGER NOT NULL,
-//       user_id INTEGER NULL,
-//       display_name TEXT NOT NULL,
-//       is_bot INTEGER NOT NULL DEFAULT 0,
-//       UNIQUE (tournament_id, display_name)
-//     );
-
-//     CREATE TABLE IF NOT EXISTS match (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       tournament_id INTEGER NOT NULL,
-//       a_participant_id INTEGER NOT NULL,
-//       b_participant_id INTEGER NOT NULL,
-//       round INTEGER NOT NULL,
-//       order_index INTEGER NOT NULL,
-//       status TEXT NOT NULL,
-//       score_a INTEGER NULL,
-//       score_b INTEGER NULL,
-//       winner_participant_id INTEGER NULL
-//     );
-
-//     CREATE INDEX IF NOT EXISTS idx_match_tournament ON match(tournament_id);
-//     CREATE INDEX IF NOT EXISTS idx_tp_tournament ON tournament_participant(tournament_id);
-//   `);
-
-//   return db;
-// }
-
-// module.exports = { connect };
