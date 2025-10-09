@@ -17,6 +17,7 @@
 
   "scripts": {
     "start": "node server.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "db:smoke": "node scripts/db_smoke_test.js"
   }
 }
