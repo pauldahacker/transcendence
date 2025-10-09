@@ -3,7 +3,7 @@ services:
     container_name: users
     build:
       context: ../src
-      dockerfile: ../docker/Dockerfile
+      dockerfile: ../../../common/docker/Dockerfile
     restart: always
     environment:
       - USERS_PORT
