@@ -47,6 +47,9 @@ test:
 	$(call help_message, "Running integration tests...")
 	docker compose up -d
 	docker compose exec proxy npm test
+	$(call help_message, "Running tournaments DB smoke test...")
+	docker compose up -d tournaments
+	docker compose exec tournaments npm run db:smoke
 
 down:
 	$(call help_message, "Stopping the containerized application...")
