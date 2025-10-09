@@ -1,3 +1,6 @@
+import { login } from "@/userUtils/LoginUser";
+import { register } from "@/userUtils/RegisterUser";
+
 export function renderRegister(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
@@ -52,24 +55,11 @@ export function renderRegister(root: HTMLElement) {
     console.log("Register attempt:", { username, password });
 
     try {
-      const response = await window.fetch(`https://localhost/api/users/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-internal-api-key": (import.meta as any).env.VITE_INTERNAL_API_KEY,
-        },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (response.ok) {
-        alert("Registration successful! You can now log in.");
-        window.location.hash = "#/login";
-      } else {
-        const errorData = await response.json();
-        alert(`Registration failed: ${errorData.message}`);
-      }
-    } catch (error) {
-      alert("Network error. Please try again later.");
+      await register(username, password);
+      alert("Registration successful! You can now log in.");
+      await login(username, password);
+    } catch (err) {
+      alert(`Registration failed: ${(err as Error).message}`);
     }
   });
 
