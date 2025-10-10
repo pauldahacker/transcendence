@@ -130,17 +130,18 @@ Error responses:
 ## Tournament endpoints
 
 > [!TIP]
-> These endpoints are proxied by the API Gateway at `https://api:3000/`. Access via:
-> - Server-to-server: `x-internal-api-key: {INTERNAL_API_KEY}`
-> - End-user flows: `Authorization: Bearer {jwt}` (same JWT as Users)
-> 
-> CORS: `OPTIONS /api/tournaments/*` preflight is allowed **without auth** and returns `204` with CORS headers.
+> These endpoints are **proxied by the API Gateway** and are reachable at `https://localhost/api/tournaments/*`.
+> - **Auth (required):** either `Authorization: Bearer <jwt>` (end‑user) **or** `x-internal-api-key: <INTERNAL_API_KEY>` (service-to-service).
+> - **CORS:** `OPTIONS /api/tournaments/*` **does not require auth** and returns `204` with CORS headers. Services themselves do **not** handle CORS.
 
-### Endpoint: `POST   /api/tournaments`
+---
 
-Creates a **draft** tournament.
+### Create a draft tournament
 
-Request body:
+**Endpoint:** `POST /api/tournaments`  
+Creates a new tournament in `draft` status.
+
+**Request body**
 ```json
 {
   "mode": "single_elimination",
@@ -148,54 +149,159 @@ Request body:
   "owner_user_id": null
 }
 ```
+- `mode` — currently only `"single_elimination"` is supported.
+- `points_to_win` — integer `1..21` (inclusive).
+- `owner_user_id` — integer user id or `null`. Stored for reference; **no cross‑DB FK**.
 
-Response body (201):
+**Responses**
+- `201`
+  ```json
+  { "id": 1 }
+  ```
+- `400` – validation error (e.g. out-of-range `points_to_win` or invalid types).
+
+---
+
+### Get a tournament by id
+
+**Endpoint:** `GET /api/tournaments/{id}`
+
+**Response**
+- `200`
+  ```json
+  {
+    "id": 1,
+    "owner_user_id": null,
+    "mode": "single_elimination",
+    "points_to_win": 11,
+    "status": "draft",
+    "created_at": "2025-10-10T00:00:00.000Z"
+  }
+  ```
+- `404`
+  ```json
+  { "status": "not_found" }
+  ```
+
+Parameter rules:
+- `{id}` — integer `>= 1`. Invalid values return `400`.
+
+---
+
+### Participants (aliases)
+
+Aliases let humans or bots join a draft tournament. Display names are unique **per tournament**.
+
+#### Join a tournament
+**Endpoint:** `POST /api/tournaments/{id}/participants`
+
+**Request body**
 ```json
 {
-  "id": 1
+  "display_name": "Alice",
+  "is_bot": false
 }
 ```
+- `display_name` — non-empty string, max 64 chars; unique per tournament.
+- `is_bot` — boolean (default: `false`).
 
-Error responses:
+**Responses**
+- `201`
+  ```json
+  { "id": 7 }
+  ```
+- `404` – tournament not found
+  ```json
+  { "status": "not_found" }
+  ```
+- `409` – duplicate alias within the same tournament
+  ```json
+  { "status": "conflict", "message": "alias already joined" }
+  ```
 
-- `400`: Validation error (e.g., points_to_win out of range)
+---
 
-### Endpoint: 'GET /api/tournaments/{id}'
-Response body (200):
+#### List participants
+**Endpoint:** `GET /api/tournaments/{id}/participants`
+
+**Responses**
+- `200`
+  ```json
+  [
+    {
+      "id": 7,
+      "tournament_id": 1,
+      "display_name": "Alice",
+      "joined_at": "2025-10-11T00:00:00.000Z",
+      "is_bot": false
+    }
+  ]
+  ```
+- `404`
+  ```json
+  { "status": "not_found" }
+  ```
+
+---
+
+#### Remove a participant
+**Endpoint:** `DELETE /api/tournaments/{id}/participants/{participant_id}`
+
+**Responses**
+- `204` – removed
+- `404` – participant not found in the tournament
+  ```json
+  { "status": "not_found" }
+  ```
+
+Parameter rules:
+- `{id}` and `{participant_id}` — integers `>= 1`. Invalid values return `400`.
+
+---
+
+### Health (service diagnostics)
+
+> These are primarily for internal checks; through the gateway they are protected by the same auth as other endpoints.
+
+- `GET https://localhost/api/tournaments/health` → `{"status":"ok"}`
+- `GET https://localhost/api/tournaments/health/db` → DB connectivity check
+- `OPTIONS https://localhost/api/tournaments/*` → `204` + CORS headers (no auth)
+
+---
+
+### Notes & invariants
+
+- Services use **SQLite (better-sqlite3)** with `PRAGMA foreign_keys=ON`; timestamps are **ISO text**.
+- No CORS handling inside services; the **API Gateway** adds CORS on preflight only.
+- No authentication is enforced inside service business routes; the **Gateway** owns auth.
+- **Status codes:** `201` creates, `204` deletes, `400/404/409` errors with JSON bodies, `500` for unexpected errors.
+
+---
+
+### Curl examples (via gateway)
+
+```bash
+# Create a draft tournament
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -H 'content-type: application/json' \
+  -X POST https://localhost/api/tournaments \
+  --data '{"mode":"single_elimination","points_to_win":11}'
+
+# Join with an alias
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -H 'content-type: application/json' \
+  -X POST https://localhost/api/tournaments/1/participants \
+  --data '{"display_name":"Alice"}'
+
+# List participants
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  https://localhost/api/tournaments/1/participants
+
+# Remove a participant
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -X DELETE https://localhost/api/tournaments/1/participants/7
 ```
-{
-  "id": 1,
-  "owner_user_id": null,
-  "mode": "single_elimination",
-  "points_to_win": 11,
-  "status": "draft",
-  "created_at": "2025-10-10T00:00:00Z"
-}
-```
-
-Error responses:
-`404`: Tournament  not found
-## Admin endpoint
-
-### Endpoint: `POST   /api/admin/`
-
-Request body:
-```json
-{
-  "admin_password": "string"
-}
-```
-
-Response body:
-```json
-{
-  "token": "string"
-}
-```
-
 > **Coming next**
-> - `POST /api/tournaments/{id}/participants` (join)
-> - `DELETE /api/tournaments/{id}/participants/{participant_id}` (remove)
 > - Bracket generation and match lifecycle endpoints
 
 ## Health endpoints
