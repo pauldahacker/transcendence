@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 23:05:28 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 01:31:34 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ const tournamentEntity = {
   },
 };
 
-// Common error shapes for response schemas for routes
+// Common error shapes
 
 const notFoundSchema = {
   type: 'object',
@@ -53,6 +53,16 @@ const conflictSchema = {
   required: ['status'],
   properties: {
     status: { type: 'string', const: 'conflict' },
+    message: { type: 'string' },
+  },
+};
+
+const badRequestSchema = {
+  type: 'object',
+  additionalProperties: true,
+  required: ['status'],
+  properties: {
+    status: { type: 'string', const: 'bad_request' },
     message: { type: 'string' },
   },
 };
@@ -103,6 +113,77 @@ const deleteParticipantResponse = {
   404: notFoundSchema,
 };
 
+// Matches
+
+const matchEntity = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'id', 'tournament_id', 'round', 'order_index',
+    'a_participant_id', 'b_participant_id',
+    'status', 'score_a', 'score_b', 'winner_participant_id', 'created_at'
+  ],
+  properties: {
+    id: { type: 'integer' },
+    tournament_id: { type: 'integer' },
+    round: { type: 'integer', minimum: 1 },
+    order_index: { type: 'integer', minimum: 0 },
+    a_participant_id: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+    b_participant_id: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+    status: { type: 'string', enum: ['scheduled', 'in_progress', 'finished'] },
+    score_a: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+    score_b: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+    winner_participant_id: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
+    created_at: { type: 'string' },
+  },
+};
+
+const startTournamentResponse = {
+  200: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['status', 'rounds', 'matches_created'],
+    properties: {
+      status: { type: 'string', const: 'active' },
+      rounds: { type: 'integer', minimum: 1 },
+      matches_created: { type: 'integer', minimum: 1 },
+    },
+  },
+  400: badRequestSchema,
+  404: notFoundSchema,
+  409: conflictSchema,
+};
+
+const listMatchesQuery = {
+  type: 'object',
+  additionalProperties: false,
+  properties: { round: { type: 'integer', minimum: 1 } },
+};
+
+const listMatchesResponse = {
+  200: { type: 'array', items: matchEntity },
+  404: notFoundSchema,
+};
+
+// Optional: params schemas for consistent 400s on invalid path params
+
+const idParams = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id'],
+  properties: { id: { type: 'integer', minimum: 1 } },
+};
+
+const idPidParams = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['id', 'pid'],
+  properties: {
+    id: { type: 'integer', minimum: 1 },
+    pid: { type: 'integer', minimum: 1 },
+  },
+};
+
 // Exports
 
 module.exports = {
@@ -112,12 +193,20 @@ module.exports = {
   // errors
   notFoundSchema,
   conflictSchema,
+  badRequestSchema,
   // participants
   participantEntity,
   postParticipantBody,
   postParticipantResponse,
   listParticipantsResponse,
   deleteParticipantResponse,
+  // matches
+  matchEntity,
+  startTournamentResponse,
+  listMatchesQuery,
+  listMatchesResponse,
+  // params (optional but recommended)
+  idParams,
+  idPidParams,
 };
-
 
