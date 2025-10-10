@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 02:21:29 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 23:05:36 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,5 +41,57 @@ function repo(db) {
   return { createTournament, getTournamentById };
 }
 
-module.exports = { repo };
+function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
+  // ensure tournament exists
+  const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
+  if (!t) return { error: 'not_found' };
+
+  try {
+    const now = new Date().toISOString();
+    const stmt = db.prepare(`
+      INSERT INTO tournament_participant (tournament_id, display_name, joined_at, is_bot)
+      VALUES (?, ?, ?, ?)
+    `);
+    const info = stmt.run(tournamentId, display_name.trim(), now, is_bot ? 1 : 0);
+    return { id: info.lastInsertRowid };
+  } catch (e) {
+    // UNIQUE(tournament_id, display_name) conflict → 409
+    if (e && e.code === 'SQLITE_CONSTRAINT') return { error: 'conflict' };
+    throw e;
+  }
+}
+
+function listParticipants(db, tournamentId) {
+  const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
+  if (!t) return { error: 'not_found' };
+  const rows = db.prepare(`
+    SELECT id, tournament_id, display_name, joined_at, is_bot
+    FROM tournament_participant
+    WHERE tournament_id = ?
+    ORDER BY id ASC
+  `).all(tournamentId).map(r => ({
+    ...r,
+    is_bot: !!r.is_bot
+  }));
+  return { rows };
+}
+
+function deleteParticipant(db, tournamentId, participantId) {
+  // ensure participant belongs to tournament
+  const p = db.prepare(`
+    SELECT id FROM tournament_participant
+    WHERE id = ? AND tournament_id = ?
+  `).get(participantId, tournamentId);
+  if (!p) return { error: 'not_found' };
+  db.prepare('DELETE FROM tournament_participant WHERE id = ?').run(participantId);
+  return { ok: true };
+}
+
+module.exports = {
+  repo,
+  insertParticipant,
+  listParticipants,
+  deleteParticipant
+};
+
 
