@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 00:26:08 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 01:50:20 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ function repo(db) {
     return stmtGet.get(id) || null;
   }
 
+  // Bound participant helpers 
   function insertParticipantBound(tournamentId, data) {
     return insertParticipant(db, tournamentId, data);
   }
@@ -53,12 +54,49 @@ function repo(db) {
     getTournamentById,
     insertParticipant: insertParticipantBound,
     listParticipants: listParticipantsBound,
-    deleteParticipant: deleteParticipantBound
+    deleteParticipant: deleteParticipantBound,
   };
 }
 
+// Top-level helpers
+
+function getTournamentForUpdate(db, id) {
+  const t = db.prepare('SELECT * FROM tournament WHERE id = ?').get(id);
+  if (!t) return { error: 'not_found' };
+  return { t };
+}
+
+function listParticipantsSimple(db, tournamentId) {
+  const rows = db.prepare(`
+    SELECT id, display_name FROM tournament_participant
+    WHERE tournament_id = ?
+    ORDER BY id ASC
+  `).all(tournamentId);
+  return rows;
+}
+
+function clearMatches(db, tournamentId) {
+  db.prepare('DELETE FROM match WHERE tournament_id = ?').run(tournamentId);
+}
+
+function insertMatch(db, m) {
+  const stmt = db.prepare(`
+    INSERT INTO match
+      (tournament_id, round, order_index, a_participant_id, b_participant_id,
+       status, score_a, score_b, winner_participant_id, created_at)
+    VALUES (?, ?, ?, ?, ?, 'scheduled', NULL, NULL, NULL, ?)
+  `);
+  const now = new Date().toISOString();
+  const info = stmt.run(
+    m.tournament_id, m.round, m.order_index,
+    m.a_participant_id, m.b_participant_id, now
+  );
+  return info.lastInsertRowid;
+}
+
+// top-level particcipant CRUD
+
 function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
-  // ensure tournament exists
   const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
   if (!t) return { error: 'not_found' };
 
@@ -70,14 +108,7 @@ function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
     `);
     const info = stmt.run(tournamentId, display_name.trim(), now, is_bot ? 1 : 0);
     return { id: info.lastInsertRowid };
-    //temporary change for catch to pass tests
-  // } catch (e) {
-  //   // UNIQUE(tournament_id, display_name) conflict → 409
-  //   if (e && e.code === 'SQLITE_CONSTRAINT') return { error: 'conflict' };
-  //   throw e;
-  // }
   } catch (e) {
-    // UNIQUE(tournament_id, display_name) conflict → 409
     const code = e && e.code ? String(e.code) : '';
     if (code.startsWith('SQLITE_CONSTRAINT')) return { error: 'conflict' };
     throw e;
@@ -100,7 +131,6 @@ function listParticipants(db, tournamentId) {
 }
 
 function deleteParticipant(db, tournamentId, participantId) {
-  // ensure participant belongs to tournament
   const p = db.prepare(`
     SELECT id FROM tournament_participant
     WHERE id = ? AND tournament_id = ?
@@ -111,10 +141,17 @@ function deleteParticipant(db, tournamentId, participantId) {
 }
 
 module.exports = {
+  // factory
   repo,
+
+  // participant ops
   insertParticipant,
   listParticipants,
-  deleteParticipant
+  deleteParticipant,
+
+  // bracket helpers
+  getTournamentForUpdate,
+  listParticipantsSimple,
+  clearMatches,
+  insertMatch,
 };
-
-
