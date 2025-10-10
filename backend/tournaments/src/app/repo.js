@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 23:16:18 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 00:26:08 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,23 @@ function repo(db) {
     return stmtGet.get(id) || null;
   }
 
-  return { createTournament, getTournamentById };
+  function insertParticipantBound(tournamentId, data) {
+    return insertParticipant(db, tournamentId, data);
+  }
+  function listParticipantsBound(tournamentId) {
+    return listParticipants(db, tournamentId);
+  }
+  function deleteParticipantBound(tournamentId, participantId) {
+    return deleteParticipant(db, tournamentId, participantId);
+  }
+
+  return {
+    createTournament,
+    getTournamentById,
+    insertParticipant: insertParticipantBound,
+    listParticipants: listParticipantsBound,
+    deleteParticipant: deleteParticipantBound
+  };
 }
 
 function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
