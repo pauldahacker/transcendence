@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 23:05:36 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/10 23:16:18 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,9 +54,16 @@ function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
     `);
     const info = stmt.run(tournamentId, display_name.trim(), now, is_bot ? 1 : 0);
     return { id: info.lastInsertRowid };
+    //temporary change for catch to pass tests
+  // } catch (e) {
+  //   // UNIQUE(tournament_id, display_name) conflict → 409
+  //   if (e && e.code === 'SQLITE_CONSTRAINT') return { error: 'conflict' };
+  //   throw e;
+  // }
   } catch (e) {
     // UNIQUE(tournament_id, display_name) conflict → 409
-    if (e && e.code === 'SQLITE_CONSTRAINT') return { error: 'conflict' };
+    const code = e && e.code ? String(e.code) : '';
+    if (code.startsWith('SQLITE_CONSTRAINT')) return { error: 'conflict' };
     throw e;
   }
 }
