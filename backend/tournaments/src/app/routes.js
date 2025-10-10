@@ -6,26 +6,33 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 00:17:06 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 02:02:31 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 'use strict';
 const schemas = require('./schemas');
+const {
+  getTournamentForUpdate,
+  listParticipantsSimple,
+  clearMatches,
+  insertMatch
+} = require('./repo');
 const { repo } = require('./repo');
 
 function routes(app, db) {
   const r = repo(db);
+
   app.get('/health', async (_req, reply) => {
     return reply.send({ status: 'ok' });
-  }); 
+  });
 
   // --- Domain: create tournament (draft) ---
   app.post('/', {
     schema: {
       body: schemas.tournamentCreateSchema,
       response: { 201: { type: 'object', required: ['id'], properties: { id: { type: 'integer' } } } }
-   },
+    },
   }, async (request, reply) => {
     const id = r.createTournament(request.body);
     return reply.code(201).send({ id });
@@ -51,8 +58,7 @@ function routes(app, db) {
     return t;
   });
 
-
-// simple SELECT to check if db is connected properlly 
+  // simple SELECT to check if db is connected properly
   app.get('/health/db', async (request, reply) => {
     try {
       db.prepare('SELECT 1').get();
@@ -63,7 +69,7 @@ function routes(app, db) {
     }
   });
 
-  // POST /tournaments/:id/participants
+  // --- Participants ---
   app.post('/:id/participants', {
     schema: {
       params: { type: 'object', required: ['id'], properties: { id: { type: 'integer', minimum: 1 } } },
@@ -79,7 +85,6 @@ function routes(app, db) {
     return reply.code(201).send({ id: Number(res.id) });
   });
 
-  // GET /tournaments/:id/participants
   app.get('/:id/participants', {
     schema: {
       params: { type: 'object', required: ['id'], properties: { id: { type: 'integer', minimum: 1 } } },
@@ -92,7 +97,6 @@ function routes(app, db) {
     return reply.send(res.rows);
   });
 
-  // DELETE /tournaments/:id/participants/:pid
   app.delete('/:id/participants/:pid', {
     schema: {
       params: {
@@ -111,6 +115,50 @@ function routes(app, db) {
     const res = r.deleteParticipant(tid, pid);
     if (res?.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
     return reply.code(204).send();
+  });
+
+  // --- Start tournament (single elimination, power-of-two) ---
+  app.post('/:id/start', {
+    schema: {
+      params: { type: 'object', required: ['id'], properties: { id: { type: 'integer', minimum: 1 } } },
+      response: schemas.startTournamentResponse
+    }
+  }, async (request, reply) => {
+    const id = Number(request.params.id);
+
+    const rT = getTournamentForUpdate(db, id);
+    if (rT.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
+    const t = rT.t;
+    if (t.status !== 'draft') return reply.code(409).send({ status: 'conflict', message: 'already_started' });
+
+    const participants = listParticipantsSimple(db, id);
+    const n = participants.length;
+    if (n < 2) return reply.code(400).send({ status: 'bad_request', message: 'need_at_least_2_participants' });
+
+    const isPow2 = (x) => (x & (x - 1)) === 0;
+    if (!isPow2(n)) return reply.code(400).send({ status: 'bad_request', message: 'participants_not_power_of_two' });
+
+    // deterministic seeding: by join order (id asc)
+    const tx = db.transaction((tid, seeds) => {
+      clearMatches(db, tid);
+      let order = 0;
+      for (let i = 0; i < seeds.length; i += 2) {
+        insertMatch(db, {
+          tournament_id: tid,
+          round: 1,
+          order_index: order++,
+          a_participant_id: seeds[i].id,
+          b_participant_id: seeds[i + 1].id
+        });
+      }
+      db.prepare(`UPDATE tournament SET status = 'active' WHERE id = ?`).run(tid);
+    });
+
+    tx(id, participants);
+
+    const rounds = Math.log2(n);
+    const matches_created = n / 2;
+    return reply.send({ status: 'active', rounds, matches_created });
   });
 }
 
