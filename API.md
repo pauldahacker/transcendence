@@ -134,6 +134,8 @@ Error responses:
 > - **Auth (required):** either `Authorization: Bearer <jwt>` (end‑user) **or** `x-internal-api-key: <INTERNAL_API_KEY>` (service-to-service).
 > - **CORS:** `OPTIONS /api/tournaments/*` **does not require auth** and returns `204` with CORS headers. Services themselves do **not** handle CORS.
 
+> [!NOTE]
+> For MVP, participant count must be a power of two; otherwise 400 participants_not_power_of_two.
 ---
 
 ### Create a draft tournament
