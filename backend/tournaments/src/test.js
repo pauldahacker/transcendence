@@ -6,19 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 23:12:56 by rzhdanov         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   test.js                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 23:25:00 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 00:47:31 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +22,7 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
 
 (async () => {
   const { buildFastify } = require('./app/app');
-  // repo-level participants API (no HTTP routes yet)
+  // repo-level participants API
   const {
     insertParticipant,
     listParticipants,
@@ -161,7 +149,7 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
     }
 
     // ---------------------------
-    // Participants (repo-level tests — no HTTP routes yet)
+    // Participants (repo-level tests)
     // ---------------------------
     {
       // Empty list initially
@@ -200,6 +188,85 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
       assert(delOk.ok === true, 'Expected ok on delete');
       const list1 = listParticipants(db, tid);
       assert(list1.rows.length === 1 && list1.rows[0].id === p2.id, 'Delete did not remove the right record');
+    }
+
+    // ---------------------------
+    // Participants (HTTP routes)
+    // ---------------------------
+    {
+      // Use a fresh tournament so these tests don't interfere with repo-level ones.
+      let tid2;
+      {
+        const res = await app.inject({
+          method: 'POST',
+          url: '/',
+          headers: { 'content-type': 'application/json' },
+          payload: { mode: 'single_elimination', points_to_win: 11 }
+        });
+        assert(res.statusCode === 201, `POST / (tid2) expected 201, got ${res.statusCode}`);
+        tid2 = getJson(res).id;
+      }
+
+      // Join → 201 { id }
+      let pid;
+      {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/${tid2}/participants`,
+          headers: { 'content-type': 'application/json' },
+          payload: { display_name: 'Alice' }
+        });
+        assert(res.statusCode === 201, `POST /:id/participants expected 201, got ${res.statusCode}`);
+        const body = getJson(res);
+        assert(body && Number.isInteger(body.id) && body.id > 0, 'POST /:id/participants did not return integer id');
+        pid = body.id;
+      }
+
+      // List → contains Alice
+      {
+        const res = await app.inject({ method: 'GET', url: `/${tid2}/participants` });
+        assert(res.statusCode === 200, `GET /:id/participants expected 200, got ${res.statusCode}`);
+        const arr = getJson(res);
+        assert(Array.isArray(arr) && arr.length === 1, 'GET /:id/participants should have 1 item');
+        assert(arr[0].display_name === 'Alice' && arr[0].is_bot === false, 'Participant fields mismatch');
+      }
+
+      // Duplicate alias → 409
+      {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/${tid2}/participants`,
+          headers: { 'content-type': 'application/json' },
+          payload: { display_name: 'Alice' }
+        });
+        assert(res.statusCode === 409, `Duplicate alias should return 409, got ${res.statusCode}`);
+      }
+
+      // Unknown tournament → 404
+      {
+        const res = await app.inject({ method: 'GET', url: '/999999/participants' });
+        assert(res.statusCode === 404, `Unknown tournament list should return 404, got ${res.statusCode}`);
+      }
+
+      // Delete existing → 204
+      {
+        const res = await app.inject({ method: 'DELETE', url: `/${tid2}/participants/${pid}` });
+        assert(res.statusCode === 204, `DELETE /:id/participants/:pid expected 204, got ${res.statusCode}`);
+      }
+
+      // List again → empty
+      {
+        const res = await app.inject({ method: 'GET', url: `/${tid2}/participants` });
+        assert(res.statusCode === 200, `GET /:id/participants after delete expected 200, got ${res.statusCode}`);
+        const arr = getJson(res);
+        assert(Array.isArray(arr) && arr.length === 0, 'Participants should be empty after delete');
+      }
+
+      // Delete non-existent → 404
+      {
+        const res = await app.inject({ method: 'DELETE', url: `/${tid2}/participants/999999` });
+        assert(res.statusCode === 404, `DELETE unknown participant should return 404, got ${res.statusCode}`);
+      }
     }
 
     // Content-Type sanity (basic)
