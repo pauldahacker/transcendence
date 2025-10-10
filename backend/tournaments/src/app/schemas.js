@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 01:31:34 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 02:28:12 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ const matchEntity = {
   required: [
     'id', 'tournament_id', 'round', 'order_index',
     'a_participant_id', 'b_participant_id',
-    'status', 'score_a', 'score_b', 'winner_participant_id', 'created_at'
+    'status', 'score_a', 'score_b', 'winner_participant_id', 'updated_at'
   ],
   properties: {
     id: { type: 'integer' },
@@ -134,7 +134,7 @@ const matchEntity = {
     score_a: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
     score_b: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
     winner_participant_id: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
-    created_at: { type: 'string' },
+    updated_at: { type: 'string' },
   },
 };
 

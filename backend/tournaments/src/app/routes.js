@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 02:02:31 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 02:23:01 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ const {
   insertMatch
 } = require('./repo');
 const { repo } = require('./repo');
+const { listMatchesQuery, listMatchesResponse } = require('./schemas');
+const { listMatchesByRound } = require('./repo');
 
 function routes(app, db) {
   const r = repo(db);
@@ -159,6 +161,24 @@ function routes(app, db) {
     const rounds = Math.log2(n);
     const matches_created = n / 2;
     return reply.send({ status: 'active', rounds, matches_created });
+  });
+
+  // --- List matches per round ---
+  app.get('/:id/matches', {
+    schema: {
+      params: { type: 'object', required: ['id'], properties: { id: { type: 'integer', minimum: 1 } } },
+      querystring: listMatchesQuery,
+      response: listMatchesResponse
+    }
+  }, async (request, reply) => {
+    const id = Number(request.params.id);
+    const round = request.query.round ? Number(request.query.round) : undefined;
+    if (round !== undefined && (!Number.isInteger(round) || round < 1)) {
+      return reply.code(400).send({ status: 'bad_request' });
+    }
+    const r = listMatchesByRound(db, id, round);
+    if (r.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
+    return reply.send(r.rows);
   });
 }
 

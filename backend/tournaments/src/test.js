@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 00:47:31 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 02:18:24 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
   const {
     insertParticipant,
     listParticipants,
-    deleteParticipant
+    deleteParticipant,
+    listParticipantsSimple
   } = require('./app/repo');
 
   // Create a temp DB per run so tests are hermetic.
@@ -274,6 +275,93 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
       const res = await app.inject({ method: 'GET', url: `/${tid}` });
       const ct = res.headers['content-type'] || '';
       assert(ct.includes('application/json'), `Expected JSON content-type, got ${ct}`);
+    }
+
+    // ---------------------------
+    // Repo helper listParticipantsSimple after HTTP joins
+    // ---------------------------
+    {
+      // fresh tournament
+      const res = await app.inject({
+        method: 'POST',
+        url: '/',
+        headers: { 'content-type': 'application/json' },
+        payload: { mode: 'single_elimination', points_to_win: 11 }
+      });
+      assert(res.statusCode === 201, `POST / (simple) expected 201, got ${res.statusCode}`);
+      const tidSimple = getJson(res).id;
+
+      // join two participants via HTTP routes
+      for (const name of ['A', 'B']) {
+        const j = await app.inject({
+          method: 'POST',
+          url: `/${tidSimple}/participants`,
+          headers: { 'content-type': 'application/json' },
+          payload: { display_name: name }
+        });
+        assert(j.statusCode === 201, `join ${name} failed with ${j.statusCode}`);
+      }
+
+      // repo helper should observe 2 rows in insertion order
+      const rows = listParticipantsSimple(db, tidSimple);
+      assert(Array.isArray(rows) && rows.length === 2, `listParticipantsSimple expected 2, got ${rows.length}`);
+      assert(rows[0].display_name === 'A' && rows[1].display_name === 'B', 'names/order mismatch in listParticipantsSimple');
+    }
+    // ---------------------------
+    // Start tournament + list matches
+    // ---------------------------
+    {
+      // fresh tournament with 4 participants
+      const resT = await app.inject({
+        method: 'POST', url: '/',
+        headers: { 'content-type': 'application/json' },
+        payload: { mode: 'single_elimination', points_to_win: 11 }
+      });
+      assert(resT.statusCode === 201, `POST / (start) expected 201, got ${resT.statusCode}`);
+      const tid3 = getJson(resT).id;
+
+      for (const name of ['A','B','C','D']) {
+        const p = await app.inject({
+          method: 'POST', url: `/${tid3}/participants`,
+          headers: { 'content-type': 'application/json' },
+          payload: { display_name: name }
+        });
+        assert(p.statusCode === 201, `join ${name} failed`);
+      }
+
+      // start → 200 { status:"active", rounds:2, matches_created:2 }
+      const start = await app.inject({ method: 'POST', url: `/${tid3}/start` });
+      assert(start.statusCode === 200, `POST /:id/start expected 200, got ${start.statusCode}`);
+      const sbody = getJson(start);
+      assert(sbody.status === 'active' && sbody.rounds === 2 && sbody.matches_created === 2, 'start payload mismatch');
+
+      // list round 1 → two scheduled matches ordered
+      const r1 = await app.inject({ method: 'GET', url: `/${tid3}/matches?round=1` });
+      assert(r1.statusCode === 200, `GET /:id/matches?round=1 expected 200, got ${r1.statusCode}`);
+      const m1 = getJson(r1);
+      assert(Array.isArray(m1) && m1.length === 2, 'round 1 should have 2 matches');
+      assert(m1.every(x => x.status === 'scheduled' && x.round === 1), 'round 1 match fields mismatch');
+
+      // starting again → 409
+      const startAgain = await app.inject({ method: 'POST', url: `/${tid3}/start` });
+      assert(startAgain.statusCode === 409, `second start should return 409, got ${startAgain.statusCode}`);
+
+      // power-of-two check → create 3-participant tournament
+      const resT4 = await app.inject({
+        method: 'POST', url: '/',
+        headers: { 'content-type': 'application/json' },
+        payload: { mode: 'single_elimination', points_to_win: 11 }
+      });
+      const tid4 = getJson(resT4).id;
+      for (const name of ['X','Y','Z']) {
+        await app.inject({
+          method: 'POST', url: `/${tid4}/participants`,
+          headers: { 'content-type': 'application/json' },
+          payload: { display_name: name }
+        });
+      }
+      const startBad = await app.inject({ method: 'POST', url: `/${tid4}/start` });
+      assert(startBad.statusCode === 400, `start with 3 participants should 400, got ${startBad.statusCode}`);
     }
 
     console.log('✅ Tournaments service tests passed');

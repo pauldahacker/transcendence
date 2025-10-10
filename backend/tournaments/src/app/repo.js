@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 01:50:20 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 02:33:31 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ function insertMatch(db, m) {
   const stmt = db.prepare(`
     INSERT INTO match
       (tournament_id, round, order_index, a_participant_id, b_participant_id,
-       status, score_a, score_b, winner_participant_id, created_at)
+       status, score_a, score_b, winner_participant_id, updated_at)
     VALUES (?, ?, ?, ?, ?, 'scheduled', NULL, NULL, NULL, ?)
   `);
   const now = new Date().toISOString();
@@ -140,6 +140,23 @@ function deleteParticipant(db, tournamentId, participantId) {
   return { ok: true };
 }
 
+function listMatchesByRound(db, tournamentId, round) {
+  const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
+  if (!t) return { error: 'not_found' };
+  const stmt = db.prepare(`
+    SELECT id, tournament_id, round, order_index,
+           a_participant_id, b_participant_id,
+           status, score_a, score_b, winner_participant_id, updated_at
+    FROM match
+    WHERE tournament_id = ? ${round ? 'AND round = ?' : ''}
+    ORDER BY round ASC, order_index ASC, id ASC
+  `);
+  const rows = round ? stmt.all(tournamentId, round) : stmt.all(tournamentId);
+  return { rows };
+}
+module.exports.listMatchesByRound = listMatchesByRound;
+
+
 module.exports = {
   // factory
   repo,
@@ -154,4 +171,7 @@ module.exports = {
   listParticipantsSimple,
   clearMatches,
   insertMatch,
+
+  //queries
+  listMatchesByRound,
 };
