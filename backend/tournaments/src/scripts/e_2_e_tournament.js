@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/11 14:18:19 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 15:35:20 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 16:07:37 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,12 @@ async function http(method, path, { body, expectStatus } = {}) {
     const s = await http('POST', `/${TID}/start`, { expectStatus: 200 });
     assert(s.body.status === 'active' && s.body.rounds === 2 && s.body.matches_created === 2, 'start payload mismatch');
   });
+
+  await runTest('Next returns a round-1 scheduled match', async () => {
+    const n1 = await http('GET', `/${TID}/next`, { expectStatus: 200 });
+    assert(n1.body && n1.body.round === 1 && n1.body.status === 'scheduled', 'next should point to round-1');
+  });  
+
   await runTest('List round 1 has two scheduled matches', async () => {
     const r1 = await http('GET', `/${TID}/matches?round=1`, { expectStatus: 200 });
     assert(Array.isArray(r1.body) && r1.body.length === 2, 'round 1 should have 2 matches');
@@ -107,8 +113,20 @@ async function http(method, path, { body, expectStatus } = {}) {
   await runTest('Score round 1 match #1', async () => {
     await http('POST', `/${TID}/matches/${MID1}/score`, { body: { score_a: 11, score_b: 7 }, expectStatus: 200 });
   });
+  await runTest('Re-scoring a finished match returns 409', async () => {
+    const again = await http('POST', `/${TID}/matches/${MID1}/score`, {
+      body: { score_a: 11, score_b: 7 }
+    });
+    assert(again.status === 409, 're-scoring a finished match should 409');
+  });
   await runTest('Score round 1 match #2', async () => {
     await http('POST', `/${TID}/matches/${MID2}/score`, { body: { score_a: 11, score_b: 9 }, expectStatus: 200 });
+  });
+  await runTest('Next points to the final after R1 finishes', async () => {
+    const n2 = await http('GET', `/${TID}/next`, { expectStatus: 200 });
+    const r2 = await http('GET', `/${TID}/matches?round=2`, { expectStatus: 200 });
+    assert(Array.isArray(r2.body) && r2.body.length === 1, 'final not found');
+    assert(n2.body.id === r2.body[0].id, 'next should point to the final');
   });
   await runTest('Final (round 2) exists with both slots', async () => {
     const r2 = await http('GET', `/${TID}/matches?round=2`, { expectStatus: 200 });
@@ -121,8 +139,15 @@ async function http(method, path, { body, expectStatus } = {}) {
     const done = await http('GET', `/${TID}`, { expectStatus: 200 });
     assert(done.body.status === 'completed', 'tournament should be completed after final');
   });
-
+  await runTest('Next returns 204 when tournament is completed', async () => {
+    const nNone = await http('GET', `/${TID}/next`);
+    assert(nNone.status === 204, 'expected 204 when no matches remain');
+  });
   section('Error cases');
+  await runTest('Unknown tournament /next returns 404', async () => {
+    const nf = await http('GET', '/999999/next');
+    assert(nf.status === 404, 'GET /999999/next should 404');
+  });
   await runTest('Duplicate alias returns 409', async () => {
     const c = await http('POST', '', { body: { mode: 'single_elimination', points_to_win: 11 }, expectStatus: 201 });
     const tid = c.body.id;
