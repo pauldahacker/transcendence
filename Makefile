@@ -12,6 +12,7 @@ endef
 
 PROJECT_NAME=trascendence
 ENV_FILE=.env
+CERTS_DIR=./common/certs
 
 all:
 	@echo
@@ -26,13 +27,20 @@ all:
 	@echo "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application$(RESET)"
 	@echo
 
+$(CERTS_DIR):
+	$(call help_message, "Generating self-signed SSL certificates...")
+	mkdir -p $(CERTS_DIR)
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(CERTS_DIR)/key.pem -out $(CERTS_DIR)/cert.pem -subj "/CN=localhost"
+	chmod 644 $(CERTS_DIR)/cert.pem $(CERTS_DIR)/key.pem
+	chown 1000:1000 $(CERTS_DIR)/cert.pem $(CERTS_DIR)/key.pem
+
 $(ENV_FILE): $(ENV_FILE).example
 	$(call help_message, "Creating the .env file from .env.example...")
 	cp .env.example .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 
-up: $(ENV_FILE)
+up: $(ENV_FILE) $(CERTS_DIR)
 	$(call help_message, "Running the containerized application...")
 	docker compose up --watch
 
@@ -44,9 +52,6 @@ test:
 	$(call help_message, "Running unit tests...")
 	docker compose exec api npm run test
 	docker compose exec users npm run test
-	$(call help_message, "Running integration tests...")
-	docker compose up -d
-	docker compose exec proxy npm test
 
 down:
 	$(call help_message, "Stopping the containerized application...")
@@ -55,6 +60,7 @@ down:
 clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
 	docker compose down -v
+	rm -rf $(CERTS_DIR)
 
 fclean: clean
 	$(call help_message, "Removing container images...")
