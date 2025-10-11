@@ -129,19 +129,19 @@ Error responses:
 
 ## Tournament endpoints
 
-> [!TIP]
-> These endpoints are **proxied by the API Gateway** and are reachable at `https://localhost/api/tournaments/*`.
-> - **Auth (required):** either `Authorization: Bearer <jwt>` (end‑user) **or** `x-internal-api-key: <INTERNAL_API_KEY>` (service-to-service).
-> - **CORS:** `OPTIONS /api/tournaments/*` **does not require auth** and returns `204` with CORS headers. Services themselves do **not** handle CORS.
+> **Base (via API Gateway):** `https://localhost/api/tournaments/*`  
+> **Auth:** `Authorization: Bearer <jwt>` (end‑user) **or** `x-internal-api-key: <INTERNAL_API_KEY>` (service-to-service).  
+> **CORS:** `OPTIONS /api/tournaments/*` is handled **at the gateway** (no auth, `204` with CORS headers). Services do **not** handle CORS.
 
-> [!NOTE]
-> For MVP, participant count must be a power of two; otherwise 400 participants_not_power_of_two.
+> **MVP note:** Participant count must be a **power of two** before `start` (e.g., 2/4/8/16…). Otherwise `400` with `participants_not_power_of_two`.
+
 ---
 
 ### Create a draft tournament
 
-**Endpoint:** `POST /api/tournaments`  
-Creates a new tournament in `draft` status.
+**POST** `/api/tournaments`
+
+Creates a tournament in `draft` status.
 
 **Request body**
 ```json
@@ -151,24 +151,24 @@ Creates a new tournament in `draft` status.
   "owner_user_id": null
 }
 ```
-- `mode` — currently only `"single_elimination"` is supported.
-- `points_to_win` — integer `1..21` (inclusive).
-- `owner_user_id` — integer user id or `null`. Stored for reference; **no cross‑DB FK**.
+- `mode` — currently only `"single_elimination"`
+- `points_to_win` — integer `1..21` (inclusive)
+- `owner_user_id` — integer ID or `null` (no cross‑DB FK)
 
 **Responses**
 - `201`
   ```json
   { "id": 1 }
   ```
-- `400` – validation error (e.g. out-of-range `points_to_win` or invalid types).
+- `400` — validation error
 
 ---
 
 ### Get a tournament by id
 
-**Endpoint:** `GET /api/tournaments/{id}`
+**GET** `/api/tournaments/{id}`
 
-**Response**
+**Responses**
 - `200`
   ```json
   {
@@ -180,22 +180,19 @@ Creates a new tournament in `draft` status.
     "created_at": "2025-10-10T00:00:00.000Z"
   }
   ```
-- `404`
-  ```json
-  { "status": "not_found" }
-  ```
+- `404` `{ "status": "not_found" }`
 
-Parameter rules:
-- `{id}` — integer `>= 1`. Invalid values return `400`.
+**Params**
+- `{id}` — integer `>= 1` (invalid returns `400`)
 
 ---
 
-### Participants (aliases)
+### Participants
 
 Aliases let humans or bots join a draft tournament. Display names are unique **per tournament**.
 
-#### Join a tournament
-**Endpoint:** `POST /api/tournaments/{id}/participants`
+#### Join
+**POST** `/api/tournaments/{id}/participants`
 
 **Request body**
 ```json
@@ -204,27 +201,16 @@ Aliases let humans or bots join a draft tournament. Display names are unique **p
   "is_bot": false
 }
 ```
-- `display_name` — non-empty string, max 64 chars; unique per tournament.
-- `is_bot` — boolean (default: `false`).
+- `display_name` — non-empty string, max 64
+- `is_bot` — boolean (default `false`)
 
 **Responses**
-- `201`
-  ```json
-  { "id": 7 }
-  ```
-- `404` – tournament not found
-  ```json
-  { "status": "not_found" }
-  ```
-- `409` – duplicate alias within the same tournament
-  ```json
-  { "status": "conflict", "message": "alias already joined" }
-  ```
+- `201` `{ "id": 7 }`
+- `404` `{ "status": "not_found" }` — unknown tournament
+- `409` `{ "status": "conflict", "message": "alias already joined" }`
 
----
-
-#### List participants
-**Endpoint:** `GET /api/tournaments/{id}/participants`
+#### List
+**GET** `/api/tournaments/{id}/participants`
 
 **Responses**
 - `200`
@@ -239,44 +225,119 @@ Aliases let humans or bots join a draft tournament. Display names are unique **p
     }
   ]
   ```
-- `404`
-  ```json
-  { "status": "not_found" }
-  ```
+- `404` `{ "status": "not_found" }`
+
+#### Remove
+**DELETE** `/api/tournaments/{id}/participants/{participant_id}`
+
+**Responses**
+- `204` (no body) — removed
+- `404` `{ "status": "not_found" }` — participant not in this tournament
+
+**Params**
+- `{id}`, `{participant_id}` — integers `>= 1` (invalid returns `400`)
 
 ---
 
-#### Remove a participant
-**Endpoint:** `DELETE /api/tournaments/{id}/participants/{participant_id}`
+### Start a tournament (single-elimination)
+
+**POST** `/api/tournaments/{id}/start`
+
+Transitions a `draft` tournament to `active` and creates **round 1** matches with deterministic seeding (join order).
 
 **Responses**
-- `204` – removed
-- `404` – participant not found in the tournament
+- `200`
   ```json
-  { "status": "not_found" }
+  { "status": "active", "rounds": 2, "matches_created": 2 }
   ```
+- `400`
+  ```json
+  { "status": "bad_request", "message": "need_at_least_2_participants" }
+  ```
+  or
+  ```json
+  { "status": "bad_request", "message": "participants_not_power_of_two" }
+  ```
+- `404` `{ "status": "not_found" }` — unknown tournament
+- `409` `{ "status": "conflict", "message": "already_started" }` — not in `draft`
 
-Parameter rules:
-- `{id}` and `{participant_id}` — integers `>= 1`. Invalid values return `400`.
+---
+
+### Matches
+
+#### List matches (optionally by round)
+**GET** `/api/tournaments/{id}/matches?round={n}`
+
+**Responses**
+- `200`
+  ```json
+  [
+    {
+      "id": 12,
+      "tournament_id": 1,
+      "round": 1,
+      "order_index": 0,
+      "a_participant_id": 3,
+      "b_participant_id": 4,
+      "status": "scheduled",
+      "score_a": null,
+      "score_b": null,
+      "winner_participant_id": null,
+      "updated_at": "2025-10-11T13:10:00.000Z"
+    }
+  ]
+  ```
+- `404` `{ "status": "not_found" }` — unknown tournament
+
+**Params**
+- `{id}` — integer `>= 1`
+- `round` — optional integer `>= 1` (invalid returns `400`)
+
+#### Score a match (and auto-advance)
+**POST** `/api/tournaments/{id}/matches/{mid}/score`
+
+Finishes a scheduled/in_progress match, records the score, **places the winner** into the next round’s container match (creating it if needed), and completes the tournament when the final ends.
+
+**Request body**
+```json
+{ "score_a": 11, "score_b": 7 }
+```
+
+**Responses**
+- `200` — the **finished** match entity (see above)
+- `400` — bad request, e.g. `{ "status":"bad_request","message":"tie_not_allowed" }` or tournament not active
+- `404` — unknown tournament or match `{ "status":"not_found" }`
+- `409` — match already finished `{ "status":"conflict","message":"match_already_finished" }`
+
+**Params**
+- `{id}`, `{mid}` — integers `>= 1`
+
+#### Get next scheduled match
+**GET** `/api/tournaments/{id}/next`
+
+**Responses**
+- `200` — a single **scheduled** match entity (earliest by `round, order_index, id`)
+- `204` — no scheduled matches remain
+- `404` — `{ "status": "not_found" }`
 
 ---
 
 ### Health (service diagnostics)
 
-> These are primarily for internal checks; through the gateway they are protected by the same auth as other endpoints.
+> Exposed for internal checks; through the gateway they’re protected by the same auth as other endpoints.
 
 - `GET https://localhost/api/tournaments/health` → `{"status":"ok"}`
-- `GET https://localhost/api/tournaments/health/db` → DB connectivity check
+- `GET https://localhost/api/tournaments/health/db` → DB connectivity
 - `OPTIONS https://localhost/api/tournaments/*` → `204` + CORS headers (no auth)
 
 ---
 
 ### Notes & invariants
 
-- Services use **SQLite (better-sqlite3)** with `PRAGMA foreign_keys=ON`; timestamps are **ISO text**.
-- No CORS handling inside services; the **API Gateway** adds CORS on preflight only.
-- No authentication is enforced inside service business routes; the **Gateway** owns auth.
-- **Status codes:** `201` creates, `204` deletes, `400/404/409` errors with JSON bodies, `500` for unexpected errors.
+- SQLite via **better-sqlite3** (`PRAGMA foreign_keys=ON`); timestamps are **ISO TEXT**.
+- No CORS handling inside services; the **API Gateway** owns preflight and headers.
+- No auth enforced inside service business routes; the **Gateway** owns auth.
+- **Status codes:** `201` creates, `204` deletes, `200` for OK, `400/404/409` for errors (JSON), `500` unexpected.
 
 ---
 
@@ -284,27 +345,30 @@ Parameter rules:
 
 ```bash
 # Create a draft tournament
-curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
-  -H 'content-type: application/json' \
-  -X POST https://localhost/api/tournaments \
-  --data '{"mode":"single_elimination","points_to_win":11}'
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -H 'content-type: application/json'   -X POST https://localhost/api/tournaments   --data '{"mode":"single_elimination","points_to_win":11}'
 
 # Join with an alias
-curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
-  -H 'content-type: application/json' \
-  -X POST https://localhost/api/tournaments/1/participants \
-  --data '{"display_name":"Alice"}'
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -H 'content-type: application/json'   -X POST https://localhost/api/tournaments/1/participants   --data '{"display_name":"Alice"}'
 
 # List participants
-curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
-  https://localhost/api/tournaments/1/participants
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   https://localhost/api/tournaments/1/participants
 
 # Remove a participant
-curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
-  -X DELETE https://localhost/api/tournaments/1/participants/7
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -X DELETE https://localhost/api/tournaments/1/participants/7
+
+# Start a tournament
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -X POST https://localhost/api/tournaments/1/start
+
+# List round 1 matches
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   "https://localhost/api/tournaments/1/matches?round=1"
+
+# Score a match
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -H 'content-type: application/json'   -X POST https://localhost/api/tournaments/1/matches/12/score   --data '{"score_a":11,"score_b":7}'
+
+# Next scheduled match
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   https://localhost/api/tournaments/1/next
 ```
-> **Coming next**
-> - Bracket generation and match lifecycle endpoints
+
 
 ## Health endpoints
 
