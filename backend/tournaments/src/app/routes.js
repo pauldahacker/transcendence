@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 12:58:14 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 16:04:03 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ const { listMatchesQuery, listMatchesResponse } = require('./schemas');
 const { listMatchesByRound } = require('./repo');
 const { scoreMatchBody, scoreMatchResponse } = require('./schemas');
 const { finishMatchAndAdvance } = require('./repo');
+const { nextMatchResponse } = require('./schemas');
+const { getNextScheduledMatch } = require('./repo');
 
 function routes(app, db) {
   const r = repo(db);
@@ -218,6 +220,26 @@ function routes(app, db) {
         return reply.code(400).send({ status: 'bad_request' });
       }
 
+      return reply.code(200).send(r.match);
+    }
+  });
+
+  // GET /:id/next
+  app.route({
+    method: 'GET',
+    url: '/:id/next',
+    schema: {
+      params: { type: 'object', required: ['id'], properties: { id: { type: 'integer', minimum: 1 } } },
+      response: nextMatchResponse
+    },
+    handler: async (req, reply) => {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id < 1) {
+        return reply.code(400).send({ status: 'bad_request' });
+      }
+      const r = getNextScheduledMatch(db, id);
+      if (r && r.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
+      if (r && r.none) return reply.code(204).send();
       return reply.code(200).send(r.match);
     }
   });
