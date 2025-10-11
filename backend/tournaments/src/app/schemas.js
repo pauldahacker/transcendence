@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 02:28:12 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 11:46:06 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,28 +184,65 @@ const idPidParams = {
   },
 };
 
+// --- Scoring + Next schemas ---
+
+// POST /:id/matches/:mid/score
+const scoreMatchBody = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['score_a', 'score_b'],
+  properties: {
+    score_a: { type: 'integer', minimum: 0 },
+    score_b: { type: 'integer', minimum: 0 }
+  }
+};
+
+const scoreMatchResponse = {
+  200: matchEntity,          // finished match
+  400: badRequestSchema,     // e.g. tie not allowed, invalid state, etc.
+  404: notFoundSchema,       // tournament or match not found
+  409: conflictSchema        // match already finished
+};
+
+// GET /:id/next
+const nextMatchResponse = {
+  200: matchEntity,          // the next scheduled match
+  204: { type: 'null' },     // no scheduled matches remaining
+  404: notFoundSchema
+};
+
+
 // Exports
 
 module.exports = {
   // tournaments
   tournamentCreateSchema,
   tournamentEntity,
+
   // errors
   notFoundSchema,
   conflictSchema,
   badRequestSchema,
+
   // participants
   participantEntity,
   postParticipantBody,
   postParticipantResponse,
   listParticipantsResponse,
   deleteParticipantResponse,
+
   // matches
   matchEntity,
   startTournamentResponse,
   listMatchesQuery,
   listMatchesResponse,
-  // params (optional but recommended)
+
+  // scoring + next
+  scoreMatchBody,
+  scoreMatchResponse,
+  nextMatchResponse,
+
+  // params 
   idParams,
   idPidParams,
 };
