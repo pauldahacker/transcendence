@@ -39,7 +39,9 @@ $(ENV_FILE): $(ENV_FILE).example
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 
-up: $(ENV_FILE) $(CERTS_DIR)
+build: $(ENV_FILE) $(CERTS_DIR)
+
+up: build
 	$(call help_message, "Running the containerized application...")
 	docker compose up --watch
 
@@ -47,6 +49,8 @@ test:
 	$(call help_message, "Running unit tests...")
 	docker compose exec api npm run test
 	docker compose exec users npm run test
+	$(call help_message, "Running integration tests...")
+	docker compose run test
 
 down:
 	$(call help_message, "Stopping the containerized application...")
