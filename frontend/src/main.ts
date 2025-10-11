@@ -6,6 +6,7 @@ import { renderTournament} from "./views/Tournament";
 import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
+import { renderTournamentDev } from "./views/TournamentDev";
 
 function router() {
   const app = document.getElementById("app")!;
@@ -36,6 +37,14 @@ function router() {
     case "#/profile":
       renderProfile(app);
       break;
+    case "#/tournament-dev": {
+      if (import.meta.env.VITE_ENABLE_DEV_PAGES === "true") {
+        renderTournamentDev(app);
+      } else {
+        renderHome(app);
+      }
+      break;
+    }
     default:
       renderHome(app);
       break;
