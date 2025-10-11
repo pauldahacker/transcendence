@@ -16,7 +16,9 @@ services:
       - frontend
       - api
     ports:
-      - '$APP_PORT:$PROXY_PORT'
+      - $APP_PORT:$PROXY_PORT
+    volumes:
+      - ./common/certs/:/app/certs/:ro
     env_file:
       - .env
     extends:
@@ -25,6 +27,8 @@ services:
 
   frontend:
     <<: *internal-ports
+    volumes:
+      - ./common/certs/:/app/certs/:ro
     extends:
       file: frontend/docker/docker-compose.frontend.yml
       service: frontend
@@ -34,6 +38,8 @@ services:
     depends_on:
       - users
       - tournaments
+    volumes:
+      - ./common/certs/:/app/certs/:ro
     env_file:
       - .env
     extends:
@@ -43,7 +49,8 @@ services:
   users:
     <<: *internal-ports
     volumes:
-      - users_db:/app/db
+      - ./common/certs/:/app/certs/:ro
+      - users_db:/app/db/
     env_file:
       - .env
     extends:
@@ -53,6 +60,7 @@ services:
   tournaments:
     <<: *internal-ports
     volumes:
+      - ./common/certs/:/app/certs/:ro
       - tournaments_db:/app/db
     env_file:
       - .env
