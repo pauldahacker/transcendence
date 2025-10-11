@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 02:23:01 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 12:58:14 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ const {
 const { repo } = require('./repo');
 const { listMatchesQuery, listMatchesResponse } = require('./schemas');
 const { listMatchesByRound } = require('./repo');
+const { scoreMatchBody, scoreMatchResponse } = require('./schemas');
+const { finishMatchAndAdvance } = require('./repo');
 
 function routes(app, db) {
   const r = repo(db);
@@ -179,6 +181,45 @@ function routes(app, db) {
     const r = listMatchesByRound(db, id, round);
     if (r.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
     return reply.send(r.rows);
+  });
+  
+  // POST /:id/matches/:mid/score
+  app.route({
+    method: 'POST',
+    url: '/:id/matches/:mid/score',
+    schema: {
+      params: {
+        type: 'object',
+        required: ['id', 'mid'],
+        properties: {
+          id: { type: 'integer', minimum: 1 },
+          mid: { type: 'integer', minimum: 1 }
+        }
+      },
+      body: scoreMatchBody,
+      response: scoreMatchResponse
+    },
+    handler: async (req, reply) => {
+      const id = Number(req.params.id);
+      const mid = Number(req.params.mid);
+      if (!Number.isInteger(id) || id < 1 || !Number.isInteger(mid) || mid < 1) {
+        return reply.code(400).send({ status: 'bad_request' });
+      }
+
+      const { score_a, score_b } = req.body;
+
+      const r = finishMatchAndAdvance(db, id, mid, score_a, score_b);
+
+      if (r && r.error) {
+        if (r.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
+        if (r.error === 'conflict') return reply.code(409).send({ status: 'conflict', message: r.message || 'conflict' });
+        if (r.error === 'bad_request') return reply.code(400).send({ status: 'bad_request', message: r.message });
+        // Fallback
+        return reply.code(400).send({ status: 'bad_request' });
+      }
+
+      return reply.code(200).send(r.match);
+    }
   });
 }
 

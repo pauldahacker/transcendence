@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/10 01:27:10 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 13:16:08 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ class TournamentsDatabase extends Database {
       CREATE TABLE IF NOT EXISTS match (
         id                      INTEGER PRIMARY KEY AUTOINCREMENT,
         tournament_id           INTEGER NOT NULL,
-        a_participant_id        INTEGER NOT NULL,
-        b_participant_id        INTEGER NOT NULL,
+        a_participant_id        INTEGER, -- removed NOT NULL for testing
+        b_participant_id        INTEGER,  -- removed NOT NULL for testing
         round                   INTEGER NOT NULL,                   -- 1..N
         order_index             INTEGER NOT NULL,                   -- position inside round
         status                  TEXT    NOT NULL,                   -- scheduled|in_progress|finished
