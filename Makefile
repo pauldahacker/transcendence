@@ -19,7 +19,6 @@ all:
 	@echo "${BLUE}${BOLD}Available recipes:${RESET}"
 
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
-	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Build the container image"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run integration tests"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
@@ -44,10 +43,6 @@ up: $(ENV_FILE) $(CERTS_DIR)
 	$(call help_message, "Running the containerized application...")
 	docker compose up --watch
 
-build:
-	$(call help_message, "Building the container image...")
-	docker compose build
-
 test:
 	$(call help_message, "Running unit tests...")
 	docker compose exec api npm run test
@@ -59,7 +54,7 @@ down:
 
 clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
-	docker compose down -v
+	docker compose down -v || true
 	rm -rf $(CERTS_DIR)
 	rm -f $(ENV_FILE)
 
@@ -67,6 +62,6 @@ fclean: clean
 	$(call help_message, "Removing container images...")
 	docker rmi -f $(shell docker images --format '{{.Repository}}:{{.Tag}}' | grep "^${PROJECT_NAME}") || true
 
-re: clean build up
+re: clean up
 
-.PHONY: all up test build down clean fclean re
+.PHONY: all up test down clean fclean re
