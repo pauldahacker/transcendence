@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 02:51:20 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/11 13:11:28 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ function getMatchById(db, tournamentId, matchId) {
   const m = db.prepare(`
     SELECT id, tournament_id, round, order_index,
            a_participant_id, b_participant_id,
-           status, score_a, score_b, winner_participant_id, created_at, updated_at
+           status, score_a, score_b, winner_participant_id, updated_at
     FROM match
     WHERE id = ? AND tournament_id = ?
   `).get(matchId, tournamentId);
@@ -178,7 +178,7 @@ function getNextScheduledMatch(db, tournamentId) {
   const m = db.prepare(`
     SELECT id, tournament_id, round, order_index,
            a_participant_id, b_participant_id,
-           status, score_a, score_b, winner_participant_id, created_at, updated_at
+           status, score_a, score_b, winner_participant_id, updated_at
     FROM match
     WHERE tournament_id = ? AND status = 'scheduled'
     ORDER BY round ASC, order_index ASC, id ASC
@@ -202,9 +202,9 @@ function _ensureNextContainerMatch(db, tournamentId, round, orderIndex) {
       (tournament_id, round, order_index,
        a_participant_id, b_participant_id,
        status, score_a, score_b, winner_participant_id,
-       created_at, updated_at)
-    VALUES (?, ?, ?, NULL, NULL, 'scheduled', NULL, NULL, NULL, ?, ?)
-  `).run(tournamentId, round, orderIndex, now, now);
+       updated_at)
+    VALUES (?, ?, ?, NULL, NULL, 'scheduled', NULL, NULL, NULL, ?)
+  `).run(tournamentId, round, orderIndex, now);
 
   container = db.prepare(`
     SELECT id, a_participant_id, b_participant_id FROM match WHERE id = ?
@@ -223,7 +223,7 @@ function finishMatchAndAdvance(db, tournamentId, matchId, scoreA, scoreB) {
       SELECT id, tournament_id, round, order_index,
              a_participant_id, b_participant_id,
              status, score_a, score_b, winner_participant_id,
-             created_at, updated_at
+             updated_at
       FROM match
       WHERE id = ? AND tournament_id = ?
     `).get(matchId, tournamentId); 
@@ -288,7 +288,7 @@ function finishMatchAndAdvance(db, tournamentId, matchId, scoreA, scoreB) {
       SELECT id, tournament_id, round, order_index,
              a_participant_id, b_participant_id,
              status, score_a, score_b, winner_participant_id,
-             created_at, updated_at
+             updated_at
       FROM match WHERE id = ?
     `).get(m.id);
 

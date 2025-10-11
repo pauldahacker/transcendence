@@ -52,6 +52,13 @@ test:
 	docker compose exec tournaments npm test
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
+	$(call help_message, "Running end-to-end tournament test...")
+	$(MAKE) e2e_tournament	
+
+e2e_tournament:
+	@cd backend/tournaments/src/scripts && \
+	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
+	node e_2_e_tournament.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
@@ -67,4 +74,4 @@ fclean: clean
 
 re: clean build up
 
-.PHONY: all up test build down clean fclean re
+.PHONY: all up test build down clean fclean re e2e_tournament
