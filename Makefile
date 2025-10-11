@@ -61,6 +61,7 @@ clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
 	docker compose down -v
 	rm -rf $(CERTS_DIR)
+	rm -f $(ENV_FILE)
 
 fclean: clean
 	$(call help_message, "Removing container images...")
