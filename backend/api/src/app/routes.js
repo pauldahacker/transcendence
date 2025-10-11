@@ -28,10 +28,24 @@ function routes(app) {
     app.verifyInternalApiKey
   ], { relation: 'or' });
 
+  // this is to enable unauthenticateed access to public users endpoints
+  // I cannot login otherwise
+  // Delete/comment out this part if it breaks anything
+  // also remember to change the preHandler below
+  const usersProxyPreHandler = (req, reply, done) => {
+    // Public endpoints that must work without JWT / internal API key
+    const isPublicUsers =
+      req.method === 'POST' && (req.url === '/users/login' || req.url === '/users/register');
+    if (isPublicUsers) return done();
+    return preHandler(req, reply, done);
+  };
+  // end of segment to be deleted /commented out
   app.register(require('@fastify/http-proxy'), {
     upstream: "https://users:" + process.env.USERS_PORT,
     prefix: '/users',
-    preHandler: preHandler,
+    // swithc back to preHandler if necessary
+    // preHandler: preHandler,
+    preHandler: usersProxyPreHandler,
   });
 
   app.addHook('onRequest', (req, reply, done) => {
