@@ -1,17 +1,26 @@
 import { is3DActive } from "../tournament/state";
 import { setup3DSwitch } from "../3d/3dswitch";
+import { isLoggedIn } from "@/userUtils/TokenUtils";
 
 export function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen mx-auto my-auto";
-
+    
+    const logged = isLoggedIn();
+    let link = "#/login"
+    let linktext = "Login"
+    if (logged){
+       link = "#/profile"
+       linktext = "My Profile"
+    }
+  
     container.innerHTML = `
     <div class="absolute top-[2vh] right-[3vw] group">
-      <a href="#/login"
+      <a href="${link}"
         class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-6 py-2 
           transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900">
-        Login
+        ${linktext}
       </a>
     </div>
   
