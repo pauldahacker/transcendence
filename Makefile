@@ -13,6 +13,7 @@ endef
 PROJECT_NAME=trascendence
 ENV_FILE=.env
 CERTS_DIR=./common/certs
+TEST_DIR=./backend/test/src
 
 all:
 	@echo
@@ -50,7 +51,8 @@ test:
 	docker compose exec api npm run test
 	docker compose exec users npm run test
 	$(call help_message, "Running integration tests...")
-	docker compose run test
+	npm install --prefix $(TEST_DIR)
+	node --env-file=.env $(TEST_DIR)/test.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
