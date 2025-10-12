@@ -26,7 +26,7 @@ server {
 
     location = /health {
         access_log off;
-        add_header 'Content-Type' 'application/json';
+        default_type application/json;
 
         add_header 'X-Content-Type-Options' 'nosniff';
         add_header 'X-Frame-Options' 'DENY';

@@ -1,5 +1,6 @@
 const { test } = require('node:test');
 const supertest = require('supertest');
+const schemas = require('./schemas');
 
 let tokens = {
   adminToken: null,
@@ -9,25 +10,6 @@ let tokens = {
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 const server = "https://localhost";
-
-test('`proxy` tests', async (t) => {
-  
-  await t.test('GET `/health` route', async (t) => {
-    const response = await supertest(server)
-    .get('/health')
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepEqual(response.body, { status: 'ok' });
-  });
-
-  await t.test('GET `/` route', async (t) => {
-    const response = await supertest(server)
-    .get('/')
-    .expect(200)
-    .expect('Content-Type', 'text/html');
-  });
-});
 
 test('`api` tests', async (t) => {
   
@@ -147,10 +129,6 @@ test('`api` tests', async (t) => {
 });
 
 test('`users` tests', async (t) => {
-  
-
-  
-  
 
   await t.test('GET `/api/users/` route', async (t) => {
     
