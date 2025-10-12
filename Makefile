@@ -20,7 +20,7 @@ all:
 	@echo "${BLUE}${BOLD}Available recipes:${RESET}"
 
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
-	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run integration tests"
+	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
 	@echo "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
@@ -44,7 +44,7 @@ build: $(ENV_FILE) $(CERTS_DIR)
 
 up: build
 	$(call help_message, "Running the containerized application...")
-	docker compose up --watch
+	docker compose up --build --watch
 
 test:
 	$(call help_message, "Running unit tests...")

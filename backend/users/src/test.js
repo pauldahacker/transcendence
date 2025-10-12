@@ -88,7 +88,7 @@ test('POST `/login` route', async (t) => {
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401));
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401, 'Unauthorized'));
   });
 
   await t.test('Login with non-existent user', async (t) => {
@@ -251,10 +251,10 @@ test('PUT `/:user_id` route', async (t) => {
     .put('/2')
     .set('Authorization', `Bearer ${token_1}`)
     .send({ display_name: 'Name' })
-    .expect(403)
+    .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 401, 'Unauthorized'));
   });
 });
 
