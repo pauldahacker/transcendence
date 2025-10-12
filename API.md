@@ -368,7 +368,65 @@ curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   -H 'content-type: applicat
 # Next scheduled match
 curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY"   https://localhost/api/tournaments/1/next
 ```
+### Testing via TournamentDev
+```
+https://localhost/#/tournament-dev
 
+1
+Health checks
+Click GET /api/tournaments/health --- exepct HTTP 200 {"status":"ok"}
+Click GET /api/tournaments/health/db --- expect HTTP 200 {"status":"ok"}
+2
+Create a tournament
+Click POST /api/tournaments
+Expect HTTP 201 { "id": <N> }
+Copy <N> into the Tournament id inptu
+3
+Join participants (x4)
+In Participant alias, enter A --- POST /:id/participants --- expect HTTP 201 { "id": <pidA> }
+Repeat for B, C, D
+Click GET /:id/participants --- expect 4 rows (A,B,C,D with their ids)
+4
+Start the tournament
+Click POST /:id/start
+Expect HTTP 200 { "status":"active", "rounds": 2, "matches_created": 2 }
+5
+List round 1 matches
+In Round, eneter 1
+Click GET /:id/matches?round=N
+Expect 2 matches (both status: "scheduled"). Note their match ids (e.g., 5 and 6)
+6
+Next scheduled
+Click GET /:id/next
+Expect one match (a round-1 scheuled match)
+7
+Score round 1
+In Match id (mid), enter the first R1 id (e.g., 5)
+Set Score A/B (e.g., 11 and 7)
+Click POST /:id/matches/:mid/score --- expect HTTP 200 and the finished match (with winner_participant_id)
+Repeat for second R1 match (e.g., 6)
+8
+List the final (round 2)
+Set Round = 2
+GET /:id/matches?round=N --- expect 1 final match  (scheduled)
+9
+Next scheduled (final)
+GET /:id/next --- returns that final match
+10
+Score the final
+Put final mid in Match id
+Enter scores (no ties; e.g., 11 vs 9)
+POST /:id/matches/:mid/score --- expect HTTP 200 (now tournament may compelete)
+11
+Tha’s it, no matches left
+GET /:id/next --- expect HTTP 204
+GET /:id --- expect status: "completed"
+
+12
+You can also try accessing a match not started, add duplicates etc to test for possible errors. 
+It is all done in the test suite but  thgere’s no harm in trying ))
+
+```
 
 ## Health endpoints
 

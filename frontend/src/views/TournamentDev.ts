@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/11 18:18:32 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/12 17:15:25 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/12 18:12:01 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,3 +188,4 @@ export function renderTournamentDev(root: HTMLElement) {
     return call("GET", `/api/tournaments/${tid}/next`);
   });
 }
+
