@@ -31,7 +31,7 @@ test('`api` tests', async (t) => {
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401));
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401, 'Unauthorized'));
     });
 
     await t.test('Login as admin route with correct admin password', async (t) => {
@@ -81,7 +81,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
       });
     });
 
@@ -93,7 +93,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
       });
 
       await t.test('Access with admin token', async (t) => {
@@ -123,7 +123,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
       });
     });
 });
@@ -248,7 +248,7 @@ test('`users` tests', async (t) => {
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401));
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Password not valid', 401, 'Unauthorized'));
     });
   });
 
@@ -388,10 +388,10 @@ test('`users` tests', async (t) => {
       .put('/api/users/1')
       .set('Authorization', `Bearer ${tokens.user2Token}`)
       .send({ display_name: 'New Name' })
-      .expect(403)
+      .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 401, 'Unauthorized'));
     });
 
     await t.test('Update profile while logged in as admin', async (t) => {
