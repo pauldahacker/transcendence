@@ -2,7 +2,6 @@
 
 const Fastify = require('fastify');
 const routes = require('./routes');
-const { JSONError } = require('./schemas');
 
 function buildFastify(opts) {
   const app = Fastify(opts);
@@ -19,14 +18,14 @@ function buildFastify(opts) {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(JSONError('Token not valid', 401));
+      reply.send(Error('Token not valid', 401));
     }
   });
 
   app.decorate('verifyAdminCredentials', (request, _reply, done) => {
     try {
       if (request.body.admin_password !== process.env.ADMIN_PASSWORD)
-        throw JSONError('Admin credentials are invalid', 401);
+        throw Error('Admin credentials are invalid', 401);
     } catch (err) {
       return done(err);
     }
@@ -37,7 +36,7 @@ function buildFastify(opts) {
     try {
       const apiKey = request.headers['x-internal-api-key'];
       if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY)
-        throw JSONError('Invalid API Key', 401);
+        throw Error('Invalid API Key', 401);
     } catch (err) {
       return done(err);
     }

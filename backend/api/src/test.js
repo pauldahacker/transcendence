@@ -31,7 +31,7 @@ test('POST `/admin` route with incorrect admin password', async (t) => {
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Admin credentials are invalid', 401, 'Unauthorized'));
 });
 
 test('POST `/admin` route with correct admin password', async (t) => {
@@ -145,7 +145,7 @@ test('GET `/users/health` route with invalid internal API key', async (t) => {
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
 });
 
 test('GET `/tournaments/health` route with invalid internal API key', async (t) => {
@@ -160,7 +160,7 @@ test('GET `/tournaments/health` route with invalid internal API key', async (t) 
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401));
+  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
 });
 
 test('GET `/users/` route with token to fetch all users', async (t) => {

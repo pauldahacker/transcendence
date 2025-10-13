@@ -9,53 +9,53 @@ x-internal-ports: &internal-ports
     - PROXY_PORT
     - APP_PORT
 
+x-shared-config: &shared-config
+  volumes:
+      - ./common/certs/:/app/certs/:ro
+  env_file:
+    - .env
+
 services:
   proxy:
-    <<: *internal-ports
+    <<: [*shared-config, *internal-ports]
     depends_on:
       - frontend
       - api
     ports:
-      - '127.0.0.1:$APP_PORT:$PROXY_PORT'
-    env_file:
-      - .env
+      - $APP_PORT:$PROXY_PORT
     extends:
       file: backend/proxy/docker/docker-compose.proxy.yml
       service: proxy
 
   frontend:
-    <<: *internal-ports
+    <<: [*shared-config, *internal-ports]
     extends:
       file: frontend/docker/docker-compose.frontend.yml
       service: frontend
 
   api:
-    <<: *internal-ports
+    <<: [*shared-config, *internal-ports]
     depends_on:
       - users
       - tournaments
-    env_file:
-      - .env
     extends:
       file: backend/api/docker/docker-compose.api.yml
       service: api
 
   users:
-    <<: *internal-ports
+    <<: [*shared-config, *internal-ports]
     volumes:
-      - users_db:/app/db
-    env_file:
-      - .env
+      - ./common/certs/:/app/certs/:ro
+      - users_db:/app/db/
     extends:
       file: backend/users/docker/docker-compose.users.yml
       service: users
 
   tournaments:
-    <<: *internal-ports
+    <<: [*shared-config, *internal-ports]
     volumes:
+      - ./common/certs/:/app/certs/:ro
       - tournaments_db:/app/db
-    env_file:
-      - .env
     extends:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments

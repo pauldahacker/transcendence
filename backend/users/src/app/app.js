@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 
 const { UsersDatabase } = require('./db');
 const { routes, tokenBlacklist } = require('./routes');
-const { JSONError } = require('./schemas');
 
 function buildFastify(opts, dbPath) {
   const app = Fastify(opts);
@@ -26,11 +25,11 @@ function buildFastify(opts, dbPath) {
   app.decorate('verifyUserAndPassword', async (request, _reply) => {
     try {
       if (!request.body || !request.body.username) 
-        throw JSONError('Missing user in body', 400);
+        throw Error('Missing user in body', 400);
 
       const user = db.getUser(request.body.username);
       if (!await bcrypt.compare(request.body.password, user.password))
-        throw JSONError('Password not valid', 401);
+        throw Error('Password not valid', 401);
     } catch (err) {
       throw err;
     }
@@ -39,11 +38,11 @@ function buildFastify(opts, dbPath) {
   app.decorate('verifyUserOwnership', async (request, _reply, done) => {
     try {
       if (!request.params.user_id) 
-        throw JSONError('Missing user ID in params', 400);
+        throw Error('Missing user ID in params', 400);
 
       const user = db.getUserById(request.params.user_id);
       if (user.username !== request.user.username)
-        throw JSONError('User not authorized', 403);
+        throw Error('User not authorized', 403);
     } catch (err) {
       throw err;
     }
@@ -52,7 +51,7 @@ function buildFastify(opts, dbPath) {
   app.decorate('verifyAdminJWT', async (request, reply) => {
     try {
       if (request.user.username !== "admin")
-        throw JSONError('User not authorized', 403);
+        throw Error('User not authorized', 403);
     } catch (err) {
       throw err;
     }
@@ -62,7 +61,7 @@ function buildFastify(opts, dbPath) {
     try {
       const apiKey = request.headers['x-internal-api-key'];
       if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY)
-        throw JSONError('Invalid API Key', 401);
+        throw Error('Invalid API Key', 401);
     } catch (err) {
       return done(err);
     }
