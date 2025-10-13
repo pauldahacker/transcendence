@@ -14,6 +14,7 @@ PROJECT_NAME=trascendence
 ENV_FILE=.env
 CERTS_DIR=./common/certs
 TEST_DIR=./backend/test
+BLOCKCHAIN_DIR=./backend/blockchain
 
 all:
 	@echo
@@ -59,12 +60,32 @@ test:
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
 	$(call help_message, "Running end-to-end tournament test...")
-	$(MAKE) e2e_tournament	
+	$(MAKE) e2e_tournament
+	$(MAKE) blockchain-test
 
 e2e_tournament:
 	@cd backend/tournaments/src/scripts && \
 	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
 	node e_2_e_tournament.js
+
+blockchain-dev-certs:
+	@set -e; \
+	DIR="backend/blockchain/dev-certs"; \
+	mkdir -p "$$DIR"; \
+	if [ -f "$$DIR/key.pem" ] && [ -f "$$DIR/cert.pem" ]; then \
+		echo "Dev certs already exist at $$DIR"; \
+	else \
+		echo "Generating self-signed dev certs in $$DIR (CN=localhost)"; \
+		openssl req -x509 -newkey rsa:2048 -nodes \
+			-keyout "$$DIR/key.pem" -out "$$DIR/cert.pem" \
+			-days 3650 -subj "/CN=localhost"; \
+		echo "✓ Generated $$DIR/key.pem and $$DIR/cert.pem"; \
+	fi
+
+blockchain-test: blockchain-dev-certs
+	$(call help_message, "Running blockchain unit tests...")
+	npm install --prefix $(BLOCKCHAIN_DIR)
+	npm --prefix $(BLOCKCHAIN_DIR) run test
 
 down:
 	$(call help_message, "Stopping the containerized application...")
@@ -84,4 +105,5 @@ fclean: clean
 
 re: clean up
 
-.PHONY: all up test build down clean fclean re e2e_tournament
+.PHONY: all up test build down clean fclean re \
+	e2e_tournament blockchain_dev_certs blockchain_test
