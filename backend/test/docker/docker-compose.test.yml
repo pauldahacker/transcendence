@@ -1,7 +1,0 @@
-services:
-  test:
-    container_name: test
-    build:
-      context: ../src
-      dockerfile: ../../../common/docker/Dockerfile
-    command: ["dumb-init", "node", "test.js"]

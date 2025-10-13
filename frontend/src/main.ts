@@ -6,6 +6,8 @@ import { renderTournament} from "./views/Tournament";
 import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
+// NB! this is to test the tournamenbt functionality
+import { renderTournamentDev } from "./views/TournamentDev";
 
 function router() {
   const app = document.getElementById("app")!;
@@ -36,6 +38,16 @@ function router() {
     case "#/profile":
       renderProfile(app);
       break;
+    //NB! this is to test the tournament backend functionality
+    case "#/tournament-dev": {
+      const devEnabled = String(import.meta.env.VITE_ENABLE_DEV_PAGES) === "true";
+      if (devEnabled) {
+        renderTournamentDev(app);
+      } else {
+        renderHome(app);
+      }
+      break;
+    }
     default:
       renderHome(app);
       break;
