@@ -281,13 +281,58 @@ test('Dump database', async (t) => {
     db.exec(`
       INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed) VALUES
       (1, 2, datetime('now'), 1);
+      `);
+});
 
-      INSERT OR IGNORE INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id) VALUES
-      (1, 1, datetime('now', '-10 days'), 1, 2, 21, 15, 1, 2),
-      (1, 2, datetime('now', '-9 days'), 1, 2, 18, 21, 2, 1),
-      (1, 3, datetime('now', '-8 days'), 1, 2, 21, 19, 1, 2),
-      (1, 4, datetime('now', '-7 days'), 1, 2, 21, 17, 1, 2);
-    `);
+test('POST `/match` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('Add match result with incorrect data', async (t) => {
+    const response = await supertest(app.server)
+    .post('/match')
+    .set('Authorization', `Bearer ${token_1}`)
+    .send({ tournament_id: 1, match_id: 5, match_date: '2024-01-01T12:00:00Z', a_participant_id: 1, b_participant_id: 2, a_participant_score: 21 })
+    .expect(400)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+  });
+
+  await t.test('Add match result with valid data', async (t) => {
+    
+    await t.test('Add match result 1', async (t) => {
+      const response = await supertest(app.server)
+      .post('/match')
+      .set('Authorization', `Bearer ${token_1}`)
+      .send({ tournament_id: 1, match_id: 1, match_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 15, winner_id: 1, loser_id: 2 })
+      .expect(201);
+    });
+
+    await t.test('Add match result 2', async (t) => {
+      const response = await supertest(app.server)
+      .post('/match')
+      .set('Authorization', `Bearer ${token_1}`)
+      .send({ tournament_id: 1, match_id: 2, match_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 18, b_participant_score: 21, winner_id: 2, loser_id: 1 })
+      .expect(201);
+    });
+
+    await t.test('Add match result 3', async (t) => {
+      const response = await supertest(app.server)
+      .post('/match')
+      .set('Authorization', `Bearer ${token_1}`)
+      .send({ tournament_id: 1, match_id: 3, match_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 19, winner_id: 1, loser_id: 2 })
+      .expect(201);
+    });
+
+    await t.test('Add match result 4', async (t) => {
+      const response = await supertest(app.server)
+      .post('/match')
+      .set('Authorization', `Bearer ${token_1}`)
+      .send({ tournament_id: 1, match_id: 4, match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 17, winner_id: 1, loser_id: 2 })
+      .expect(201);
+    });
+  });
 });
 
 test('Check profile updates', async (t) => {

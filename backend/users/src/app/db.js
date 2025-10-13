@@ -197,6 +197,40 @@ class UsersDatabase extends Database {
       throw error;
     }
   }
+
+  getMatchResult(id) {
+    try {
+      const stmt = this.prepare('SELECT tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id FROM match_history WHERE id = ?');
+      const row = stmt.get(id);
+      if (!row) throw JSONError('Match result not found', 404);
+      return row;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  addMatchResult(match) {
+    try {
+      const stmt = this.prepare(`
+        INSERT INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const info = stmt.run(
+        match.tournament_id,
+        match.match_id,
+        match.match_date,
+        match.a_participant_id,
+        match.b_participant_id,
+        match.a_participant_score,
+        match.b_participant_score,
+        match.winner_id,
+        match.loser_id
+      );
+      return this.getMatchResult(info.lastInsertRowid);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = { UsersDatabase };
