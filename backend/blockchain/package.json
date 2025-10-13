@@ -1,0 +1,17 @@
+{
+  "name": "ftt-blockchain",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "compile": "hardhat compile",
+    "clean": "hardhat clean",
+    "test": "node src/test.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.8"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0"
+  }
+}
