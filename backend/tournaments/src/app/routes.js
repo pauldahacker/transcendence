@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 16:04:03 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/14 00:50:09 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,8 +84,8 @@ function routes(app, db) {
     }
   }, async (request, reply) => {
     const tid = Number(request.params.id);
-    const { display_name, is_bot = false } = request.body;
-    const res = r.insertParticipant(tid, { display_name, is_bot });
+    const { display_name, is_bot = false, user_id = null } = request.body;
+    const res = r.insertParticipant(tid, { display_name, is_bot, user_id });
     if (res?.error === 'not_found') return reply.code(404).send({ status: 'not_found' });
     if (res?.error === 'conflict') return reply.code(409).send({ status: 'conflict', message: 'alias already joined' });
     return reply.code(201).send({ id: Number(res.id) });

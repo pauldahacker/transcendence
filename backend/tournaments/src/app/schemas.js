@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 11:46:06 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/14 00:53:43 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ const participantEntity = {
     display_name: { type: 'string', minLength: 1, maxLength: 64 },
     joined_at: { type: 'string' }, // ISO text
     is_bot: { type: 'boolean' },
+    user_id: { anyOf: [{ type: 'integer' }, { type: 'null' }] },
   },
 };
 
@@ -89,6 +90,7 @@ const postParticipantBody = {
   properties: {
     display_name: { type: 'string', minLength: 1, maxLength: 64 },
     is_bot: { type: 'boolean', default: false },
+    user_id: { anyOf: [{ type: 'integer' }, { type: 'null' }], default: null },
   },
 };
 
