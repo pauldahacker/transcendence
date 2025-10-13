@@ -24,25 +24,28 @@ class UsersDatabase extends Database {
 
       CREATE TABLE IF NOT EXISTS friends (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user1_id INTEGER NOT NULL,
-        user2_id INTEGER NOT NULL,
+        a_friend_id INTEGER NOT NULL,
+        b_friend_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         confirmed BOOLEAN DEFAULT 0,
-        FOREIGN KEY (user1_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (user2_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        UNIQUE(user1_id, user2_id)
+        FOREIGN KEY (a_friend_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        FOREIGN KEY (b_friend_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        UNIQUE(a_friend_id, b_friend_id)
       );
 
       CREATE TABLE IF NOT EXISTS match_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user1_id INTEGER NOT NULL,
-        user2_id INTEGER NOT NULL,
+        tournament_id INTEGER NOT NULL,
+        a_participant_id INTEGER NOT NULL,
+        b_participant_id INTEGER NOT NULL,
+        a_participant_score INTEGER NOT NULL,
+        b_participant_score INTEGER NOT NULL,
         winner_id INTEGER NOT NULL,
-        user1_wins BOOLEAN NOT NULL,
-        user2_wins BOOLEAN NOT NULL,
+        loser_id INTEGER NOT NULL,
+
         match_date TEXT NOT NULL,
-        FOREIGN KEY (user1_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (user2_id) REFERENCES users_auth(id) ON DELETE CASCADE
+        FOREIGN KEY (a_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE,
+        FOREIGN KEY (b_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
     `);
   }
@@ -109,15 +112,15 @@ class UsersDatabase extends Database {
       if (!row) throw JSONError('User not found', 404);
 
       row.friends = this.prepare(`
-        SELECT f.user2_id as friend_user_id
+        SELECT f.b_friend_id as friend_user_id
         FROM friends f
-        WHERE f.user1_id = ?
+        WHERE f.a_friend_id = ?
 
         UNION
 
-        SELECT f.user1_id as friend_user_id
+        SELECT f.a_friend_id as friend_user_id
         FROM friends f
-        WHERE f.user2_id = ?;
+        WHERE f.b_friend_id = ?;
       `).all(user_id, user_id).map(row => row.friend_user_id);
 
       row.stats = this.prepare(`
@@ -126,7 +129,7 @@ class UsersDatabase extends Database {
           SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
           SUM(CASE WHEN winner_id != ? THEN 1 ELSE 0 END) as losses
         FROM match_history 
-        WHERE user1_id = ? OR user2_id = ?
+        WHERE a_participant_id = ? OR b_participant_id = ?
       `).get(user_id, user_id, user_id, user_id);
 
       return row;
