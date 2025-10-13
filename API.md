@@ -149,6 +149,39 @@ Error responses:
 - `404`: User not found
 - `403`: User not authorized
 
+### Endpoint: `POST   /api/users/match`
+
+Request body:
+```json
+{
+  "tournament_id": "number",
+  "match_id": "number",
+  "match_date": "string",
+  "a_participant_id": "number",
+  "b_participant_id": "number",
+  "a_participant_score": "number",
+  "b_participant_score": "number",
+  "winner_id": "number",
+  "loser_id": "number"
+}
+```
+Response body:
+```json
+{
+  "tournament_id": "number",
+  "match_id": "number",
+  "match_date": "string",
+  "a_participant_id": "number",
+  "b_participant_id": "number",
+  "a_participant_score": "number",
+  "b_participant_score": "number",
+  "winner_id": "number",
+  "loser_id": "number"
+}
+```
+Error responses:
+- `400`: Bad request
+
 ## Tournament endpoints
 
 > **Base (via API Gateway):** `https://localhost/api/tournaments/*`  

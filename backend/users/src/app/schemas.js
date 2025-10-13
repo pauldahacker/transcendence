@@ -32,6 +32,23 @@ const profileParamSchema = {
   additionalProperties: false
 };
 
+const matchResultSchema = {
+  type: 'object',
+  properties: {
+    tournament_id: { type: 'number' },
+    match_id: { type: 'number' },
+    match_date: { type: 'string', format: 'date-time' },
+    a_participant_id: { type: 'number' },
+    b_participant_id: { type: 'number' },
+    a_participant_score: { type: 'number' },
+    b_participant_score: { type: 'number' },
+    winner_id: { type: 'number' },
+    loser_id: { type: 'number' }
+  },
+  required: ['tournament_id', 'match_id', 'match_date', 'a_participant_id', 'b_participant_id', 'a_participant_score', 'b_participant_score', 'winner_id', 'loser_id'],
+  additionalProperties: false
+};
+
 const userResponseKeys = [
   'id',
   'username',
@@ -49,4 +66,4 @@ const profileResponseKeys = [
   'match_history'
 ]
 
-module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, userResponseKeys, profileResponseKeys };
+module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, userResponseKeys, profileResponseKeys, matchResultSchema };

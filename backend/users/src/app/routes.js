@@ -107,6 +107,18 @@ function routes(app, db) {
 			throw err;
 		}
 	});
+
+	app.post('/match',
+		{ schema: { body: schemas.matchResultSchema } },
+		async (request, reply) => {
+		request.log.info('Adding match result');
+		try {
+			const info = db.addMatchResult(request.body);
+			return reply.status(201).send(info);
+		} catch (err) {
+			throw err;
+		}
+	});
 }
 
 module.exports = { routes, tokenBlacklist };
