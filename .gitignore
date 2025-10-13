@@ -187,6 +187,3 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node,linux,certificates
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
-
-.test-counter
-my_notes.txt

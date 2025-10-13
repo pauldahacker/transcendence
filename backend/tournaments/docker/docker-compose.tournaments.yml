@@ -3,10 +3,12 @@ services:
     container_name: tournaments
     build:
       context: ../src
-      dockerfile: ../docker/Dockerfile
+      dockerfile: ../../../common/docker/Dockerfile
     restart: always
     environment:
       - TOURNAMENTS_PORT
+      - TOURN_DB_PATH=app/db/tournaments.db
+
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$TOURNAMENTS_PORT/health"]
       interval: 1m30s
