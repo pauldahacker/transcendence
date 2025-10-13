@@ -318,7 +318,7 @@ test('`users` tests', async (t) => {
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
       t.assert.strictEqual(response.body.username, 'testuser2');
       profile = response.body;
     });
@@ -330,7 +330,7 @@ test('`users` tests', async (t) => {
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
       t.assert.strictEqual(response.body.username, 'testuser');
     });
 
@@ -342,7 +342,7 @@ test('`users` tests', async (t) => {
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
       t.assert.strictEqual(response.body.username, 'testuser');
     });
 
@@ -402,7 +402,7 @@ test('`users` tests', async (t) => {
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
       t.assert.strictEqual(response.body.display_name, 'Admin Changed Name');
     });
 
@@ -414,7 +414,7 @@ test('`users` tests', async (t) => {
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
       t.assert.strictEqual(response.body.display_name, 'New Name');
       profile = response.body;
     });
