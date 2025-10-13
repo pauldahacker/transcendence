@@ -60,13 +60,6 @@ services:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments
 
-  test:
-    extends:
-      file: backend/test/docker/docker-compose.test.yml
-      service: test
-    profiles:
-      - test
-
 volumes:
   users_db: null
   tournaments_db: null

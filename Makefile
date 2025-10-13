@@ -13,18 +13,19 @@ endef
 PROJECT_NAME=trascendence
 ENV_FILE=.env
 CERTS_DIR=./common/certs
-TEST_DIR=./backend/test/src
+TEST_DIR=./backend/test
 
 all:
 	@echo
 	@echo "${BLUE}${BOLD}Available recipes:${RESET}"
 
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
+	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Generate \`.env\` file and SSL certificates"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
 	@echo "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
-	@echo "  ${GREEN}${BOLD}re      ${CYAN}- Rebuild and restart the application$(RESET)"
+	@echo "  ${GREEN}${BOLD}re      ${CYAN}- (clean + up)${RESET}"
 	@echo
 
 $(CERTS_DIR):
@@ -53,6 +54,17 @@ test:
 	$(call help_message, "Running integration tests...")
 	npm install --prefix $(TEST_DIR)
 	node --env-file=.env $(TEST_DIR)/test.js
+	$(call help_message, "Running tournaments unit tests...")
+	docker compose exec tournaments npm test
+	$(call help_message, "Running tournaments DB smoke test...")
+	docker compose exec tournaments npm run db:smoke
+	$(call help_message, "Running end-to-end tournament test...")
+	$(MAKE) e2e_tournament	
+
+e2e_tournament:
+	@cd backend/tournaments/src/scripts && \
+	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
+	node e_2_e_tournament.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
@@ -61,13 +73,15 @@ down:
 clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
 	docker compose down -v || true
-	rm -rf $(CERTS_DIR)
-	rm -f $(ENV_FILE)
 
 fclean: clean
 	$(call help_message, "Removing container images...")
 	docker rmi -f $(shell docker images --format '{{.Repository}}:{{.Tag}}' | grep "^${PROJECT_NAME}") || true
+	$(call help_message, "Removing generated .env file...")
+	rm -f $(ENV_FILE)
+	$(call help_message, "Removing generated SSL certificates...")
+	rm -rf $(CERTS_DIR)
 
 re: clean up
 
-.PHONY: all up test down clean fclean re
+.PHONY: all up test build down clean fclean re e2e_tournament
