@@ -74,81 +74,6 @@ Response body:
 Error responses:
 - `401`: Invalid token header
 
-### Endpoint: `GET    /api/users/{user_id}/`
-
-Response body:
-```json
-{
-  "username": "string",
-  "display_name": "string",
-  "avatar_url": "string",
-  "bio": "string",
-  "created_at": "string",
-  "friends": [ "number" ],
-  "stats": {
-    "total_games": "number",
-    "wins": "number",
-    "losses": "number",
-  },
-  "match_history": [
-    {
-      "tournament_id": "number",
-      "match_id": "number",
-      "match_date": "string",
-      "opponent_username": "string",
-      "user_score": "string",
-      "opponent_score": "string",
-      "result": "win|loss",
-    } 
-  ]
-}
-```
-Error responses:
-- `401`: Invalid token header
-- `404`: User not found
-
-### Endpoint: `PUT    /api/users/{user_id}/`
-
-Request body:
-```json
-{
-  "display_name": "string",
-  "avatar_url": "string",
-  "bio": "string"
-}
-```
-Response body:
-```json
-{
-  "username": "string",
-  "display_name": "string",
-  "avatar_url": "string",
-  "bio": "string",
-  "created_at": "string",
-  "friends": [ "number" ],
-  "stats": {
-    "total_games": "number",
-    "wins": "number",
-    "losses": "number",
-  },
-  "match_history": [
-    {
-      "tournament_id": "number",
-      "match_id": "number",
-      "match_date": "string",
-      "opponent_username": "string",
-      "user_score": "string",
-      "opponent_score": "string",
-      "result": "win|loss",
-    } 
-  ]
-}
-```
-Error responses:
-- `401`: Invalid token header
-- `404`: User not found
-- `403`: User not authorized
-
 ### Endpoint: `POST   /api/users/match`
 
 Request body:
@@ -180,7 +105,101 @@ Response body:
 }
 ```
 Error responses:
+- `401`: Invalid token header
 - `400`: Bad request
+
+### Endpoint: `GET    /api/users/{user_id}/`
+
+Response body:
+```json
+{
+  "username": "string",
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string",
+  "created_at": "string"
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+
+### Endpoint: `PUT    /api/users/{user_id}/`
+
+Request body:
+```json
+{
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string"
+}
+```
+Response body:
+```json
+{
+  "username": "string",
+  "display_name": "string",
+  "avatar_url": "string",
+  "bio": "string",
+  "created_at": "string"
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+- `403`: User not authorized
+
+### Endpoint: `GET    /api/users/:user_id/stats`
+
+Response body:
+```json
+{
+  "total_games": "number",
+  "wins": "number",
+  "losses": "number"
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+
+### Endpoint: `GET    /api/users/:user_id/friends`
+
+Response body:
+```json
+[
+  {
+    "id": "number",
+    "username": "string",
+    "display_name": "string",
+    "avatar_url": "string",
+    "confirmed": "boolean"
+  }
+]
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+
+### Endpoint: `GET    /api/users/:user_id/match_history`
+
+Response body:
+```json
+[
+  {
+    "tournament_id": "number",
+    "match_id": "number",
+    "match_date": "string",
+    "opponent_username": "string",
+    "user_score": "string",
+    "opponent_score": "string",
+    "result": "win|loss",
+  }
+]
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
 
 ## Tournament endpoints
 

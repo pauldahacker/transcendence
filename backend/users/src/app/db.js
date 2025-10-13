@@ -102,39 +102,33 @@ class UsersDatabase extends Database {
     }
   }
 
-  getProfile(user_id) {
+  getUserFriends(user_id) {
     try {
       const stmt = this.prepare(`
-        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        SELECT ua.id, ua.username, up.display_name, up.avatar_url, f.confirmed
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
-        WHERE up.user_id = ?
+        JOIN (
+          SELECT f.b_friend_id as friend_user_id, f.confirmed
+          FROM friends f
+          WHERE f.a_friend_id = ?
+
+          UNION
+
+          SELECT f.a_friend_id as friend_user_id, f.confirmed
+          FROM friends f
+          WHERE f.b_friend_id = ?
+        ) f ON ua.id = f.friend_user_id
       `);
-      const row = stmt.get(user_id);
-      if (!row) throw JSONError('User not found', 404);
+      return stmt.all(user_id, user_id);
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      row.friends = this.prepare(`
-        SELECT f.b_friend_id as friend_user_id
-        FROM friends f
-        WHERE f.a_friend_id = ?
-
-        UNION
-
-        SELECT f.a_friend_id as friend_user_id
-        FROM friends f
-        WHERE f.b_friend_id = ?;
-      `).all(user_id, user_id).map(row => row.friend_user_id);
-
-      row.stats = this.prepare(`
-        SELECT 
-          COUNT(*) as total_matches,
-          SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
-          SUM(CASE WHEN winner_id != ? THEN 1 ELSE 0 END) as losses
-        FROM match_history 
-        WHERE a_participant_id = ? OR b_participant_id = ?
-      `).get(user_id, user_id, user_id, user_id);
-
-      row.match_history = this.prepare(`
+  getUserMatchHistory(user_id) {
+    try {
+      const stmt = this.prepare(`
         SELECT 
           tournament_id,
           match_id,
@@ -159,8 +153,40 @@ class UsersDatabase extends Database {
         WHERE a_participant_id = ? OR b_participant_id = ?
         ORDER BY match_date DESC
         LIMIT 10
-      `).all(user_id, user_id, user_id, user_id, user_id, user_id);
+      `);
+      return stmt.all(user_id, user_id, user_id, user_id, user_id, user_id);
+    } catch (error) {
+      throw error;
+    }
+  }
 
+  getUserStats(user_id) {
+    try {
+      const stmt = this.prepare(`
+        SELECT 
+          COUNT(*) as total_matches,
+          SUM(CASE WHEN winner_id = ? THEN 1 ELSE 0 END) as wins,
+          SUM(CASE WHEN winner_id != ? THEN 1 ELSE 0 END) as losses
+        FROM match_history 
+        WHERE a_participant_id = ? OR b_participant_id = ?
+      `);
+      return stmt.get(user_id, user_id, user_id, user_id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  getProfile(user_id) {
+    try {
+      const stmt = this.prepare(`
+        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        FROM users_auth ua
+        JOIN users_profile up ON ua.id = up.user_id
+        WHERE up.user_id = ?
+      `);
+      const row = stmt.get(user_id);
+
+      if (!row) throw JSONError('User not found', 404);
       return row;
     } catch (error) {
       throw error;

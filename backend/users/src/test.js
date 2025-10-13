@@ -39,7 +39,7 @@ test('POST `/register` route', async (t) => {
     .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), schemas.userResponseKeys);
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.userResponseSchema.required);
     t.assert.strictEqual(response.body.username, 'myuser');
   });
 
@@ -179,7 +179,7 @@ test('GET `/:user_id` route', async (t) => {
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
     t.assert.strictEqual(response.body.username, 'myuser');
     profile = response.body;
   });
@@ -226,13 +226,13 @@ test('PUT `/:user_id` route', async (t) => {
     const response = await supertest(app.server)
     .put('/1')
     .set('Authorization', `Bearer ${token_1}`)
-    .send({ display_name: 'New Name', bio: 'This is my bio' })
+    .send({ display_name: 'User 1', bio: 'This is my bio' })
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
     t.assert.strictEqual(response.body.username, 'myuser');
-    t.assert.strictEqual(response.body.display_name, 'New Name');
+    t.assert.strictEqual(response.body.display_name, 'User 1');
     t.assert.strictEqual(response.body.bio, 'This is my bio');
     profile = response.body;
   });
@@ -244,13 +244,13 @@ test('PUT `/:user_id` route', async (t) => {
     .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseKeys);
+    t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseSchema.required);
     t.assert.strictEqual(registerResponse.body.username, 'otheruser');
 
     const response = await supertest(app.server)
     .put('/2')
     .set('Authorization', `Bearer ${token_1}`)
-    .send({ display_name: 'Name' })
+    .send({ display_name: 'User 2' })
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -335,76 +335,162 @@ test('POST `/match` route', async (t) => {
   });
 });
 
-test('Check profile updates', async (t) => {
+test('GET `/:user_id/stats` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Get user stats with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/stats')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+  });
+
+  await t.test('Get user stats with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/stats')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.statsResponseSchema.required);
+    t.assert.strictEqual(response.body.total_matches, 4);
+    t.assert.strictEqual(response.body.wins, 3);
+    t.assert.strictEqual(response.body.losses, 1);
+  });
+
+  await t.test('Get user stats from another user', async (t) => {
+    const response = await supertest(app.server)
+    .get('/2/stats')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body), schemas.statsResponseSchema.required);
+    t.assert.strictEqual(response.body.total_matches, 4);
+    t.assert.strictEqual(response.body.wins, 1);
+    t.assert.strictEqual(response.body.losses, 3);
+  });
+
+  await t.test('Get non-existent user stats', async (t) => {
+    const response = await supertest(app.server)
+    .get('/999/stats')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+});
+
+test('GET `/:user_id/friends` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Get user friends with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+  });
+
+  await t.test('Get user friends with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 1);
+    t.assert.strictEqual(response.body[0].id, 2);
+    t.assert.strictEqual(response.body[0].username, 'otheruser');
+    t.assert.strictEqual(response.body[0].display_name, null);
+    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+    t.assert.strictEqual(response.body[0].confirmed, 1);
+  });
+
+  await t.test('Get another user friends', async (t) => {
+    const response = await supertest(app.server)
+    .get('/2/friends')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 1);
+    t.assert.strictEqual(response.body[0].id, 1);
+    t.assert.strictEqual(response.body[0].username, 'myuser');
+    t.assert.strictEqual(response.body[0].display_name, 'User 1');
+    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+    t.assert.strictEqual(response.body[0].confirmed, 1);
+  });
+
+  await t.test('Get non-existent user friends', async (t) => {
+    const response = await supertest(app.server)
+    .get('/999/friends')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+});
+
+test('GET `/:user_id/match_history` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
   t.after(() => app.close());
   await app.ready();
 
-  await t.test('Get profile with valid token', async (t) => {
+  await t.test('Get user match history with missing token', async (t) => {
     const response = await supertest(app.server)
-    .get('/1')
-    .set('Authorization', `Bearer ${token_1}`)
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
+      .get('/1/match_history')
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
-    t.assert.deepStrictEqual(response.body.username, 'myuser');
-    t.assert.deepStrictEqual(response.body.display_name, 'New Name');
-    t.assert.deepStrictEqual(response.body.bio, 'This is my bio');
-    t.assert.deepStrictEqual(response.body.friends, [2]);
-
-    t.assert.deepStrictEqual(response.body.stats.total_matches, 4);
-    t.assert.deepStrictEqual(response.body.stats.wins, 3);
-    t.assert.deepStrictEqual(response.body.stats.losses, 1);
-
-    t.assert.deepStrictEqual(response.body.match_history.length, 4);
-
-    t.assert.deepStrictEqual(response.body.match_history[0].opponent_username, 'otheruser');
-    t.assert.deepStrictEqual(response.body.match_history[0].user_score, 21);
-    t.assert.deepStrictEqual(response.body.match_history[0].opponent_score, 17);
-    t.assert.deepStrictEqual(response.body.match_history[0].result, 'win');
-
-    t.assert.deepStrictEqual(response.body.match_history[1].opponent_username, 'otheruser');
-    t.assert.deepStrictEqual(response.body.match_history[1].user_score, 21);
-    t.assert.deepStrictEqual(response.body.match_history[1].opponent_score, 19);
-    t.assert.deepStrictEqual(response.body.match_history[1].result, 'win');
-
-    t.assert.deepStrictEqual(response.body.match_history[2].opponent_username, 'otheruser');
-    t.assert.deepStrictEqual(response.body.match_history[2].user_score, 18);
-    t.assert.deepStrictEqual(response.body.match_history[2].opponent_score, 21);
-    t.assert.deepStrictEqual(response.body.match_history[2].result, 'loss');
-
-    t.assert.deepStrictEqual(response.body.match_history[3].opponent_username, 'otheruser');
-    t.assert.deepStrictEqual(response.body.match_history[3].user_score, 21);
-    t.assert.deepStrictEqual(response.body.match_history[3].opponent_score, 15);
-    t.assert.deepStrictEqual(response.body.match_history[3].result, 'win');
-    profile = response.body;
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
   });
 
-  await t.test('Get other user profile with valid token', async (t) => {
-    const loginResponse = await supertest(app.server)
-    .post('/login')
-    .send({ username: 'otheruser', password: 'otherpass' })
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.ok(loginResponse.body.token);
-    token_2 = loginResponse.body.token;
-
+  await t.test('Get user match history with valid token', async (t) => {
     const response = await supertest(app.server)
-    .get('/2')
-    .set('Authorization', `Bearer ${token_2}`)
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
+      .get('/1/match_history')
+      .set('Authorization', `Bearer ${token_1}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseKeys);
-    t.assert.deepStrictEqual(response.body.username, 'otheruser');
-    t.assert.deepStrictEqual(response.body.display_name, null);
-    t.assert.deepStrictEqual(response.body.bio, null);
-    t.assert.deepStrictEqual(response.body.friends, [1]);
-    t.assert.deepStrictEqual(response.body.stats.total_matches, 4);
-    t.assert.deepStrictEqual(response.body.stats.wins, 1);
-    t.assert.deepStrictEqual(response.body.stats.losses, 3);
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.matchHistoryResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 4);
+    t.assert.strictEqual(response.body[0].tournament_id, 1);
+    t.assert.strictEqual(response.body[0].match_id, 4);
+    t.assert.strictEqual(response.body[0].opponent_username, 'otheruser');
+    t.assert.strictEqual(response.body[0].user_score, 21);
+    t.assert.strictEqual(response.body[0].opponent_score, 17);
+    t.assert.strictEqual(response.body[0].result, 'win');
+  });
+
+  await t.test('Get another user match history', async (t) => {
+    const response = await supertest(app.server)
+      .get('/2/match_history')
+      .set('Authorization', `Bearer ${token_1}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.matchHistoryResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 4);
+    t.assert.strictEqual(response.body[0].tournament_id, 1);
+    t.assert.strictEqual(response.body[0].match_id, 4);
+    t.assert.strictEqual(response.body[0].opponent_username, 'myuser');
+    t.assert.strictEqual(response.body[0].user_score, 17);
+    t.assert.strictEqual(response.body[0].opponent_score, 21);
+    t.assert.strictEqual(response.body[0].result, 'loss');
   });
 });
