@@ -3,9 +3,14 @@ const supertest = require('supertest');
 const schemas = require('./schemas');
 
 let tokens = {
-  adminToken: null,
-  user1Token: null,
-  user2Token: null,
+  admin: null,
+  user1: null,
+  user2: null,
+};
+
+let ids = {
+  user1: null,
+  user2: null,
 };
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
@@ -41,7 +46,7 @@ test('`api` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.ok(response.body.token);
-      tokens.adminToken = response.body.token;
+      tokens.admin = response.body.token;
     });
   });
 
@@ -57,7 +62,7 @@ test('`api` tests', async (t) => {
       await t.test('Access with admin token', async (t) => {
         const response = await supertest(server)
         .get('/api/users/health')
-        .set('Authorization', `Bearer ${tokens.adminToken}`)
+        .set('Authorization', `Bearer ${tokens.admin}`)
         .expect(200)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -99,7 +104,7 @@ test('`api` tests', async (t) => {
       await t.test('Access with admin token', async (t) => {
         const response = await supertest(server)
         .get('/api/tournaments/health')
-        .set('Authorization', `Bearer ${tokens.adminToken}`)
+        .set('Authorization', `Bearer ${tokens.admin}`)
         .expect(200)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -152,7 +157,7 @@ test('`users` tests', async (t) => {
     await t.test('Fetch users with admin token', async (t) => {
       const response = await supertest(server)
       .get('/api/users/')
-      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -173,6 +178,7 @@ test('`users` tests', async (t) => {
         .expect('Content-Type', 'application/json; charset=utf-8');
 
         t.assert.ok(user1Response.body.id);
+        ids.user1 = user1Response.body.id;
 
         const response = await supertest(server)
         .post('/api/users/register')
@@ -182,6 +188,7 @@ test('`users` tests', async (t) => {
         .expect('Content-Type', 'application/json; charset=utf-8');
 
         t.assert.ok(response.body.id);
+        ids.user2 = response.body.id;
       });
 
       await t.test('Duplicate registration', async (t) => {
@@ -227,7 +234,7 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.ok(user1Response.body.token);
-      tokens.user1Token = user1Response.body.token;
+      tokens.user1 = user1Response.body.token;
 
       const user2Response = await supertest(server)
       .post('/api/users/login')
@@ -237,7 +244,7 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.ok(user2Response.body.token);
-      tokens.user2Token = user2Response.body.token;
+      tokens.user2 = user2Response.body.token;
     });
 
     await t.test('Login with incorrect credentials', async (t) => {
@@ -268,7 +275,7 @@ test('`users` tests', async (t) => {
       const response = await supertest(server)
       .post('/api/users/logout')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .set('Authorization', `Bearer ${tokens.user1}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -279,7 +286,7 @@ test('`users` tests', async (t) => {
       const response = await supertest(server)
       .post('/api/users/logout')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .set('Authorization', `Bearer ${tokens.user1}`)
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -291,7 +298,7 @@ test('`users` tests', async (t) => {
 
     await t.test('Get profile without token', async (t) => {
       const response = await supertest(server)
-      .get('/api/users/1')
+      .get(`/api/users/${ids.user1}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -301,9 +308,9 @@ test('`users` tests', async (t) => {
 
     await t.test('Get profile with blacklisted token', async (t) => {
       const response = await supertest(server)
-      .get('/api/users/1')
+      .get(`/api/users/${ids.user1}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .set('Authorization', `Bearer ${tokens.user1}`)
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -312,9 +319,9 @@ test('`users` tests', async (t) => {
 
     await t.test('Get profile with valid token', async (t) => {
       const response = await supertest(server)
-      .get('/api/users/2')
+      .get(`/api/users/${ids.user2}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .set('Authorization', `Bearer ${tokens.user2}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -325,8 +332,8 @@ test('`users` tests', async (t) => {
 
     await t.test('Get profile with admin token', async (t) => {
       const response = await supertest(server)
-      .get('/api/users/1')
-      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .get(`/api/users/${ids.user1}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -336,9 +343,9 @@ test('`users` tests', async (t) => {
 
     await t.test('Get profile as a different user', async (t) => {
       const response = await supertest(server)
-      .get('/api/users/1')
+      .get(`/api/users/${ids.user1}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .set('Authorization', `Bearer ${tokens.user2}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -350,7 +357,7 @@ test('`users` tests', async (t) => {
       const response = await supertest(server)
       .get('/api/users/9999')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
       .expect(404)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -362,7 +369,7 @@ test('`users` tests', async (t) => {
     
     await t.test('Update profile without token', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/1')
+      .put(`/api/users/${ids.user1}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .send({ display_name: 'New Name' })
       .expect(401)
@@ -373,9 +380,9 @@ test('`users` tests', async (t) => {
 
     await t.test('Update profile with blacklisted token', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/1')
+      .put(`/api/users/${ids.user1}`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user1Token}`)
+      .set('Authorization', `Bearer ${tokens.user1}`)
       .send({ display_name: 'New Name' })
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -385,8 +392,8 @@ test('`users` tests', async (t) => {
 
     await t.test('Update profile while logged in as different user', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/1')
-      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .put(`/api/users/${ids.user1}`)
+      .set('Authorization', `Bearer ${tokens.user2}`)
       .send({ display_name: 'New Name' })
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -396,8 +403,8 @@ test('`users` tests', async (t) => {
 
     await t.test('Update profile while logged in as admin', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/1')
-      .set('Authorization', `Bearer ${tokens.adminToken}`)
+      .put(`/api/users/${ids.user1}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
       .send({ display_name: 'Admin Changed Name' })
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -408,8 +415,8 @@ test('`users` tests', async (t) => {
 
     await t.test('Update profile while logged in as the same user', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/2')
-      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .put(`/api/users/${ids.user2}`)
+      .set('Authorization', `Bearer ${tokens.user2}`)
       .send({ display_name: 'New Name' })
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -421,8 +428,8 @@ test('`users` tests', async (t) => {
 
     await t.test('Update profile with empty body', async (t) => {
       const response = await supertest(server)
-      .put('/api/users/2')
-      .set('Authorization', `Bearer ${tokens.user2Token}`)
+      .put(`/api/users/${ids.user2}`)
+      .set('Authorization', `Bearer ${tokens.user2}`)
       .send({ })
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -431,65 +438,48 @@ test('`users` tests', async (t) => {
     });
   });
 
-  // await t.test('DELETE `/api/users/:user_id` route', async (t) => {
-  //   await t.test('Delete without user ownership token', async (t) => { 
-  //     
+  await t.test('DELETE `/api/users/:user_id` route', async (t) => {
 
-  //     
-  //     
+    await t.test('Delete without user ownership token', async (t) => { 
+      const response = await supertest(server)
+      .delete(`/api/users/${ids.user1}`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+    });
 
-  //     const response = await supertest(server)
-  //     .delete('/api/users/1')
-  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  //     .expect(401)
-  //     .expect('Content-Type', 'application/json; charset=utf-8');
-  //   });
+    await t.test('Delete route while logged in as different user', async (t) => {
+      const response = await supertest(server)
+      .delete(`/api/users/${ids.user1}`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  //   await t.test('Delete route while logged in as different user', async (t) => {
-  //     
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 401, 'Unauthorized'));
+    });
 
-  //     
-  //     
+    await t.test('Delete while logged in as the same user', async (t) => {
 
-  //     const response = await supertest(server)
-  //     .delete('/api/users/1')
-  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  //     .set('Authorization', `Bearer ${tokens.user2Token}`)
-  //     .expect(403)
-  //     .expect('Content-Type', 'application/json; charset=utf-8');
+      const response = await supertest(server)
+      .delete(`/api/users/${ids.user2}`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  //     t.assert.deepStrictEqual(response.body, schemas.JSONError('User not authorized', 403));
-  //   });
+      t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
+    });
 
-  //   await t.test('Delete while logged in as the same user', async (t) => {
-  //     
+    await t.test('Delete while logged in as admin', async (t) => {
 
-  //     
-  //     
+      const response = await supertest(server)
+      .delete(`/api/users/${ids.user1}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
 
-  //     const response = await supertest(server)
-  //     .delete('/api/users/2')
-  //     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-  //     .set('Authorization', `Bearer ${tokens.user2Token}`)
-  //     .expect(200)
-  //     .expect('Content-Type', 'application/json; charset=utf-8');
-
-  //     t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
-  //   });
-
-  //   await t.test('Delete while logged in as admin', async (t) => {
-  //     
-
-  //     
-  //     
-
-  //     const response = await supertest(server)
-  //     .delete('/api/users/1')
-  //     .set('Authorization', `Bearer ${tokens.adminToken}`)
-  //     .expect(200)
-  //     .expect('Content-Type', 'application/json; charset=utf-8');
-
-  //     t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
-  //   });
-  // });
+      t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
+    });
+  });
 });

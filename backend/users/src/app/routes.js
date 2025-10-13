@@ -138,10 +138,10 @@ function routes(app, db) {
 	);
 
 	app.delete('/:user_id', {
-		preHandler: app.auth([
-			app.verifyUserOwnership,
-			app.verifyAdminJWT
-		], { relation: 'or' })
+		preHandler: app.auth([[
+				app.verifyJWT,
+				app.verifyUserOwnership
+			], app.verifyAdminJWT], { relation: 'or' }),
 	}, async (request, reply) => {
 		request.log.info('Deleting user');
 		try {
