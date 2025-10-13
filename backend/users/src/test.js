@@ -279,14 +279,14 @@ test('GET `/` route', async (t) => {
 test('Dump database', async (t) => {
   const { db } = buildFastify(opts = {}, DB_PATH);
     db.exec(`
-      INSERT OR IGNORE INTO friends (user1_id, user2_id, created_at, confirmed) VALUES
+      INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed) VALUES
       (1, 2, datetime('now'), 1);
 
-      INSERT OR IGNORE INTO match_history (user1_id, user2_id, winner_id, user1_wins, user2_wins, match_date) VALUES
-      (1, 2, 1, 1, 0, datetime('now')),
-      (1, 2, 2, 0, 1, datetime('now')),
-      (1, 2, 1, 1, 0, datetime('now')),
-      (1, 2, 1, 1, 0, datetime('now'));
+      INSERT OR IGNORE INTO match_history (tournament_id, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id, match_date) VALUES
+      (1, 1, 2, 11, 5, 1, 2, datetime('now')),
+      (2, 1, 2, 11, 7, 1, 2, datetime('now')),
+      (3, 2, 1, 11, 9, 2, 1, datetime('now')),
+      (4, 1, 2, 11, 3, 1, 2, datetime('now'));
     `);
 });
 
