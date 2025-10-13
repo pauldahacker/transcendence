@@ -1,0 +1,11 @@
+{
+  "name": "trascendence-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+
+  "dependencies": {
+    "fastify": "5.6.1",
+    "supertest": "^7.1.4"
+  }
+}

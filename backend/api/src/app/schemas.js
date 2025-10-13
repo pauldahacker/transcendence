@@ -1,8 +1,8 @@
-function JSONError(message, statusCode, code) {
+function JSONError(message, statusCode, error) {
   const result = {};
-  if (statusCode !== undefined) result.status = String(statusCode);
-  if (code !== undefined) result.code = code;
-  if (message !== undefined) result.detail = message;
+  if (error !== undefined) result.error = error;
+  if (message !== undefined) result.message = message;
+  if (statusCode !== undefined) result.statusCode = statusCode;
   return result;
 }
 
