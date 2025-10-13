@@ -1,42 +1,29 @@
-import fs from 'fs';
-import Fastify from 'fastify';
-import got from 'got';
+'use strict';
+const fs = require('fs');
+const { buildFastify } = require('./app/app');
+const DB_PATH = '/app/db/tournaments.db';
 
-
-const server = Fastify({
+const optsFastify = {
   logger: {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          ignore: 'pid,hostname'
-        }
-      }
-    },
-    https: {
-      key: fs.readFileSync("/app/certs/key.pem"),
-      cert: fs.readFileSync("/app/certs/cert.pem"),
+    transport: {
+      target: 'pino-pretty',
+      options: { colorize: true, ignore: 'pid,hostname' }
     }
-});
+  },
+  https: {
+    allowHTTP1: true,
+    key: fs.readFileSync('/app/certs/key.pem'),
+    cert: fs.readFileSync('/app/certs/cert.pem'),
+  },
+  http2: true
+};
 
-server.get('/', async (request, reply) => {
-    const data = await got.get(`https://api:${process.env.API_PORT}/`, {
-      https: {
-        rejectUnauthorized: false
-      },
-      headers: { 'x-internal-api-key': process.env.INTERNAL_API_KEY }
-    }).json();
+const { app } = buildFastify(optsFastify, DB_PATH);
 
-  return data;
-});
-
-server.get('/health', async (request, reply) => {
-  return { status: 'ok' };
-});
-
-server.listen({ host: '0.0.0.0', port: process.env.TOURNAMENTS_PORT }, (err) => {
+app.listen({ host: '0.0.0.0', port: process.env.TOURNAMENTS_PORT }, (err) => {
   if (err) {
-    server.log.error(err);
+    app.log.error(err); 
     process.exit(1);
   }
 });
+

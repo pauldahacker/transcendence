@@ -1,0 +1,159 @@
+# Hide nginx version and server info
+server_tokens off;
+
+# Define upstream servers
+upstream frontend {
+    server frontend:${FRONTEND_PORT};
+}
+
+upstream api {
+    server api:${API_PORT};
+}
+
+# Main server configuration
+server {
+    listen ${PROXY_PORT} ssl;
+    http2 on;
+    server_name _;
+
+    # SSL Configuration
+    ssl_certificate /app/certs/cert.pem;
+    ssl_certificate_key /app/certs/key.pem;
+    ssl_verify_client off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    location = /health {
+        access_log off;
+        default_type application/json;
+
+        add_header 'X-Content-Type-Options' 'nosniff';
+        add_header 'X-Frame-Options' 'DENY';
+        add_header 'Referrer-Policy' 'strict-origin-when-cross-origin';
+        add_header 'Cache-Control' 'public, max-age=300';
+        add_header 'X-Robots-Tag' 'noindex, nofollow, nosnippet, noarchive';
+
+        return 200 '{"status":"ok"}';
+    }
+
+    location = /api {
+        proxy_pass https://api/;
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        # Strict security headers for API endpoints
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options DENY always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" always;
+        add_header Cross-Origin-Embedder-Policy require-corp always;
+        add_header Cross-Origin-Opener-Policy same-origin always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, private" always;
+        add_header Pragma no-cache always;
+        add_header Expires 0 always;
+        add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive" always;
+        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'" always;
+
+        # Remove server fingerprinting headers
+        proxy_hide_header Server;
+        proxy_hide_header X-Powered-By;
+    }
+
+    # API proxy with security headers (matches /api and /api/*)
+    location /api/ {
+        proxy_pass https://api/;
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+
+        # Strict security headers for API endpoints
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options DENY always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" always;
+        add_header Cross-Origin-Embedder-Policy require-corp always;
+        add_header Cross-Origin-Opener-Policy same-origin always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, private" always;
+        add_header Pragma no-cache always;
+        add_header Expires 0 always;
+        add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive" always;
+        add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'" always;
+
+        # Remove server fingerprinting headers
+        proxy_hide_header Server;
+        proxy_hide_header X-Powered-By;
+    }
+
+    # Root route with custom CSP for frontend
+    location = / {
+        proxy_pass https://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+
+        # Security headers for root route with custom CSP
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options DENY always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" always;
+        add_header Cross-Origin-Embedder-Policy require-corp always;
+        add_header Cross-Origin-Opener-Policy same-origin always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, private" always;
+        add_header Pragma no-cache always;
+        add_header Expires 0 always;
+        add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive" always;
+        add_header Content-Security-Policy "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src https: wss:" always;
+
+        # Remove server fingerprinting headers
+        proxy_hide_header Server;
+        proxy_hide_header X-Powered-By;
+    }
+    
+
+    # Catch-all proxy for frontend assets and routes
+    location / {
+        proxy_pass https://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+
+        # Security headers for frontend assets
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options DENY always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        add_header Cross-Origin-Resource-Policy cross-origin always;
+
+        # Remove server fingerprinting headers
+        proxy_hide_header Server;
+        proxy_hide_header X-Powered-By;
+    }
+}

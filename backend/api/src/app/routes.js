@@ -28,25 +28,16 @@ function routes(app) {
     app.verifyInternalApiKey
   ], { relation: 'or' });
 
-  const proxyRoutes = [
-    {
-      prefix: '/users',
-      url: `https://users:${process.env.USERS_PORT}`,
-      preHandler: preHandler,
-    },
-    {
-      prefix: '/tournaments',
-      url: `https://tournaments:${process.env.TOURNAMENTS_PORT}`,
-      preHandler: preHandler,
-    }
-  ];
+  app.register(require('@fastify/http-proxy'), {
+    upstream: "https://users:" + process.env.USERS_PORT,
+    prefix: '/users',
+    preHandler: preHandler,
+  });
 
-  proxyRoutes.forEach((proxyRoute) => {
-    app.register(require('@fastify/http-proxy'), {
-      upstream: proxyRoute.url,
-      prefix: proxyRoute.prefix,
-      preHandler: proxyRoute.preHandler,
-    });
+  app.register(require('@fastify/http-proxy'), {
+    upstream: "https://tournaments:" + process.env.TOURNAMENTS_PORT,
+    prefix: '/tournaments',
+    preHandler: preHandler,
   });
 }
 

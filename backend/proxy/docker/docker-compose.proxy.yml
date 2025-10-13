@@ -1,12 +1,10 @@
 services:
   proxy:
     container_name: proxy
-    build:
-      context: ../src
-      dockerfile: ../docker/Dockerfile
+    image: nginx:stable-alpine
     restart: always
-    environment:
-      - PROXY_PORT
+    volumes:
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$PROXY_PORT/health"]
       interval: 1m30s
@@ -15,10 +13,6 @@ services:
       start_period: 30s
     develop:
       watch:
-        - action: sync+restart
-          path: ../src
-          target: /app
-          ignore:
-            - node_modules/
-        - action: rebuild
-          path: ../src/package.json
+        - action: restart
+          target: /etc/nginx/templates/default.conf.template
+          path: ./default.conf.template
