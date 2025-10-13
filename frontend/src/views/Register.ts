@@ -55,7 +55,8 @@ export function renderRegister(root: HTMLElement) {
     console.log("Register attempt:", { username, password });
 
     try {
-      await register(username, password);
+      const info = (await register(username, password)).json();
+      console.log(info);
       alert("Registration successful! You can now log in.");
       await login(username, password);
     } catch (err) {

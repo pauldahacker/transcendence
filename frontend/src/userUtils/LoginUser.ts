@@ -4,7 +4,7 @@ export async function login(username: string, password: string): Promise<string>
     method: "POST",
     headers: {
 	    'content-type': 'application/json;charset=UTF-8',
-        'x-internal-api-key': (import.meta as any).env.VITE_INTERNAL_API_KEY,
+      'x-internal-api-key': (import.meta as any).env.VITE_INTERNAL_API_KEY,
 	},
     body: JSON.stringify({ username, password }),
   });
