@@ -1,5 +1,5 @@
 export async function register(username: string, password: string) {
-    const response = await window.fetch(`https://localhost/api/users/register`, {
+    const response = await window.fetch(`https://localhost:3000/api/users/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
