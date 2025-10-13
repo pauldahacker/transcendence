@@ -28,6 +28,7 @@ class UsersDatabase extends Database {
         b_friend_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         confirmed BOOLEAN DEFAULT 0,
+        
         FOREIGN KEY (a_friend_id) REFERENCES users_auth(id) ON DELETE CASCADE,
         FOREIGN KEY (b_friend_id) REFERENCES users_auth(id) ON DELETE CASCADE,
         UNIQUE(a_friend_id, b_friend_id)
@@ -36,6 +37,8 @@ class UsersDatabase extends Database {
       CREATE TABLE IF NOT EXISTS match_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tournament_id INTEGER NOT NULL,
+        match_id INTEGER NOT NULL,
+        match_date TEXT NOT NULL,
         a_participant_id INTEGER NOT NULL,
         b_participant_id INTEGER NOT NULL,
         a_participant_score INTEGER NOT NULL,
@@ -43,7 +46,6 @@ class UsersDatabase extends Database {
         winner_id INTEGER NOT NULL,
         loser_id INTEGER NOT NULL,
 
-        match_date TEXT NOT NULL,
         FOREIGN KEY (a_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE,
         FOREIGN KEY (b_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
@@ -131,6 +133,33 @@ class UsersDatabase extends Database {
         FROM match_history 
         WHERE a_participant_id = ? OR b_participant_id = ?
       `).get(user_id, user_id, user_id, user_id);
+
+      row.match_history = this.prepare(`
+        SELECT 
+          tournament_id,
+          match_id,
+          match_date,
+          CASE 
+            WHEN a_participant_id = ? THEN (SELECT username FROM users_auth WHERE id = b_participant_id)
+            ELSE (SELECT username FROM users_auth WHERE id = a_participant_id)
+          END as opponent_username,
+          CASE 
+            WHEN a_participant_id = ? THEN a_participant_score
+            ELSE b_participant_score
+          END as user_score,
+          CASE 
+            WHEN a_participant_id = ? THEN b_participant_score
+            ELSE a_participant_score
+          END as opponent_score,
+          CASE 
+            WHEN winner_id = ? THEN 'win'
+            ELSE 'loss'
+          END as result
+        FROM match_history
+        WHERE a_participant_id = ? OR b_participant_id = ?
+        ORDER BY match_date DESC
+        LIMIT 10
+      `).all(user_id, user_id, user_id, user_id, user_id, user_id);
 
       return row;
     } catch (error) {

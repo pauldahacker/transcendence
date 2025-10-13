@@ -282,11 +282,11 @@ test('Dump database', async (t) => {
       INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed) VALUES
       (1, 2, datetime('now'), 1);
 
-      INSERT OR IGNORE INTO match_history (tournament_id, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id, match_date) VALUES
-      (1, 1, 2, 11, 5, 1, 2, datetime('now')),
-      (2, 1, 2, 11, 7, 1, 2, datetime('now')),
-      (3, 2, 1, 11, 9, 2, 1, datetime('now')),
-      (4, 1, 2, 11, 3, 1, 2, datetime('now'));
+      INSERT OR IGNORE INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id) VALUES
+      (1, 1, datetime('now', '-10 days'), 1, 2, 21, 15, 1, 2),
+      (1, 2, datetime('now', '-9 days'), 1, 2, 18, 21, 2, 1),
+      (1, 3, datetime('now', '-8 days'), 1, 2, 21, 19, 1, 2),
+      (1, 4, datetime('now', '-7 days'), 1, 2, 21, 17, 1, 2);
     `);
 });
 
@@ -308,9 +308,32 @@ test('Check profile updates', async (t) => {
     t.assert.deepStrictEqual(response.body.display_name, 'New Name');
     t.assert.deepStrictEqual(response.body.bio, 'This is my bio');
     t.assert.deepStrictEqual(response.body.friends, [2]);
+
     t.assert.deepStrictEqual(response.body.stats.total_matches, 4);
     t.assert.deepStrictEqual(response.body.stats.wins, 3);
     t.assert.deepStrictEqual(response.body.stats.losses, 1);
+
+    t.assert.deepStrictEqual(response.body.match_history.length, 4);
+
+    t.assert.deepStrictEqual(response.body.match_history[0].opponent_username, 'otheruser');
+    t.assert.deepStrictEqual(response.body.match_history[0].user_score, 21);
+    t.assert.deepStrictEqual(response.body.match_history[0].opponent_score, 17);
+    t.assert.deepStrictEqual(response.body.match_history[0].result, 'win');
+
+    t.assert.deepStrictEqual(response.body.match_history[1].opponent_username, 'otheruser');
+    t.assert.deepStrictEqual(response.body.match_history[1].user_score, 21);
+    t.assert.deepStrictEqual(response.body.match_history[1].opponent_score, 19);
+    t.assert.deepStrictEqual(response.body.match_history[1].result, 'win');
+
+    t.assert.deepStrictEqual(response.body.match_history[2].opponent_username, 'otheruser');
+    t.assert.deepStrictEqual(response.body.match_history[2].user_score, 18);
+    t.assert.deepStrictEqual(response.body.match_history[2].opponent_score, 21);
+    t.assert.deepStrictEqual(response.body.match_history[2].result, 'loss');
+
+    t.assert.deepStrictEqual(response.body.match_history[3].opponent_username, 'otheruser');
+    t.assert.deepStrictEqual(response.body.match_history[3].user_score, 21);
+    t.assert.deepStrictEqual(response.body.match_history[3].opponent_score, 15);
+    t.assert.deepStrictEqual(response.body.match_history[3].result, 'win');
     profile = response.body;
   });
 

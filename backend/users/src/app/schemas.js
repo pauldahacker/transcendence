@@ -45,7 +45,8 @@ const profileResponseKeys = [
   'bio',
   'created_at',
   'friends',
-  'stats'
+  'stats',
+  'match_history'
 ]
 
 module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, userResponseKeys, profileResponseKeys };
