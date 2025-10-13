@@ -61,6 +61,7 @@ function buildFastify(opts, dbPath) {
 
   app.decorate('verifyAdminJWT', async (request, _reply) => {
     try {
+      await request.jwtVerify();
       if (request.user.username !== "admin")
         throw Error('User not authorized', 403);
     } catch (err) {
