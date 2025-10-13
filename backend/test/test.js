@@ -438,6 +438,221 @@ test('`users` tests', async (t) => {
     });
   });
 
+  await t.test('POST `/api/users/match` route', async (t) => {
+
+    await t.test('Add match result without internal API key nor admin token', async (t) => {
+      const response = await supertest(server)
+      .post('/api/users/match')
+      .send({ tournament_id: 1, match_id: 5, match_date: '2024-01-01T12:00:00Z', a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 15, winner_id: ids.user1, loser_id: ids.user2 })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('Add match result with invalid internal API key', async (t) => {
+      const response = await supertest(server)
+      .post('/api/users/match')
+      .set('x-internal-api-key', 'invalid-api-key')
+      .send({ tournament_id: 1, match_id: 5, match_date: '2024-01-01T12:00:00Z', a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 15, winner_id: ids.user1, loser_id: ids.user2 })
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+    });
+
+    await t.test('Add match result with missing data', async (t) => {
+      const response = await supertest(server)
+      .post('/api/users/match')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .send({ match_id: 5, match_date: '2024-01-01T12:00:00Z', a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 15, winner_id: ids.user1, loser_id: ids.user2 })
+      .expect(400)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('Add match result with valid data', async (t) => {
+      
+      await t.test('Add match result 1', async (t) => {
+        const response = await supertest(server)
+        .post('/api/users/match')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: 1, match_id: 1, match_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 15, winner_id: ids.user1, loser_id: ids.user2 })
+        .expect(201);
+      });
+
+      await t.test('Add match result 2', async (t) => {
+        const response = await supertest(server)
+        .post('/api/users/match')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: 1, match_id: 2, match_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 18, b_participant_score: 21, winner_id: ids.user2, loser_id: ids.user1 })
+        .expect(201);
+      });
+
+      await t.test('Add match result 3', async (t) => {
+        const response = await supertest(server)
+        .post('/api/users/match')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: 1, match_id: 3, match_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 19, winner_id: ids.user1, loser_id: ids.user2 })
+        .expect(201);
+      });
+
+      await t.test('Add match result 4', async (t) => {
+        const response = await supertest(server)
+        .post('/api/users/match')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: 1, match_id: 4, match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: ids.user1, b_participant_id: ids.user2, a_participant_score: 21, b_participant_score: 17, winner_id: ids.user1, loser_id: ids.user2 })
+        .expect(201);
+      });
+    });
+  });
+
+  await t.test('GET `/api/users/:user_id/stats` route', async (t) => {
+    await t.test('Get stats without token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/stats`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Get stats with blacklisted token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/stats`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Get stats with valid token as different user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/stats`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.statsResponseSchema.required);
+      t.assert.strictEqual(response.body.total_matches, 4);
+      t.assert.strictEqual(response.body.wins, 3);
+      t.assert.strictEqual(response.body.losses, 1);
+    });
+
+    await t.test('Get stats with valid token as the same user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user2}/stats`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body), schemas.statsResponseSchema.required);
+      t.assert.strictEqual(response.body.total_matches, 4);
+      t.assert.strictEqual(response.body.wins, 1);
+      t.assert.strictEqual(response.body.losses, 3);
+    });
+  });
+
+  await t.test('GET `/api/users/:user_id/friends` route', async (t) => {
+
+    await t.test('Get user friends without token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Get user friends with blacklisted token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Get user friends with valid token as different user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Array.isArray(response.body));
+      t.assert.strictEqual(response.body.length, 0);
+    });
+
+    await t.test('Get user friends with valid token as the same user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user2}/friends`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Array.isArray(response.body));
+      t.assert.strictEqual(response.body.length, 0);
+    });
+  });
+
+  await t.test('GET `/:user_id/match_history` route', async (t) => {
+
+    await t.test('Get match history without token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/match_history`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Get match history with blacklisted token', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/match_history`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Get match history with valid token as different user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/match_history`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Array.isArray(response.body));
+      t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.matchHistoryResponseSchema.items.required);
+      t.assert.strictEqual(response.body.length, 4);
+    });
+
+    await t.test('Get match history with valid token as the same user', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user2}/match_history`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Array.isArray(response.body));
+      t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.matchHistoryResponseSchema.items.required);
+      t.assert.strictEqual(response.body.length, 4);
+    });
+  });
+
   await t.test('DELETE `/api/users/:user_id` route', async (t) => {
 
     await t.test('Delete without user ownership token', async (t) => { 
