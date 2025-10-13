@@ -1,6 +1,6 @@
 export async function login(username: string, password: string): Promise<string> {
     
-    const response = await fetch("https://localhost/api/users/login", {
+    const response = await fetch("/api/users/login", {
     method: "POST",
     headers: {
 	    'content-type': 'application/json;charset=UTF-8',
