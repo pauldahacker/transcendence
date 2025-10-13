@@ -89,7 +89,18 @@ Response body:
     "total_games": "number",
     "wins": "number",
     "losses": "number",
-  }
+  },
+  "match_history": [
+    {
+      "tournament_id": "number",
+      "match_id": "number",
+      "match_date": "string",
+      "opponent_username": "string",
+      "user_score": "string",
+      "opponent_score": "string",
+      "result": "win|loss",
+    } 
+  ]
 }
 ```
 Error responses:
@@ -119,7 +130,18 @@ Response body:
     "total_games": "number",
     "wins": "number",
     "losses": "number",
-  }
+  },
+  "match_history": [
+    {
+      "tournament_id": "number",
+      "match_id": "number",
+      "match_date": "string",
+      "opponent_username": "string",
+      "user_score": "string",
+      "opponent_score": "string",
+      "result": "win|loss",
+    } 
+  ]
 }
 ```
 Error responses:
