@@ -33,13 +33,14 @@ $(CERTS_DIR):
 	mkdir -p $(CERTS_DIR)
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(CERTS_DIR)/key.pem -out $(CERTS_DIR)/cert.pem -subj "/CN=localhost"
 	chmod 644 $(CERTS_DIR)/cert.pem $(CERTS_DIR)/key.pem
-	chown 1000:1000 $(CERTS_DIR)/cert.pem $(CERTS_DIR)/key.pem
+#	chown 1000:1000 $(CERTS_DIR)/cert.pem $(CERTS_DIR)/key.pem
 
 $(ENV_FILE): $(ENV_FILE).example
 	$(call help_message, "Creating the .env file from .env.example...")
 	cp .env.example .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
+	echo "VITE_INTERNAL_API_KEY=$$API_KEY" > $(ENV_FILE)
 
 build: $(ENV_FILE) $(CERTS_DIR)
 
