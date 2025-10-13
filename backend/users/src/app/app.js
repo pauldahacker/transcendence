@@ -35,7 +35,7 @@ function buildFastify(opts, dbPath) {
     }
   });
 
-  app.decorate('verifyUserOwnership', async (request, _reply, done) => {
+  app.decorate('verifyUserOwnership', async (request, _reply) => {
     try {
       if (!request.params.user_id) 
         throw Error('Missing user ID in params', 400);
@@ -48,7 +48,18 @@ function buildFastify(opts, dbPath) {
     }
   });
 
-  app.decorate('verifyAdminJWT', async (request, reply) => {
+  app.decorate('verifyUserExists', async (request, _reply) => {
+    try {
+      if (!request.params.user_id) 
+        throw Error('Missing user ID in params', 400);
+
+      db.getUserById(request.params.user_id);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  app.decorate('verifyAdminJWT', async (request, _reply) => {
     try {
       if (request.user.username !== "admin")
         throw Error('User not authorized', 403);

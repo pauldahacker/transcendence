@@ -63,7 +63,8 @@ function routes(app, db) {
 
 	app.get('/:user_id', {
 			preHandler: app.auth([
-				app.verifyJWT
+				app.verifyJWT,
+				app.verifyUserExists
 			])
 		},
 		async (request, reply) => {
@@ -76,6 +77,49 @@ function routes(app, db) {
 			}
 		}
 	);
+
+	app.get('/:user_id/stats', {
+			preHandler: [app.auth([
+					app.verifyJWT
+			]), app.verifyUserExists]
+		}, async (request, reply) => {
+			request.log.info('Fetching user stats');
+			try {
+				const info = db.getUserStats(request.params.user_id);
+				return reply.send(info);
+			} catch (err) {
+				throw err;
+			}
+		}
+	);
+
+	app.get('/:user_id/friends', {
+		preHandler: [app.auth([
+					app.verifyJWT
+			]), app.verifyUserExists]
+	}, async (request, reply) => {
+		request.log.info('Fetching user friends');
+		try {
+			const info = db.getUserFriends(request.params.user_id);
+			return reply.send(info);
+		} catch (err) {
+			throw err;
+		}
+	});
+
+	app.get('/:user_id/match_history', {
+		preHandler: [app.auth([
+					app.verifyJWT
+			]), app.verifyUserExists]
+	}, async (request, reply) => {
+		request.log.info('Fetching user match history');
+		try {
+			const info = db.getUserMatchHistory(request.params.user_id);
+			return reply.send(info);
+		} catch (err) {
+			throw err;
+		}
+	});
 
 	app.put('/:user_id', {
 			preHandler: app.auth([[
