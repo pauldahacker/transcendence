@@ -1,0 +1,24 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: ../src
+      dockerfile: ../../../common/docker/Dockerfile
+    restart: always
+    environment:
+      - API_PORT
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:$API_PORT/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../src
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ../src/package.json

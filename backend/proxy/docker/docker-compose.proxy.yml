@@ -1,0 +1,18 @@
+services:
+  proxy:
+    container_name: proxy
+    image: nginx:stable-alpine
+    restart: always
+    volumes:
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:$PROXY_PORT/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: restart
+          target: /etc/nginx/templates/default.conf.template
+          path: ./default.conf.template

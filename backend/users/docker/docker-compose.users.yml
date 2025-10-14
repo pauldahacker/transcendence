@@ -1,0 +1,24 @@
+services:
+  users:
+    container_name: users
+    build:
+      context: ../src
+      dockerfile: ../../../common/docker/Dockerfile
+    restart: always
+    environment:
+      - USERS_PORT
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:$USERS_PORT/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../src
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ../src/package.json
