@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/14 16:51:25 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/14 21:51:06 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@ const { scoreMatchBody, scoreMatchResponse } = require('./schemas');
 const { finishMatchAndAdvance, getMatchById, getParticipantsUserIds } = require('./repo');
 const { nextMatchResponse } = require('./schemas');
 const { getNextScheduledMatch } = require('./repo');
-const REPORT_GUEST_AS_ZERO = String(process.env.REPORT_GUEST_AS_ZERO || 'true') === 'true';
+// const REPORT_GUEST_AS_ZERO = String(process.env.REPORT_GUEST_AS_ZERO || 'true') === 'true';
+const reportGuestAsZero = () => String(process.env.REPORT_GUEST_AS_ZERO || 'true') === 'true';
 
 function routes(app, db) {
   const r = repo(db);
@@ -228,16 +229,15 @@ function routes(app, db) {
           const { aUserId, bUserId } = getParticipantsUserIds(db, match.a_participant_id, match.b_participant_id);
 
           // check if at least one user is real
-          const aIsUser = Number.isInteger(aUserId);
-          const bIsUser = Number.isInteger(bUserId);
+          const aIsUser = Number.isInteger(aUserId) && aUserId != 0;
+          const bIsUser = Number.isInteger(bUserId) && bUserId != 0;
           if (aIsUser && bIsUser) {
-            // two real usesr vs real user: report both real IDs
             const winnerPid = match.winner_participant_id;
             const winnerIsA = (winnerPid === match.a_participant_id);
             const winnerUserId = winnerIsA ? aUserId : bUserId;
             const loserUserId  = winnerIsA ? bUserId : aUserId;
 
-            payload = {
+            const payload = {
               tournament_id: id,
               match_id: match.id,
               match_date: new Date().toISOString(),
@@ -248,8 +248,37 @@ function routes(app, db) {
               winner_id: winnerUserId,
               loser_id: loserUserId,
             };
+
+            await fetch(`https://api:${process.env.API_PORT}/users/match`, {
+              method: 'POST',
+              headers: {
+                'x-internal-api-key': String(process.env.INTERNAL_API_KEY || ''),
+                'content-type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+            });
           }
-          else if (REPORT_GUEST_AS_ZERO && (aIsUser || bIsUser)) {
+
+          // if (aIsUser && bIsUser) {
+          //   // two real usesr vs real user: report both real IDs
+          //   const winnerPid = match.winner_participant_id;
+          //   const winnerIsA = (winnerPid === match.a_participant_id);
+          //   const winnerUserId = winnerIsA ? aUserId : bUserId;
+          //   const loserUserId  = winnerIsA ? bUserId : aUserId;
+
+          //   payload = {
+          //     tournament_id: id,
+          //     match_id: match.id,
+          //     match_date: new Date().toISOString(),
+          //     a_participant_id: match.a_participant_id,
+          //     b_participant_id: match.b_participant_id,
+          //     a_participant_score: match.score_a,
+          //     b_participant_score: match.score_b,
+          //     winner_id: winnerUserId,
+          //     loser_id: loserUserId,
+          //   };
+          // }
+          else if (reportGuestAsZero() && (aIsUser || bIsUser)) {
             //one is real one is bot/ guest
             const winnerPid = match.winner_participant_id;
             const winnerIsA = (winnerPid === match.a_participant_id);
