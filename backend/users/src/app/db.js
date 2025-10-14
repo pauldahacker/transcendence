@@ -26,6 +26,7 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         a_friend_id INTEGER NOT NULL,
         b_friend_id INTEGER NOT NULL,
+        requested_by_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
         confirmed BOOLEAN DEFAULT 0,
         
@@ -102,24 +103,32 @@ class UsersDatabase extends Database {
     }
   }
 
-  getUserFriends(user_id) {
+  getUserFriends(user_id, filter='all') {
     try {
       const stmt = this.prepare(`
-        SELECT ua.id, ua.username, up.display_name, up.avatar_url, f.confirmed
+        SELECT ua.id, ua.username, up.display_name, up.avatar_url, f.confirmed, f.requested_by_id
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
         JOIN (
-          SELECT f.b_friend_id as friend_user_id, f.confirmed
+          SELECT f.b_friend_id as friend_user_id, f.confirmed, f.requested_by_id
           FROM friends f
           WHERE f.a_friend_id = ?
 
           UNION
 
-          SELECT f.a_friend_id as friend_user_id, f.confirmed
+          SELECT f.a_friend_id as friend_user_id, f.confirmed, f.requested_by_id
           FROM friends f
           WHERE f.b_friend_id = ?
         ) f ON ua.id = f.friend_user_id
       `);
+
+      if (filter === 'confirmed') {
+        return stmt.all(user_id, user_id).filter(friend => friend.confirmed);
+      } else if (filter === 'pending') {
+        return stmt.all(user_id, user_id).filter(friend => !friend.confirmed);
+      } else if (filter === 'requested') {
+        return stmt.all(user_id, user_id).filter(friend => !friend.confirmed && friend.requested_by_id === user_id);
+      }
       return stmt.all(user_id, user_id);
     } catch (error) {
       throw error;

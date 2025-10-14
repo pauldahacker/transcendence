@@ -62,10 +62,9 @@ function routes(app, db) {
 	);
 
 	app.get('/:user_id', {
-			preHandler: app.auth([
+			preHandler: [app.auth([
 				app.verifyJWT,
-				app.verifyUserExists
-			])
+			]), app.verifyUserExists]
 		},
 		async (request, reply) => {
 			request.log.info('Fetching user profile');
@@ -100,7 +99,7 @@ function routes(app, db) {
 	}, async (request, reply) => {
 		request.log.info('Fetching user friends');
 		try {
-			const info = db.getUserFriends(request.params.user_id);
+			const info = db.getUserFriends(request.params.user_id, request.query.filter);
 			return reply.send(info);
 		} catch (err) {
 			throw err;
