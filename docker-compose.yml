@@ -1,0 +1,65 @@
+name: trascendence
+
+x-internal-ports: &internal-ports
+  environment:
+    - API_PORT
+    - USERS_PORT
+    - TOURNAMENTS_PORT
+    - FRONTEND_PORT
+    - PROXY_PORT
+    - APP_PORT
+
+x-shared-config: &shared-config
+  volumes:
+      - ./common/certs/:/app/certs/:ro
+  env_file:
+    - .env
+
+services:
+  proxy:
+    <<: [*shared-config, *internal-ports]
+    depends_on:
+      - frontend
+      - api
+    ports:
+      - $APP_PORT:$PROXY_PORT
+    extends:
+      file: backend/proxy/docker/docker-compose.proxy.yml
+      service: proxy
+
+  frontend:
+    <<: [*shared-config, *internal-ports]
+    extends:
+      file: frontend/docker/docker-compose.frontend.yml
+      service: frontend
+
+  api:
+    <<: [*shared-config, *internal-ports]
+    depends_on:
+      - users
+      - tournaments
+    extends:
+      file: backend/api/docker/docker-compose.api.yml
+      service: api
+
+  users:
+    <<: [*shared-config, *internal-ports]
+    volumes:
+      - ./common/certs/:/app/certs/:ro
+      - users_db:/app/db/
+    extends:
+      file: backend/users/docker/docker-compose.users.yml
+      service: users
+
+  tournaments:
+    <<: [*shared-config, *internal-ports]
+    volumes:
+      - ./common/certs/:/app/certs/:ro
+      - tournaments_db:/app/db
+    extends:
+      file: backend/tournaments/docker/docker-compose.tournaments.yml
+      service: tournaments
+
+volumes:
+  users_db: null
+  tournaments_db: null

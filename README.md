@@ -1,6 +1,21 @@
-**clone the project and run make in terminal.**
+# trascendence - 42 project
 
-**To access the website, visit http://localhost:8080**
+## Installation
+
+Make sure you have `docker` and `make` installed on your machine. Then, clone this repository and run:
+
+```bash
+make
+```
+
+This will display a list of available commands. For a first run, simply run:
+
+```bash
+make up
+```
+This will create a default `.env` file, build the Docker images and start the containers.
+
+## About
 
 If you don't have a clue how anything works, this very simple pong game gives a good idea of the basic stuff:
 
@@ -36,7 +51,7 @@ HTML
 
 We also have access to pretty cool-looking fonts (downloaded from Google Fonts [see styles.css + tailwind.config.js])
 
-**Useful resources:**
+## Useful resources:
 
 - https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API (the Canvas API is used to draw the pong game)
 
