@@ -58,6 +58,8 @@ test:
 	docker compose exec tournaments npm test
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
+	$(call help_message, "Running tournaments score reporting tests...")
+	docker compose exec tournaments node score_reporting_test.js
 	$(call help_message, "Running end-to-end tournament test...")
 	$(MAKE) e2e_tournament	
 
