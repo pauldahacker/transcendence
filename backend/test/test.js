@@ -6,11 +6,13 @@ let tokens = {
   admin: null,
   user1: null,
   user2: null,
+  user3: null,
 };
 
 let ids = {
   user1: null,
   user2: null,
+  user3: null,
 };
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
@@ -555,6 +557,106 @@ test('`users` tests', async (t) => {
     });
   });
 
+  await t.test('POST `/api/users/:user_id/friend-request` route', async (t) => {
+
+    // Create a third user
+    await supertest(server)
+    .post(`/api/users/register`)
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .send({ username: 'testuser3', password: 'testpassword3' })
+    .expect(201)
+    .expect('Content-Type', 'application/json; charset=utf-8')
+    .then((res) => {
+      ids.user3 = res.body.id;
+    });
+
+    await supertest(server)
+    .post(`/api/users/login`)
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .send({ username: 'testuser3', password: 'testpassword3' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8')
+    .then((res) => {
+      tokens.user3 = res.body.token;
+    });
+
+    await t.test('Send friend request without token', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user1}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+    });
+
+    await t.test('Send friend request with blacklisted token', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user1}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user1}`)
+      .expect(401)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_AUTHORIZATION_TOKEN_UNTRUSTED");
+    });
+
+    await t.test('Send friend request to oneself', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user3}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user3}`)
+      .expect(400)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Cannot send friend request to oneself', 400));
+    });
+
+    await t.test('Send valid friend request', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user3}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, { message: 'Friend request sent' });
+    });
+
+    await t.test('Send duplicate friend request with valid token', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user3}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(409)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Friend request already sent', 409));
+    });
+
+    await t.test('Send friend request with invalid user ID', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/invalid_id/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user3}`)
+      .expect(404)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    });
+
+    await t.test('Accept friend request with valid token', async (t) => {
+      const response = await supertest(server)
+      .post(`/api/users/${ids.user2}/friend-request`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user3}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, { message: 'Friend request accepted' });
+    });
+  });
+
   await t.test('GET `/api/users/:user_id/friends` route', async (t) => {
 
     await t.test('Get user friends without token', async (t) => {
@@ -580,26 +682,100 @@ test('`users` tests', async (t) => {
 
     await t.test('Get user friends with valid token as different user', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user1}/friends`)
+      .get(`/api/users/${ids.user2}/friends`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .set('Authorization', `Bearer ${tokens.user2}`)
+      .set('Authorization', `Bearer ${tokens.user3}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.ok(Array.isArray(response.body));
-      t.assert.strictEqual(response.body.length, 0);
+      t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+      t.assert.strictEqual(response.body.length, 1);
+      t.assert.strictEqual(response.body[0].id, ids.user3);
+      t.assert.strictEqual(response.body[0].username, 'testuser3');
+      t.assert.strictEqual(response.body[0].display_name, null);
+      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+      t.assert.strictEqual(response.body[0].confirmed, 1);
     });
 
     await t.test('Get user friends with valid token as the same user', async (t) => {
       const response = await supertest(server)
-      .get(`/api/users/${ids.user2}/friends`)
+      .get(`/api/users/${ids.user3}/friends`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user3}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+      t.assert.strictEqual(response.body.length, 1);
+      t.assert.strictEqual(response.body[0].id, ids.user2);
+      t.assert.strictEqual(response.body[0].username, 'testuser2');
+      t.assert.strictEqual(response.body[0].display_name, 'New Name');
+      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+      t.assert.strictEqual(response.body[0].confirmed, 1);
+    });
+
+    await t.test('Get non-existent user friends with valid token', async (t) => {
+      const response = await supertest(server)
+      .get('/api/users/9999/friends')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(404)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    });
+  });
+
+  await t.test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
+
+    await t.test('Get user friends with `?filter=confirmed`', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user2}/friends?filter=confirmed`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user3}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+      t.assert.strictEqual(response.body.length, 1);
+      t.assert.strictEqual(response.body[0].id, ids.user3);
+      t.assert.strictEqual(response.body[0].username, 'testuser3');
+      t.assert.strictEqual(response.body[0].display_name, null);
+      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+      t.assert.strictEqual(response.body[0].confirmed, 1);
+    });
+
+    await t.test('Get user friends with `?filter=pending`', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends?filter=pending`)
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
       .set('Authorization', `Bearer ${tokens.user2}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.ok(Array.isArray(response.body));
       t.assert.strictEqual(response.body.length, 0);
+    });
+
+    await t.test('Get user friends with `?filter=requested`', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends?filter=requested`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.strictEqual(response.body.length, 0);
+    });
+
+    await t.test('Get user friends with invalid `?filter=` value', async (t) => {
+      const response = await supertest(server)
+      .get(`/api/users/${ids.user1}/friends?filter=invalid`)
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .set('Authorization', `Bearer ${tokens.user2}`)
+      .expect(400)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid filter value', 400));
     });
   });
 
@@ -688,13 +864,21 @@ test('`users` tests', async (t) => {
 
     await t.test('Delete while logged in as admin', async (t) => {
 
-      const response = await supertest(server)
+      const user1response = await supertest(server)
       .delete(`/api/users/${ids.user1}`)
       .set('Authorization', `Bearer ${tokens.admin}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(response.body, { message: 'User deleted' });
+      t.assert.deepStrictEqual(user1response.body, { message: 'User deleted' });
+
+      const user3response = await supertest(server)
+      .delete(`/api/users/${ids.user3}`)
+      .set('Authorization', `Bearer ${tokens.admin}`)
+      .expect(200)
+      .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.deepStrictEqual(user3response.body, { message: 'User deleted' });
     });
   });
 });

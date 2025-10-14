@@ -82,9 +82,10 @@ const friendsResponseSchema = {
       username: { type: 'string' },
       display_name: { type: 'string' },
       avatar_url: { type: 'string', format: 'uri' },
-      confirmed: { type: 'boolean' }
+      confirmed: { type: 'boolean' },
+      requested_by_id: { type: 'number' }
     },
-    required: ['id', 'username', 'display_name', 'avatar_url', 'confirmed'],
+    required: ['id', 'username', 'display_name', 'avatar_url', 'confirmed', 'requested_by_id'],
     additionalProperties: false
   }
 };
@@ -118,4 +119,14 @@ const matchHistoryResponseSchema = {
   }
 };
 
-module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, matchResultSchema, statsResponseSchema, matchHistoryResponseSchema, userResponseSchema, profileResponseSchema, friendsResponseSchema };
+module.exports = {
+  JSONError,
+  usernameAndPasswordSchema,
+  profileParamSchema,
+  matchResultSchema,
+  userResponseSchema,
+  profileResponseSchema,
+  friendsResponseSchema,
+  statsResponseSchema,
+  matchHistoryResponseSchema
+};

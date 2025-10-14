@@ -14,9 +14,9 @@ function routes(app, db) {
 		return reply.send({ status: 'ok' });
 	});
 
-	app.post('/register',
-		{ schema: { body: schemas.usernameAndPasswordSchema } },
-		async (request, reply) => {
+	app.post('/register', {
+		schema: { body: schemas.usernameAndPasswordSchema } 
+		}, async (request, reply) => {
 			request.log.info('Creating new user');
 			try {
 				const info = db.addUser(request.body.username, request.body.password);
@@ -65,8 +65,7 @@ function routes(app, db) {
 			preHandler: [app.auth([
 				app.verifyJWT,
 			]), app.verifyUserExists]
-		},
-		async (request, reply) => {
+		}, async (request, reply) => {
 			request.log.info('Fetching user profile');
 			try {
 				const info = db.getProfile(request.params.user_id);
@@ -106,11 +105,25 @@ function routes(app, db) {
 		}
 	});
 
+	app.post('/:user_id/friend-request', {
+		preHandler: [app.auth([
+					app.verifyJWT
+			]), app.verifyUserExists
+		]}, async (request, reply) => {
+		request.log.info('Managing friend request');
+		try {
+			const info = db.manageFriendRequest(request.user.username, request.params.user_id);
+			return reply.send(info);
+		} catch (err) {
+			throw err;
+		}
+	});
+
 	app.get('/:user_id/match_history', {
 		preHandler: [app.auth([
 					app.verifyJWT
-			]), app.verifyUserExists]
-	}, async (request, reply) => {
+			]), app.verifyUserExists
+		]}, async (request, reply) => {
 		request.log.info('Fetching user match history');
 		try {
 			const info = db.getUserMatchHistory(request.params.user_id);

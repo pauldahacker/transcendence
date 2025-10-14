@@ -122,14 +122,18 @@ class UsersDatabase extends Database {
         ) f ON ua.id = f.friend_user_id
       `);
 
-      if (filter === 'confirmed') {
+      if (filter === 'all') {
+        return stmt.all(user_id, user_id);
+      } else if (filter === 'confirmed') {
         return stmt.all(user_id, user_id).filter(friend => friend.confirmed);
       } else if (filter === 'pending') {
         return stmt.all(user_id, user_id).filter(friend => !friend.confirmed);
       } else if (filter === 'requested') {
         return stmt.all(user_id, user_id).filter(friend => !friend.confirmed && friend.requested_by_id === user_id);
+      } else {
+        throw JSONError('Invalid filter value', 400);
       }
-      return stmt.all(user_id, user_id);
+      
     } catch (error) {
       throw error;
     }
@@ -262,6 +266,49 @@ class UsersDatabase extends Database {
         match.loser_id
       );
       return this.getMatchResult(info.lastInsertRowid);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  manageFriendRequest(a_friend_username, b_friend_id) {
+    try {
+      const a_friend_id = this.getUser(a_friend_username).id;
+      b_friend_id = parseInt(b_friend_id);
+      
+      if (a_friend_id === b_friend_id) {
+        throw JSONError('Cannot send friend request to oneself', 400);
+      }
+      const checkStmt = this.prepare(`
+        SELECT * FROM friends 
+        WHERE (a_friend_id = ? AND b_friend_id = ?) 
+           OR (b_friend_id = ? AND a_friend_id = ?)
+      `);
+      const existingRequest = checkStmt.get(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
+
+      if (existingRequest) {
+        if (existingRequest.confirmed) {
+          throw JSONError('You are already friends', 400);
+        } else if (existingRequest.requested_by_id === a_friend_id) {
+          throw JSONError('Friend request already sent', 409);
+        } else {
+          const updateStmt = this.prepare(`
+            UPDATE friends 
+            SET confirmed = 1 
+            WHERE (a_friend_id = ? AND b_friend_id = ?) 
+               OR (b_friend_id = ? AND a_friend_id = ?)
+          `);
+          updateStmt.run(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
+          return { message: 'Friend request accepted'};
+        }
+      } else {
+        const insertStmt = this.prepare(`
+          INSERT INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at) 
+          VALUES (?, ?, ?, datetime('now'))
+        `);
+        insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
+        return { message: 'Friend request sent' };
+      }
     } catch (error) {
       throw error;
     }
