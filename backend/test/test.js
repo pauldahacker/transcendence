@@ -88,7 +88,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+        t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
       });
     });
 
@@ -100,7 +100,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+        t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
       });
 
       await t.test('Access with admin token', async (t) => {
@@ -130,7 +130,7 @@ test('`api` tests', async (t) => {
         .expect(401)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
-        t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+        t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
       });
     });
 });
@@ -458,7 +458,7 @@ test('`users` tests', async (t) => {
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
-      t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+      t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
     });
 
     await t.test('Add match result with missing data', async (t) => {
