@@ -24,8 +24,8 @@ function routes(app) {
   );
 
   const preHandler = app.auth([
-    app.verifyJWT,
-    app.verifyInternalApiKey
+    app.verifyInternalApiKey,
+    app.verifyJWT
   ], { relation: 'or' });
 
   app.register(require('@fastify/http-proxy'), {
