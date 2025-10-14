@@ -165,6 +165,14 @@ Error responses:
 
 ### Endpoint: `GET    /api/users/:user_id/friends`
 
+Query parameter `filter`:
+- `confirmed`: returns only confirmed friends
+- `pending`: returns only pending friend requests
+- `requested`: returns only sent friend requests
+
+[!TIP]
+> Use the `filter` query parameter adding `?filter=<value>` to the endpoint URL.
+
 Response body:
 ```json
 [
@@ -173,7 +181,8 @@ Response body:
     "username": "string",
     "display_name": "string",
     "avatar_url": "string",
-    "confirmed": "boolean"
+    "confirmed": "boolean",
+    "requested_by_id": "number"
   }
 ]
 ```

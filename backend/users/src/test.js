@@ -387,6 +387,14 @@ test('GET `/:user_id/stats` route', async (t) => {
   });
 });
 
+test('Dump database', async (t) => {
+  const { db } = buildFastify(opts = {}, DB_PATH);
+    db.exec(`
+      INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed, requested_by_id) VALUES
+      (1, 2, datetime('now'), 1, 1);
+    `);
+});
+
 test('GET `/:user_id/friends` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
@@ -442,6 +450,65 @@ test('GET `/:user_id/friends` route', async (t) => {
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+});
+
+test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+  
+  await t.test('Get user friends with `?filter=all`', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends?filter=all')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 1);
+    t.assert.strictEqual(response.body[0].id, 2);
+    t.assert.strictEqual(response.body[0].username, 'otheruser');
+    t.assert.strictEqual(response.body[0].display_name, null);
+    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+    t.assert.strictEqual(response.body[0].confirmed, 1);
+  });
+
+  await t.test('Get user friends with `?filter=confirmed`', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends?filter=confirmed')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
+    t.assert.strictEqual(response.body.length, 1);
+    t.assert.strictEqual(response.body[0].id, 2);
+    t.assert.strictEqual(response.body[0].username, 'otheruser');
+    t.assert.strictEqual(response.body[0].display_name, null);
+    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+    t.assert.strictEqual(response.body[0].confirmed, 1);
+  });
+
+  await t.test('Get user friends with `?filter=pending`', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends?filter=pending')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.strictEqual(response.body.length, 0);
+  });
+
+  await t.test('Get user friends with `?filter=requested`', async (t) => {
+    const response = await supertest(app.server)
+    .get('/1/friends?filter=requested')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.strictEqual(response.body.length, 0);
   });
 });
 
