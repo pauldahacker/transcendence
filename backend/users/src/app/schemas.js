@@ -119,4 +119,14 @@ const matchHistoryResponseSchema = {
   }
 };
 
-module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, matchResultSchema, statsResponseSchema, matchHistoryResponseSchema, userResponseSchema, profileResponseSchema, friendsResponseSchema };
+module.exports = {
+  JSONError,
+  usernameAndPasswordSchema,
+  profileParamSchema,
+  matchResultSchema,
+  userResponseSchema,
+  profileResponseSchema,
+  friendsResponseSchema,
+  statsResponseSchema,
+  matchHistoryResponseSchema
+};

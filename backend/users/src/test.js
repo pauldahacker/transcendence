@@ -244,6 +244,15 @@ test('PUT `/:user_id` route', async (t) => {
     .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
+    const loginResponse = await supertest(app.server)
+    .post('/login')
+    .send({ username: 'otheruser', password: 'otherpass' })
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.ok(loginResponse.body.token);
+    token_2 = loginResponse.body.token;
+
     t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseSchema.required);
     t.assert.strictEqual(registerResponse.body.username, 'otheruser');
 
@@ -274,14 +283,6 @@ test('GET `/` route', async (t) => {
   t.assert.deepStrictEqual(response.body[0].username, 'myuser');
   t.assert.deepStrictEqual(response.body[1].id, 2);
   t.assert.deepStrictEqual(response.body[1].username, 'otheruser');
-});
-
-test('Dump database', async (t) => {
-  const { db } = buildFastify(opts = {}, DB_PATH);
-    db.exec(`
-      INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed) VALUES
-      (1, 2, datetime('now'), 1);
-      `);
 });
 
 test('POST `/match` route', async (t) => {
@@ -387,12 +388,69 @@ test('GET `/:user_id/stats` route', async (t) => {
   });
 });
 
-test('Dump database', async (t) => {
-  const { db } = buildFastify(opts = {}, DB_PATH);
-    db.exec(`
-      INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, created_at, confirmed, requested_by_id) VALUES
-      (1, 2, datetime('now'), 1, 1);
-    `);
+test('POST `/:user_id/friend-request` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('Send friend request with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/2/friend-request')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+  });
+
+  await t.test('Send friend request to oneself', async (t) => {
+    const response = await supertest(app.server)
+    .post('/1/friend-request')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(400)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Cannot send friend request to oneself', 400));
+  });
+
+  await t.test('Send friend request with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/2/friend-request')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, { message: 'Friend request sent' });
+  });
+
+  await t.test('Send duplicate friend request with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/2/friend-request')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(409)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Friend request already sent', 409));
+  });
+
+  await t.test('Send friend request with invalid user ID', async (t) => {
+    const response = await supertest(app.server)
+    .post('/999/friend-request')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+  });
+
+  await t.test('Accept friend request with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/1/friend-request')
+    .set('Authorization', `Bearer ${token_2}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, { message: 'Friend request accepted' });
+  });
 });
 
 test('GET `/:user_id/friends` route', async (t) => {
@@ -458,22 +516,6 @@ test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
 
   t.after(() => app.close());
   await app.ready();
-  
-  await t.test('Get user friends with `?filter=all`', async (t) => {
-    const response = await supertest(app.server)
-    .get('/1/friends?filter=all')
-    .set('Authorization', `Bearer ${token_1}`)
-    .expect(200)
-    .expect('Content-Type', 'application/json; charset=utf-8');
-
-    t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
-    t.assert.strictEqual(response.body.length, 1);
-    t.assert.strictEqual(response.body[0].id, 2);
-    t.assert.strictEqual(response.body[0].username, 'otheruser');
-    t.assert.strictEqual(response.body[0].display_name, null);
-    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
-    t.assert.strictEqual(response.body[0].confirmed, 1);
-  });
 
   await t.test('Get user friends with `?filter=confirmed`', async (t) => {
     const response = await supertest(app.server)

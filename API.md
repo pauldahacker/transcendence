@@ -210,6 +210,31 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
+### Endpoint: `POST    /api/users/:user_id/friend-request`
+
+User with id `:user_id` recieves a friend request from the authenticated user.
+
+Response body:
+
+On first request (`user_1` sends request to user `user_2`):
+```json
+{
+  "message": "Friend request sent"
+}
+```
+On second request (`user_2` sends request to user `user_1`):
+```json
+{
+  "message": "Friend request accepted"
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `400`: Cannot send friend request to oneself
+- `400`: Cannot send friend request to an existing friend
+- `409`: Friend request already exists
+- `404`: User not found
+
 ## Tournament endpoints
 
 > **Base (via API Gateway):** `https://localhost/api/tournaments/*`  
