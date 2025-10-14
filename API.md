@@ -149,6 +149,19 @@ Error responses:
 - `404`: User not found
 - `403`: User not authorized
 
+### Endpoint: `DELETE /api/users/{user_id}/`
+
+Response body:
+```json
+{
+  "message": "User deleted"
+}
+```
+Error responses:
+- `401`: Invalid token header
+- `404`: User not found
+- `403`: User not authorized
+
 ### Endpoint: `GET    /api/users/:user_id/stats`
 
 Response body:
