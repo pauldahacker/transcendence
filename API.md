@@ -433,6 +433,22 @@ Finishes a scheduled/in_progress match, records the score, **places the winner**
 **Params**
 - `{id}`, `{mid}` — integers `>= 1`
 
+##### Side effect: match **score reporting** (internal)
+On successful scoring, the service optionally reports the result to the **Users** domain (via the API Gateway) depending on the participants and the `REPORT_GUEST_AS_ZERO` flag (set both in the .env and in the docker-compose.tournaments.yml):
+
+| Scenario | Reporting behavior |
+|---|---|
+| **User vs User** (both sides have real user IDs `> 0`) | **Report**: includes `winner_user_id` and `loser_user_id` (both real) |
+| **User vs Guest** (exactly one side has real user ID `> 0`) & `REPORT_GUEST_AS_ZERO = true` | **Report**: includes the real user; the guest is sent as `0` |
+| **User vs Guest** & `REPORT_GUEST_AS_ZERO = false` | **No report** |
+| **Guest vs Guest** (no real user IDs) | **No report** |
+
+> A “real user” means a participant that resolves to a **numeric user ID > 0**. Participants mapped to `0` are considered **guests**.
+
+With this approach, the **Users** domain can safely ignore any payloads where user_id is 0, without modifying its existing schema or business logic.
+
+If you need to change this behavior later, set ```REPORT_GUEST_AS_ZERO=false``` to stop emitting reports for user-vs-guest matches (if zero as user ID becomes unacceptable).
+
 #### Get next scheduled match
 **GET** `/api/tournaments/{id}/next`
 

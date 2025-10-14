@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/14 21:51:06 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/14 22:08:08 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,26 +258,6 @@ function routes(app, db) {
               body: JSON.stringify(payload)
             });
           }
-
-          // if (aIsUser && bIsUser) {
-          //   // two real usesr vs real user: report both real IDs
-          //   const winnerPid = match.winner_participant_id;
-          //   const winnerIsA = (winnerPid === match.a_participant_id);
-          //   const winnerUserId = winnerIsA ? aUserId : bUserId;
-          //   const loserUserId  = winnerIsA ? bUserId : aUserId;
-
-          //   payload = {
-          //     tournament_id: id,
-          //     match_id: match.id,
-          //     match_date: new Date().toISOString(),
-          //     a_participant_id: match.a_participant_id,
-          //     b_participant_id: match.b_participant_id,
-          //     a_participant_score: match.score_a,
-          //     b_participant_score: match.score_b,
-          //     winner_id: winnerUserId,
-          //     loser_id: loserUserId,
-          //   };
-          // }
           else if (reportGuestAsZero() && (aIsUser || bIsUser)) {
             //one is real one is bot/ guest
             const winnerPid = match.winner_participant_id;
@@ -313,7 +293,7 @@ function routes(app, db) {
               req.log?.warn?.({ status: res.status }, 'users/match failed');
             }
           } else {
-            // both sides are guests/bots so nothing to report
+            // both sides are guests / bots OR REPORT_GUEST_AS_ZERO is set to false, so nothing to report
             // if for some reason we wnat to keep loggin such matches too we will have to chnage this part
             // this will mean we will need and extra table with results  fo suc matches that
             // we will probably join with the main table of tournaments resulsts 
