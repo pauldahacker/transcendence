@@ -14,7 +14,7 @@ PROJECT_NAME=trascendence
 ENV_FILE=.env
 CERTS_DIR=./common/certs
 TEST_DIR=./backend/test
-BLOCKCHAIN_DIR=./backend/blockchain
+BLOCKCHAIN_DIR=./backend/blockchain/src
 
 all:
 	@echo
@@ -85,7 +85,7 @@ blockchain-dev-certs:
 blockchain-test: blockchain-dev-certs
 	$(call help_message, "Running blockchain unit tests...")
 	npm install --prefix $(BLOCKCHAIN_DIR)
-	npm --prefix $(BLOCKCHAIN_DIR) run test
+	npm test --prefix $(BLOCKCHAIN_DIR)
 
 down:
 	$(call help_message, "Stopping the containerized application...")

@@ -177,3 +177,38 @@ test('GET `/users/` route with token to fetch all users', async (t) => {
 
   t.assert.ok(Array.isArray(response.body));
 });
+
+test('GET `/blockchain/health` without auth -> 401', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  await supertest(app.server)
+    .get('/blockchain/health')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+});
+
+test('GET `/blockchain/health` with internal API key -> 200', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  const res = await supertest(app.server)
+    .get('/blockchain/health')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.deepStrictEqual(res.body, { status: 'ok' });
+});
+
+// test('OPTIONS preflight -> 204 (no auth)', async (t) => {
+//   const app = buildFastify(opts = {});
+//   t.after(() => app.close());
+//   await app.ready();
+
+//   await supertest(app.server)
+//     .options('/users/health')
+//     .expect(204);
+// });

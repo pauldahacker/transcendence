@@ -6,6 +6,11 @@ function routes(app) {
     return { status: 'ok' };
   });
 
+  // a safety stub for future proofing, does not affect anything
+  app.options('/api/*', async (_req, reply) => {
+    reply.code(204).send();
+  });
+
   app.post('/admin', {
     schema: { body: schemas.adminPasswordSchema },
     preHandler: app.auth([
@@ -37,6 +42,12 @@ function routes(app) {
   app.register(require('@fastify/http-proxy'), {
     upstream: "https://tournaments:" + process.env.TOURNAMENTS_PORT,
     prefix: '/tournaments',
+    preHandler: preHandler,
+  });
+
+  app.register(require('@fastify/http-proxy'), {
+    upstream: "https://blockchain:" + process.env.BLOCKCHAIN_PORT,
+    prefix: '/blockchain',
     preHandler: preHandler,
   });
 }
