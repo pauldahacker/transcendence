@@ -35,23 +35,34 @@ function buildFastify(opts, dbPath) {
     }
   });
 
-  app.decorate('verifyUserOwnership', async (request, _reply, done) => {
+  app.decorate('verifyUserOwnership', async (request, _reply) => {
     try {
       if (!request.params.user_id) 
         throw Error('Missing user ID in params', 400);
 
-      const user = db.getUserById(request.params.user_id);
-      if (user.username !== request.user.username)
-        throw Error('User not authorized', 403);
+      if (parseInt(request.params.user_id) !== request.user.id)
+        throw Error('User not authorized');
     } catch (err) {
       throw err;
     }
   });
 
-  app.decorate('verifyAdminJWT', async (request, reply) => {
+  app.decorate('verifyUserExists', async (request, _reply) => {
     try {
+      if (!request.params.user_id) 
+        throw Error('Missing user ID in params', 400);
+
+      db.getUserById(request.params.user_id);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  app.decorate('verifyAdminJWT', async (request, _reply) => {
+    try {
+      await request.jwtVerify();
       if (request.user.username !== "admin")
-        throw Error('User not authorized', 403);
+        throw Error('User not authorized');
     } catch (err) {
       throw err;
     }
