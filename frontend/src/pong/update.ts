@@ -54,8 +54,6 @@ export function update(
 
   // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
-  if (state.paddle1Flash > 0) state.paddle1Flash--;
-  if (state.paddle2Flash > 0) state.paddle2Flash--;
 
   // Scoring
   if (state.ballX < 0) {

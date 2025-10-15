@@ -79,12 +79,10 @@ export function startPong(canvas: HTMLCanvasElement,
     score2: 0,
     gameRunning: true,
     ballFlash: 0,
-    paddle1Flash: 0,
-    paddle2Flash: 0,
   };
 
   const keys: KeyState = {};
-  const cleanupInput = setupInput(keys);
+  const cleanupInput = setupInput(keys, aiPlayer1, aiPlayer2);
 
   let paused = false;
   function handlePause(e: KeyboardEvent) {
