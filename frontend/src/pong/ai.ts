@@ -15,7 +15,7 @@ We use setInterval() to execute code repeatedly at fixed time intervals (in ms):
    - Simulate pressing up/down keys to move towards targetY.
 
 This makes the AI a bit dumb (can only update its prediction once per second),
-but it moves smoothly by pressing keys at 60 fps.
+but it moves smoothly by pressing keys at 60 fps (once every 16 ms).
 */
 
 export interface AIController {
