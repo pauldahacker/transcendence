@@ -40,9 +40,8 @@ function buildFastify(opts, dbPath) {
       if (!request.params.user_id) 
         throw Error('Missing user ID in params', 400);
 
-      const user = db.getUserById(request.params.user_id);
-      if (user.username !== request.user.username)
-        throw Error('User not authorized', 403);
+      if (parseInt(request.params.user_id) !== request.user.id)
+        throw Error('User not authorized');
     } catch (err) {
       throw err;
     }
@@ -63,7 +62,7 @@ function buildFastify(opts, dbPath) {
     try {
       await request.jwtVerify();
       if (request.user.username !== "admin")
-        throw Error('User not authorized', 403);
+        throw Error('User not authorized');
     } catch (err) {
       throw err;
     }

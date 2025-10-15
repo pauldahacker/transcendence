@@ -271,11 +271,9 @@ class UsersDatabase extends Database {
     }
   }
 
-  manageFriendRequest(a_friend_username, b_friend_id) {
+  manageFriendRequest(a_friend_id, b_friend_id) {
     try {
-      const a_friend_id = this.getUser(a_friend_username).id;
       b_friend_id = parseInt(b_friend_id);
-      
       if (a_friend_id === b_friend_id) {
         throw JSONError('Cannot send friend request to oneself', 400);
       }

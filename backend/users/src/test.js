@@ -4,6 +4,11 @@ const unlink = require('fs').unlink;
 const { buildFastify } = require('./app/app');
 const schemas = require('./app/schemas');
 
+function debug(response_body) {
+  console.log(response_body);
+  process.exit(1);
+}
+
 const DB_PATH = 'test.db';
 let token_1;
 let token_2;

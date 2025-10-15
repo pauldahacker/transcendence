@@ -37,6 +37,7 @@ function routes(app, db) {
 			request.log.info('User logging in');
 			try {
 				const token = app.jwt.sign({
+					id: db.getUser(request.body.username).id,
 					username: request.body.username,
 					jti: uuidv6()}, { expiresIn: '1h' });
 				return reply.send({ token });
@@ -112,7 +113,7 @@ function routes(app, db) {
 		]}, async (request, reply) => {
 		request.log.info('Managing friend request');
 		try {
-			const info = db.manageFriendRequest(request.user.username, request.params.user_id);
+			const info = db.manageFriendRequest(request.user.id, request.params.user_id);
 			return reply.send(info);
 		} catch (err) {
 			throw err;
