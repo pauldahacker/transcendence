@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 23:08:57 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/16 23:23:33 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,40 @@ async function runTest(name, fn) {
       }
     });
     tally(t5);
+
+    // Test: GET /finals/:id after POST -> 200 with fields
+    const t6 = await runTest('GET /finals/:id after POST -> 200 with result', async () => {
+      // ensure there is a stored result
+      await app.inject({
+        method: 'POST',
+        url: '/finals',
+        payload: { tournament_id: 7, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 }
+      });
+
+      const res = await app.inject({ method: 'GET', url: '/finals/7' });
+      const body = (() => { try { return res.json(); } catch { return res.body; } })();
+
+      if (res.statusCode !== 200) {
+        const err = new Error(`Expected 200, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+      assert(body.exists === true, 'expected exists=true');
+      assert(body.winner_alias === 'alice', 'winner_alias mismatch');
+      assert(body.score_a === 3 && body.score_b === 1 && body.points_to_win === 3, 'scores mismatch');
+    });
+    tally(t6);
+    // Test: GET /finals/:id unknown -> 404
+    const t7 = await runTest('GET /finals/:unknown -> 404', async () => {
+      const res = await app.inject({ method: 'GET', url: '/finals/99999' });
+      if (res.statusCode !== 404) {
+        const body = (() => { try { return res.json(); } catch { return res.body; } })();
+        const err = new Error(`Expected 404, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+    });
+    tally(t7);
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
