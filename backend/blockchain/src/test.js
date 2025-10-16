@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 21:31:15 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/16 23:08:57 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,14 @@ const pretty = (v) => {
   try { return util.inspect(v, { depth: 3, colors: true, maxArrayLength: 20 }); }
   catch { return String(v); }
 };
+
+const counters = { total: 0, passed: 0, failed: 0 };
+
+function tally(result) {
+  counters.total += 1;
+  if (result && result.ok) counters.passed += 1;
+  else counters.failed += 1;
+}
 
 async function runTest(name, fn) {
   const start = Date.now();
@@ -53,8 +61,6 @@ async function runTest(name, fn) {
   const { app } = buildFastify({ logger: false });
   await app.ready();
 
-  let failed = 0;
-
   try {
     // Test: GET /health 200 + {status: "ok"}
     const t1 = await runTest('GET /health returns 200 and ok body', async () => {
@@ -71,7 +77,7 @@ async function runTest(name, fn) {
         throw err;
       }
     });
-    if (!t1.ok) failed++;
+    tally(t1);
 
     // Test: GET /health/db 200 + {status: "ok"}
     const t2 = await runTest('GET /health/db returns 200 and ok body', async () => {
@@ -88,7 +94,7 @@ async function runTest(name, fn) {
         throw err;
       }
     });
-    if (!t2.ok) failed++;
+    tally(t2);
   // Test: GET /abi/TournamentRegistry returns ABI array
     const t3 = await runTest('GET /abi/TournamentRegistry returns ABI array', async () => {
       const res = await app.inject({ method: 'GET', url: '/abi/TournamentRegistry' });
@@ -102,14 +108,57 @@ async function runTest(name, fn) {
       assert(body.length > 0, 'ABI should not be empty');
       assert(body.some((e) => e && typeof e.type === 'string'), 'ABI entries must include `type`');
     });
-    if (!t3.ok) failed++;
+    tally(t3);
+    // Test: POST /finals happy path -> 201 + txHash
+    const t4 = await runTest('POST /finals -> 201 + txHash', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/finals',
+        payload: {
+          tournament_id: 42,
+          winner_alias: 'champ',
+          score_a: 3,
+          score_b: 1,
+          points_to_win: 3
+        }
+      });
+      const body = (() => { try { return res.json(); } catch { return res.body; } })();
+      if (res.statusCode !== 201) {
+        const err = new Error(`Expected 201, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+      assert(body && typeof body.txHash === 'string' && body.txHash.startsWith('0xmock_'),
+        'txHash should be a string starting with 0xmock_');
+    });
+    tally(t4);
+    // Test: POST /finals missing field -> 400
+    const t5 = await runTest('POST /finals missing winner_alias -> 400', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/finals',
+        payload: {
+          tournament_id: 42,
+          score_a: 3,
+          score_b: 1,
+          points_to_win: 3
+        }
+      });
+      if (res.statusCode !== 400) {
+        const body = (() => { try { return res.json(); } catch { return res.body; } })();
+        const err = new Error(`Expected 400, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+    });
+    tally(t5);
 
-    if (failed === 0) {
-      console.log('✅ blockchain service tests passed');
+    if (counters.failed === 0) {
+      console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
       await app.close();
       process.exit(0);
     } else {
-      console.error(`❌ ${failed} test(s) failed`);
+      console.error(`❌ ${counters.failed} test(s) of ${counters.total} failed`);
       await app.close();
       process.exit(1);
     }

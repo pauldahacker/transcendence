@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 22:21:35 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/16 22:53:02 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { finalsPostSchema } = require('./schemas');
 
 async function routes(fastify) {
   // service-level open health
@@ -43,6 +44,12 @@ async function routes(fastify) {
       req.log.error({ err, abiPath }, 'failed to read ABI');
       reply.code(500).send({ error: 'abi_unavailable' });
     }
+  });
+
+  fastify.post('/finals', { schema: { body: finalsPostSchema } }, async (req, reply) => {
+    const { tournament_id } = req.body;
+    const txHash = `0xmock_${tournament_id}_${Date.now()}`;
+    reply.code(201).send({ txHash });
   });
 }
 
