@@ -203,6 +203,62 @@ test('GET `/blockchain/health` with internal API key -> 200', async (t) => {
   t.assert.deepStrictEqual(res.body, { status: 'ok' });
 });
 
+// --- Blockchain ABI proxy auth tests ---
+test('GET `/blockchain/abi/TournamentRegistry` without auth -> 401', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  await supertest(app.server)
+    .get('/blockchain/abi/TournamentRegistry')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+});
+
+test('GET `/blockchain/abi/TournamentRegistry` with internal API key -> 200', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  const res = await supertest(app.server)
+    .get('/blockchain/abi/TournamentRegistry')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  // ABI is an array (validated at the blockchain service level)
+  t.assert.ok(Array.isArray(res.body));
+  t.assert.ok(res.body.length >= 0);
+});
+
+// --- Blockchain finals proxy auth tests ---
+test('POST `/blockchain/finals` without auth -> 401', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  await supertest(app.server)
+    .post('/blockchain/finals')
+    .send({ tournament_id: 123, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 })
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+});
+
+test('POST `/blockchain/finals` with internal API key -> 201 { txHash }', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  const res = await supertest(app.server)
+    .post('/blockchain/finals')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .send({ tournament_id: 456, winner_alias: 'bob', score_a: 3, score_b: 2, points_to_win: 3 })
+    .expect(201)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.ok(res.body && typeof res.body.txHash === 'string');
+});
+
 // test('OPTIONS preflight -> 204 (no auth)', async (t) => {
 //   const app = buildFastify(opts = {});
 //   t.after(() => app.close());
