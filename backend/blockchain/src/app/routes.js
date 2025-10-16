@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 21:30:00 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/16 22:21:35 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,10 @@ async function routes(fastify) {
 
   // return TournamentRegistry ABI
   fastify.get('/abi/TournamentRegistry', async (req, reply) => {
-    const rootDir = path.join(__dirname, '..', '..');
+    // const rootDir = path.join(__dirname, '..', '..');
     const abiPath = path.join(
-      rootDir,
+      __dirname,
+      '..',
       'artifacts',
       'contracts',
       'TournamentRegistry.sol',
