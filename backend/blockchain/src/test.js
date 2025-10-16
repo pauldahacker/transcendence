@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/13 21:59:35 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/16 21:31:15 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,20 @@ async function runTest(name, fn) {
       }
     });
     if (!t2.ok) failed++;
+  // Test: GET /abi/TournamentRegistry returns ABI array
+    const t3 = await runTest('GET /abi/TournamentRegistry returns ABI array', async () => {
+      const res = await app.inject({ method: 'GET', url: '/abi/TournamentRegistry' });
+      const body = (() => { try { return res.json(); } catch { return res.body; } })();
+      if (res.statusCode !== 200) {
+        const err = new Error(`Expected 200, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+      assert(Array.isArray(body), 'ABI response should be an array');
+      assert(body.length > 0, 'ABI should not be empty');
+      assert(body.some((e) => e && typeof e.type === 'string'), 'ABI entries must include `type`');
+    });
+    if (!t3.ok) failed++;
 
     if (failed === 0) {
       console.log('✅ blockchain service tests passed');
