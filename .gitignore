@@ -184,6 +184,20 @@ dist
 .history
 .ionide
 
+# Hardhat build outputs
+artifacts/
+cache/
+solidity-files-cache.json
+
+# If any local variants appear under src/
+src/artifacts/
+src/cache/
+
+# Common extras (optional but harmless)
+coverage/
+typechain*/
+*.tsbuildinfo
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node,linux,certificates
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
