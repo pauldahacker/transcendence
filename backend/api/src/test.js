@@ -299,6 +299,36 @@ test('GET `/blockchain/finals/:id` with internal API key -> 200 (after seed POST
   t.assert.strictEqual(res.body.points_to_win, 3);
 });
 
+// --- Blockchain config proxy auth tests ---
+test('GET `/blockchain/config` without auth -> 401', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  await supertest(app.server)
+    .get('/blockchain/config')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+});
+
+test('GET `/blockchain/config` with internal API key -> 200 + fields', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  const res = await supertest(app.server)
+    .get('/blockchain/config')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.ok(Object.prototype.hasOwnProperty.call(res.body, 'enabled'), 'missing enabled');
+  t.assert.ok(Object.prototype.hasOwnProperty.call(res.body, 'network'), 'missing network');
+  t.assert.ok(Object.prototype.hasOwnProperty.call(res.body, 'registryAddress'), 'missing registryAddress');
+});
+
+
+
 // test('OPTIONS preflight -> 204 (no auth)', async (t) => {
 //   const app = buildFastify(opts = {});
 //   t.after(() => app.close());
