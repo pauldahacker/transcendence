@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 23:27:37 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/17 21:29:24 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,13 @@ async function routes(fastify) {
     if (!data) return reply.code(404).send({ error: 'not_found' });
     // return a copy of the data
     return { ...data, exists: true };
+  });
+
+  fastify.get('/config', async () => {
+    const enabled = process.env.BLOCKCHAIN_ENABLED === 'true';
+    const network = process.env.BLOCKCHAIN_NETWORK || null;       // e.g., "fuji"
+    const registryAddress = process.env.REGISTRY_ADDRESS || null; // public contract address (when set)
+    return { enabled, network, registryAddress };
   });
 }
 

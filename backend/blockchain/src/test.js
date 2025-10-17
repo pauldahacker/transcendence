@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/16 23:23:33 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/17 21:29:13 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,6 +186,55 @@ async function runTest(name, fn) {
       }
     });
     tally(t7);
+  
+    // Test: GET /config default -> disabled
+    const t8 = await runTest('GET /config returns diagnostics (disabled by default)', async () => {
+      const res = await app.inject({ method: 'GET', url: '/config' });
+      const body = (() => { try { return res.json(); } catch { return res.body; } })();
+      if (res.statusCode !== 200) {
+        const err = new Error(`Expected 200, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+      assert(typeof body.enabled === 'boolean', '`enabled` should be boolean');
+      assert(Object.prototype.hasOwnProperty.call(body, 'network'), '`network` missing');
+      assert(Object.prototype.hasOwnProperty.call(body, 'registryAddress'), '`registryAddress` missing');
+    });
+    tally(t8);
+
+    // Test: GET /config with env -> reflects enabled/network/address
+    const t9 = await runTest('GET /config reflects env values', async () => {
+      // spin a separate instance to avoid cross-test env confusion
+      const { buildFastify } = require('./app/app');
+      const prevEnabled = process.env.BLOCKCHAIN_ENABLED;
+      const prevNet = process.env.BLOCKCHAIN_NETWORK;
+      const prevAddr = process.env.REGISTRY_ADDRESS;
+      process.env.BLOCKCHAIN_ENABLED = 'true';
+      process.env.BLOCKCHAIN_NETWORK = 'fuji';
+      process.env.REGISTRY_ADDRESS = '0x0000000000000000000000000000000000000001';
+
+      const { app: app2 } = buildFastify({ logger: false });
+      await app2.ready();
+
+      try {
+        const res = await app2.inject({ method: 'GET', url: '/config' });
+        const body = (() => { try { return res.json(); } catch { return res.body; } })();
+        if (res.statusCode !== 200) {
+          const err = new Error(`Expected 200, got ${res.statusCode}`);
+          err.details = { statusCode: res.statusCode, body };
+          throw err;
+        }
+        assert(body.enabled === true, 'expected enabled=true');
+        assert(body.network === 'fuji', 'expected network=fuji');
+        assert(body.registryAddress === '0x0000000000000000000000000000000000000001', 'registryAddress mismatch');
+      } finally {
+        process.env.BLOCKCHAIN_ENABLED = prevEnabled;
+        process.env.BLOCKCHAIN_NETWORK = prevNet;
+        process.env.REGISTRY_ADDRESS = prevAddr;
+        await app2.close();
+      }
+    });
+    tally(t9);
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
