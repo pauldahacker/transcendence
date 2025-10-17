@@ -1,5 +1,6 @@
 import { GameState, GameConfig, KeyState } from "./types";
 
+// updates the game state for a single frame (width & height are the virtual game are dimensions).
 export function update(
   width: number,
   height: number,
@@ -10,7 +11,7 @@ export function update(
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
 
-  // Player movement
+  // Player movement (depends on keys pressed)
   if (keys["w"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
   if (keys["s"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
   if (keys["ArrowUp"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
@@ -53,8 +54,6 @@ export function update(
 
   // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
-  if (state.paddle1Flash > 0) state.paddle1Flash--;
-  if (state.paddle2Flash > 0) state.paddle2Flash--;
 
   // Scoring
   if (state.ballX < 0) {
@@ -83,14 +82,13 @@ function handleBounce(
   paddleHeight: number,
   direction: 1 | -1
 ) {
-  const { ballSize } = config;
-  const relativeIntersectY = (state.ballY + ballSize / 2) - (paddleY + paddleHeight / 2);
-  const normalized = relativeIntersectY / (paddleHeight / 2);
+  const relativeIntersectY = (state.ballY + config.ballSize / 2) - (paddleY + paddleHeight / 2); // where on the paddle the ball hits
+  const normalized = relativeIntersectY / (paddleHeight / 2); // normalized to [-1 (top), 0 (center), 1 (bottom)]
 
-  if (Math.abs(normalized) <= 0.15) state.ballFlash = 20;
+  if (Math.abs(normalized) <= 0.15) state.ballFlash = 20; // if close to center, "perfect" shot
 
-  const bounceAngle = normalized * config.maxBounceAngle;
-  const speedRatio = 1 - Math.abs(normalized);
+  const bounceAngle = normalized * config.maxBounceAngle; // get the angle depending on where it hit
+  const speedRatio = 1 - Math.abs(normalized); // make speed quicker the close the ball is to the center
 
   state.ballSpeedX = direction * Math.max(config.maxSpeed * speedRatio, config.minSpeed);
   state.ballSpeedY = direction * state.ballSpeedX * Math.sin(bounceAngle);

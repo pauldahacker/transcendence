@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/10 00:42:12 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 13:11:28 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/14 00:54:52 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 // a simple repo layer to keep SQL out of  routes 
 function repo(db) {
+  safeAddUserIdToParticipant(db); 
   const stmtInsert = db.prepare(`
     INSERT INTO tournament (owner_user_id, mode, points_to_win, status)
     VALUES (@owner_user_id, @mode, @points_to_win, 'draft')
@@ -60,6 +61,19 @@ function repo(db) {
 
 // Top-level helpers
 
+function safeAddUserIdToParticipant(db) {
+  // iff `user_id` already exists,  do nothing
+  const cols = db.prepare(`PRAGMA table_info(tournament_participant)`).all() || [];
+  const hasUserId = cols.some(c => c && (c.name === 'user_id'));
+  if (!hasUserId) {
+    db.prepare(`ALTER TABLE tournament_participant ADD COLUMN user_id INTEGER`).run();
+    // optional: index for lookups by user
+    try {
+      db.prepare(`CREATE INDEX IF NOT EXISTS idx_tp_user_id ON tournament_participant(user_id)`).run();
+    } catch {}
+  }
+}
+
 function getTournamentForUpdate(db, id) {
   const t = db.prepare('SELECT * FROM tournament WHERE id = ?').get(id);
   if (!t) return { error: 'not_found' };
@@ -96,17 +110,17 @@ function insertMatch(db, m) {
 
 // top-level particcipant CRUD
 
-function insertParticipant(db, tournamentId, { display_name, is_bot = false }) {
+function insertParticipant(db, tournamentId, { display_name, is_bot = false, user_id = null }) {
   const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
   if (!t) return { error: 'not_found' };
 
   try {
     const now = new Date().toISOString();
     const stmt = db.prepare(`
-      INSERT INTO tournament_participant (tournament_id, display_name, joined_at, is_bot)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO tournament_participant (tournament_id, display_name, joined_at, is_bot, user_id)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    const info = stmt.run(tournamentId, display_name.trim(), now, is_bot ? 1 : 0);
+    const info = stmt.run(tournamentId, display_name.trim(), now, is_bot ? 1 : 0, (user_id ?? null));
     return { id: info.lastInsertRowid };
   } catch (e) {
     const code = e && e.code ? String(e.code) : '';
@@ -119,7 +133,7 @@ function listParticipants(db, tournamentId) {
   const t = db.prepare('SELECT id FROM tournament WHERE id = ?').get(tournamentId);
   if (!t) return { error: 'not_found' };
   const rows = db.prepare(`
-    SELECT id, tournament_id, display_name, joined_at, is_bot
+    SELECT id, tournament_id, display_name, joined_at, is_bot, user_id
     FROM tournament_participant
     WHERE tournament_id = ?
     ORDER BY id ASC
@@ -128,6 +142,13 @@ function listParticipants(db, tournamentId) {
     is_bot: !!r.is_bot
   }));
   return { rows };
+}
+
+function getParticipantsUserIds(db, aPid, bPid) {
+  const stmt = db.prepare(`SELECT id, user_id FROM tournament_participant WHERE id IN (?, ?)`);
+  const rows = stmt.all(aPid, bPid);
+  const map = new Map(rows.map(r => [r.id, r.user_id]));
+  return { aUserId: map.get(aPid) ?? null, bUserId: map.get(bPid) ?? null };
 }
 
 function deleteParticipant(db, tournamentId, participantId) {
@@ -298,11 +319,6 @@ function finishMatchAndAdvance(db, tournamentId, matchId, scoreA, scoreB) {
   return tx();
 }
 
-module.exports.getMatchById = getMatchById;
-module.exports.getNextScheduledMatch = getNextScheduledMatch;
-module.exports.finishMatchAndAdvance = finishMatchAndAdvance;
-
-
 module.exports = {
   // factory
   repo,
@@ -322,6 +338,7 @@ module.exports = {
   listMatchesByRound,
   getMatchById,
   getNextScheduledMatch,
+  getParticipantsUserIds,
 
   // scoring/advancement
   finishMatchAndAdvance,

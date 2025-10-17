@@ -13,6 +13,15 @@ type RenderGameOptions = {
   onGameOver?: (winner: number) => void;
 };
 
+/*
+renderGame mounts Pong into the DOM and configures players.
+By default, it mounts a 2-player (Human vs Human) non-tournament game.
+But the onePlayer or tournament flag can be set for adaptability.
+
+Handles overlays for Winner message, Play Again button, or Proceed to next match.
+
+Returns a cleanup function to stop the game when leaving the page.
+*/
 export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   const {
     onePlayer = false,

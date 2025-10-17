@@ -1,5 +1,6 @@
 import { GameState, GameConfig } from "./types";
 
+// draws the paddles, scores and ball on the canvas for a single frame
 export function draw(
   ctx: CanvasRenderingContext2D,
   width: number,

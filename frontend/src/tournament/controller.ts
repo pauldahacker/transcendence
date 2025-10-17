@@ -2,6 +2,7 @@ import { renderGame } from "../views/Game";
 import { TournamentState } from "./state";
 import { createMatchList } from "./ui";
 
+// runs the current match of the tournament, handles the winner, and shows a "Proceed" overlay
 export function playNextMatch(root: HTMLElement, state: TournamentState) {
   if (!state.active) return;
 
@@ -44,13 +45,14 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
           location.hash = "/";
           return;
         }
-
+        
         showMatchList(root, state);
       });
     },
   });
 }
 
+// renders the match list inside the root container and plays the next match if the play button is clicked
 export function showMatchList(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
   const matchListContainer = createMatchList(state.matches, state.winners, state.currentMatch);

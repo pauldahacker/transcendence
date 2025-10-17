@@ -32,20 +32,101 @@ const profileParamSchema = {
   additionalProperties: false
 };
 
-const userResponseKeys = [
-  'id',
-  'username',
-  'created_at'
-]
+const matchResultSchema = {
+  type: 'object',
+  properties: {
+    tournament_id: { type: 'number' },
+    match_id: { type: 'number' },
+    match_date: { type: 'string', format: 'date-time' },
+    a_participant_id: { type: 'number' },
+    b_participant_id: { type: 'number' },
+    a_participant_score: { type: 'number' },
+    b_participant_score: { type: 'number' },
+    winner_id: { type: 'number' },
+    loser_id: { type: 'number' }
+  },
+  required: ['tournament_id', 'match_id', 'match_date', 'a_participant_id', 'b_participant_id', 'a_participant_score', 'b_participant_score', 'winner_id', 'loser_id'],
+  additionalProperties: false
+};
 
-const profileResponseKeys = [
-  'username',
-  'display_name',
-  'avatar_url',
-  'bio',
-  'created_at',
-  'friends',
-  'stats'
-]
+const userResponseSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'number' },
+    username: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' }
+  },
+  required: ['id', 'username', 'created_at'],
+  additionalProperties: false
+};
 
-module.exports = { JSONError, usernameAndPasswordSchema, profileParamSchema, userResponseKeys, profileResponseKeys };
+const profileResponseSchema = {
+  type: 'object',
+  properties: {
+    username: { type: 'string' },
+    display_name: { type: 'string' },
+    avatar_url: { type: 'string', format: 'uri' },
+    bio: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' }
+  },
+  required: ['username', 'display_name', 'avatar_url', 'bio', 'created_at'],
+  additionalProperties: false
+};
+
+const friendsResponseSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: { type: 'number' },
+      username: { type: 'string' },
+      display_name: { type: 'string' },
+      avatar_url: { type: 'string', format: 'uri' },
+      confirmed: { type: 'boolean' },
+      requested_by_id: { type: 'number' }
+    },
+    required: ['id', 'username', 'display_name', 'avatar_url', 'confirmed', 'requested_by_id'],
+    additionalProperties: false
+  }
+};
+
+const statsResponseSchema = {
+  type: 'object',
+  properties: {
+    total_matches: { type: 'number' },
+    wins: { type: 'number' },
+    losses: { type: 'number' },
+  },
+  required: ['total_matches', 'wins', 'losses'],
+  additionalProperties: false
+};
+
+const matchHistoryResponseSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      tournament_id: { type: 'number' },
+      match_id: { type: 'number' },
+      match_date: { type: 'string', format: 'date-time' },
+      opponent_username: { type: 'string' },
+      user_score: { type: 'number' },
+      opponent_score: { type: 'number' },
+      result: { type: 'string', enum: ['win', 'loss'] }
+    },
+    required: ['tournament_id', 'match_id', 'match_date', 'opponent_username', 'user_score', 'opponent_score', 'result'],
+    additionalProperties: false
+  }
+};
+
+module.exports = {
+  JSONError,
+  usernameAndPasswordSchema,
+  profileParamSchema,
+  matchResultSchema,
+  userResponseSchema,
+  profileResponseSchema,
+  friendsResponseSchema,
+  statsResponseSchema,
+  matchHistoryResponseSchema
+};
