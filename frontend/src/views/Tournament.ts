@@ -1,9 +1,9 @@
 import { createTournamentState } from "../tournament/state";
 import { createAliasOverlay, createMatchList } from "../tournament/ui";
 import { playNextMatch, showMatchList } from "../tournament/controller";
-import { getUsernameFromToken, isLoggedIn } from "@/userUtils/TokenUtils";
+import { getUsernameFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
 
-export function renderTournament(root: HTMLElement) {
+export async function renderTournament(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-between items-center h-screen pt-[5vh] pb-[10vh] min-h-[400px] min-w-[600px] relative mx-auto my-auto";
@@ -34,13 +34,13 @@ export function renderTournament(root: HTMLElement) {
   const button4p = container.querySelector<HTMLButtonElement>("#btn-4p")!;
   const backHomeLink = container.querySelector<HTMLAnchorElement>("a[href='#/']")!;
 
-  button2p.addEventListener("click", () => {
-    if (isLoggedIn()) skipAliasOverlay(2); // if logged in, show display name + play against bots
+  button2p.addEventListener("click", async () => {
+    if (await isUserLoggedIn()) skipAliasOverlay(2); // if logged in, show display name + play against bots
     else showAliasOverlay(2);
   });
   
-  button4p.addEventListener("click", () => {
-    if (isLoggedIn()) skipAliasOverlay(4);
+  button4p.addEventListener("click", async () => {
+    if (await isUserLoggedIn()) skipAliasOverlay(4);
     else showAliasOverlay(4);
   });
 
