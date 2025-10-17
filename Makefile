@@ -61,14 +61,14 @@ test:
 	docker compose exec tournaments npm run db:smoke
 	$(call help_message, "Running end-to-end tournament test...")
 	$(MAKE) e2e_tournament
-	$(MAKE) blockchain-test
+	$(MAKE) blockchain_test
 
 e2e_tournament:
 	@cd backend/tournaments/src/scripts && \
 	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
 	node e_2_e_tournament.js
 
-blockchain-dev-certs:
+blockchain_dev_certs:
 	@set -e; \
 	DIR="backend/blockchain/dev-certs"; \
 	mkdir -p "$$DIR"; \
@@ -82,7 +82,7 @@ blockchain-dev-certs:
 		echo "✓ Generated $$DIR/key.pem and $$DIR/cert.pem"; \
 	fi
 
-blockchain-test: blockchain-dev-certs
+blockchain_test: blockchain_dev_certs
 	$(call help_message, "Running blockchain unit tests...")
 	npm install --prefix $(BLOCKCHAIN_DIR)
 	npm test --prefix $(BLOCKCHAIN_DIR)

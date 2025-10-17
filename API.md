@@ -322,6 +322,19 @@ Finishes a scheduled/in_progress match, records the score, **places the winner**
 
 ---
 
+### Tournaments → Blockchain bridge (feature flag)
+
+Set in `.env`:
+BLOCKCHAIN_REPORT_ENABLED=true
+
+When enabled, the tournaments service reports the **final** result (when the bracket completes) to the blockchain service via:
+POST /api/blockchain/finals
+(using the internal gateway API key)
+
+Errors are **swallowed**; tournament scoring is never blocked by reporting failures.
+
+---
+
 ### Health (service diagnostics)
 
 > Exposed for internal checks; through the gateway they’re protected by the same auth as other endpoints.
@@ -427,6 +440,50 @@ You can also try accessing a match not started, add duplicates etc to test for p
 It is all done in the test suite but  thgere’s no harm in trying ))
 
 ```
+
+## Blockchain (proxied via API Gateway)
+
+Base: `https://localhost/api/blockchain/*`  
+Auth: **required** — `Authorization: Bearer <jwt>` OR `x-internal-api-key: <key>`.
+
+### Health
+GET `/health` → `200 {"status":"ok"}`
+
+### Contract ABI
+GET `/abi/TournamentRegistry` → `200 [ ...abi items... ]`
+
+**Example**
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  https://localhost/api/blockchain/abi/TournamentRegistry | jq '.[0]'
+
+### Record final (mock tx until real chain is enabled)
+POST `/finals`  
+Body:
+{
+  "tournament_id": 42,
+  "winner_alias": "alice",
+  "score_a": 3,
+  "score_b": 1,
+  "points_to_win": 3
+}
+Responses:
+- `201 {"txHash":"0xmock_42_<timestamp>"}` on success
+- `400` invalid body
+- `401` missing/invalid auth
+
+**Example**
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"tournament_id":42,"winner_alias":"alice","score_a":3,"score_b":1,"points_to_win":3}' \
+  https://localhost/api/blockchain/finals
+
+### Read final (mock storage)
+GET `/finals/:tournament_id` →  
+- `200 {"winner_alias":"alice","score_a":3,"score_b":1,"points_to_win":3,"exists":true}`
+- `401` missing/invalid auth
+- `404` if not recorded
+
+
 
 ## Health endpoints
 
