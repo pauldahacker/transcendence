@@ -4,7 +4,7 @@ export type UserStats = {
 	losses: number;
   };
   
-  export type UserData = {
+export type UserData = {
 	username: string;
 	display_name: string;
 	avatar_url: string;
@@ -34,14 +34,14 @@ export async function getUserId(username: string) {
 }
 
 export async function getUserData(userId: number) {
-  const res = await fetch(`/api/users/${userId}/`, {
+  const res = await fetch(`/api/users/${userId}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
     },
   });
   if (!res.ok){
-	console.log(`Error al acceder a /api/users/${userId}/`)
+	console.log(`Error al acceder a /api/users/${userId}`)
 	throw new Error(`Error ${res.status}`);
   }
   return await res.json();
