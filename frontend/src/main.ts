@@ -6,10 +6,12 @@ import { renderTournament} from "./views/Tournament";
 import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
+import { isUserLoggedIn } from "./userUtils/TokenUtils";
 // NB! this is to test the tournamenbt functionality
 import { renderTournamentDev } from "./views/TournamentDev";
 
-function router() {
+
+async function router() {
   const app = document.getElementById("app")!;
   app.innerHTML = ""; // clear
 
@@ -36,8 +38,12 @@ function router() {
       renderRegister(app);
       break;
     case "#/profile":
-      renderProfile(app);
-      break;
+      if (await isUserLoggedIn()) {
+        renderProfile(app);
+      } else {
+        window.location.hash = "#/home";
+      }
+    break;
     //NB! this is to test the tournament backend functionality
     case "#/tournament-dev": {
       const devEnabled = String(import.meta.env.VITE_ENABLE_DEV_PAGES) === "true";
