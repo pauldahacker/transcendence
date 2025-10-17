@@ -21,8 +21,26 @@ export function setAuthToken(token: string) {
   //add something so it refreshes the rest of pages
 }
 
-export function isLoggedIn() {
+export async function isUserLoggedIn(): Promise<boolean> {
   const token = localStorage.getItem("auth_token");
-  return !!token;
-  //to add: check if the token is valid and belongs to its user
+  if (!token) return false;
+  try {
+    const res = await fetch("/api/users/", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    if (res.ok) {
+      return true;
+    }
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem("auth_token");
+      return false;
+    }
+    return false;
+  } catch (err) {
+    console.error("Error verificando sesión:", err);
+    return false;
+  }
 }
