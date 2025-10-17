@@ -18,7 +18,7 @@ class UsersDatabase extends Database {
         user_id INTEGER NOT NULL UNIQUE,
         display_name TEXT UNIQUE,
         avatar_url TEXT DEFAULT 'https://avatar.iran.liara.run/public',
-        bio TEXT,
+        bio TEXT DEFAULT 'Hey! this is me, and I haven''t updated my bio yet...',
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
 
