@@ -1,3 +1,4 @@
+// draws the startScreen on the canvas and removes it when a user presses a key or clicks.
 export function showStartScreen(
 	canvas: HTMLCanvasElement,
 	onStart: () => void

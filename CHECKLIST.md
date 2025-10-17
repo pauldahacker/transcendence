@@ -55,7 +55,7 @@
 ### Accessibility
 :black_square_button: Support on all devices - 0.5 point.
 
-:black_square_button: Expanding browser compatibility - 0.5 point.
+:white_check_mark: Expanding browser compatibility - 0.5 point.
 
 :black_square_button: Supports multiple languages - 0.5 point.
 
@@ -70,6 +70,6 @@
 
 ## Total points
 - Major modules completed: 4 (4 points)
-- Minor modules completed: 2 (1 points)
+- Minor modules completed: 3 (1.5 points)
 
-- Total points: 5/7
+- Total points: 5.5/7
