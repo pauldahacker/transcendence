@@ -6,34 +6,30 @@ export async function renderProfile(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
-
-  // Datos base
   const token = localStorage.getItem("auth_token");
   let username = "Player";
-
-  let data: any = null; // Declaramos fuera del try
 
   if (token) {
     const decoded = getUsernameFromToken(token);
     if (decoded) {
       username = decoded;
     }
-  
-    try {
-      data = await getUserDataFromName(username);
-      console.log("User data:", data);
-    } catch (e: any) {
-      alert(e.message || "Error al obtener los datos del usuario");
-    }
   }
+
+  try {
+  const data = await getUserDataFromName(username);
+  console.log("Datos del usuario:", data);
+} catch (e) {
+  console.error(e);
+}
   
   const medalUrl = new URL("../imgs/medal.png", import.meta.url).href;
   const editUrl = new URL("../imgs/edit.png", import.meta.url).href;
-  const avatarUrl = data?.avatar_url || new URL("../avatarDefault/avatar.png", import.meta.url).href;
-  const bio = data?.bio ?? "default";
-  const wins = data?.stats?.wins ?? 0;
-  const losses = data?.stats?.losses ?? 0;
-  const totalGames = data?.stats?.total_games ?? wins + losses;
+  const avatarUrl = new URL("../imgs/avatar.png", import.meta.url).href;
+  let   bio =  "default";
+  const wins = 3;
+  const losses = 1;
+  const totalGames = wins + losses;
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
   
 
