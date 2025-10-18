@@ -2,7 +2,7 @@ import { getUsernameFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
 import { getUserId, getUserData, UserData, UserStats, getUserDataFromName } from "@/userUtils/UserStats";
 import { updateBio, setupBIoButton } from "@/userUtils/UserBio";
 import { renderLastMatches } from "@/userUtils/UserMatches"; 
-import { logout, logoutUser } from "@/userUtils/LogoutUser";
+import { logoutUser } from "@/userUtils/LogoutUser";
 import { setupAvatarPopup } from "@/userUtils/UserAvatar";
 
 export async function renderProfile(root: HTMLElement) {
@@ -15,7 +15,7 @@ export async function renderProfile(root: HTMLElement) {
   //let data: UserData | null = null;
   if (token) {
     const decoded = getUsernameFromToken(token);
-    console.log(`token: ${token} username ${decoded}`);
+    console.log(`token: ${token} || username ${decoded}`);
     if (decoded) {
       username = decoded;
     }
@@ -29,9 +29,9 @@ export async function renderProfile(root: HTMLElement) {
     console.error(e);
   } */
 
-  const data : UserData = await getUserDataFromName(username);
   const medalUrl = new URL("../imgs/trophy.png", import.meta.url).href;
   const editUrl = new URL("../imgs/edit.png", import.meta.url).href;
+  const data : UserData = await getUserDataFromName(username);
   
   let avatarUrl = data?.avatar_url && data.avatar_url !== "null" && data.avatar_url.trim() !== ""
     ? data.avatar_url : new URL("../imgs/avatar.png", import.meta.url).href;
