@@ -14,9 +14,9 @@ export type UserData = {
 	stats: UserStats;
   };
 
-const token = localStorage.getItem("auth_token");
 
 export async function getUserId(username: string) {
+  const token = localStorage.getItem("auth_token");
   const res = await fetch("/api/users/", {
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -34,6 +34,7 @@ export async function getUserId(username: string) {
 }
 
 export async function getUserData(userId: number) {
+  const token = localStorage.getItem("auth_token");
   const res = await fetch(`/api/users/${userId}`, {
     method: "GET",
     headers: {

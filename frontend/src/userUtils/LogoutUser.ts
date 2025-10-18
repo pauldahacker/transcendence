@@ -1,14 +1,10 @@
-export function logout(){
-    localStorage.removeItem("auth_token");
-    alert("You've logged out succesfully");
-    window.location.hash = "#/";
-}
 
 export async function logoutUser() {
   const token = localStorage.getItem("auth_token");
   if (!token) return;
 
-  try {
+  try
+  {
     const res = await fetch("/api/users/logout", {
       method: "POST",
       headers: {
@@ -25,7 +21,8 @@ export async function logoutUser() {
     }
     localStorage.removeItem("auth_token");
     console.log("user logged out succesfully");
-  } catch (err) {
+  }
+  catch (err) {
     console.error("Error logout:", err);
     localStorage.removeItem("auth_token");
   }
