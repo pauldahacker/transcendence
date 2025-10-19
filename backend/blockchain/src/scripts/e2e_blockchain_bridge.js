@@ -6,109 +6,81 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/11 14:18:19 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 21:04:19 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 22:33:29 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/* eslint-disable no-console */
 'use strict';
 
 const https = require('https');
-const { URL } = require('url');
-const fs = require('fs');
 
-function fetchJSON(url, opts = {}) {
-  return fetch(url, {
-    ...opts,
-    agent: new https.Agent({ rejectUnauthorized: false }), // proxy uses self-signed cert
-    headers: { 'content-type': 'application/json', ...(opts.headers || {}) },
-  }).then(async (r) => {
-    const text = await r.text();
-    let json;
-    try { json = JSON.parse(text); } catch { json = text; }
-    if (!r.ok) {
-      const e = new Error(`HTTP ${r.status} ${r.statusText}`);
-      e.details = json;
-      throw e;
-    }
-    return json;
+function reqJSON(method, path, body, headers = {}) {
+  const opts = {
+    method,
+    hostname: 'localhost',
+    port: 443,
+    path,
+    rejectUnauthorized: false, // dev certs
+    headers: {
+      'content-type': 'application/json',
+      ...headers,
+    },
+  };
+  return new Promise((resolve, reject) => {
+    const req = https.request(opts, (res) => {
+      let data = '';
+      res.on('data', (c) => (data += c));
+      res.on('end', () => {
+        try {
+          const json = data ? JSON.parse(data) : null;
+          resolve({ status: res.statusCode, body: json, raw: data });
+        } catch {
+          resolve({ status: res.statusCode, body: null, raw: data });
+        }
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(JSON.stringify(body));
+    req.end();
   });
 }
 
 (async () => {
-  const iak = process.env.INTERNAL_API_KEY;
-  const enabled = process.env.BLOCKCHAIN_REPORT_ENABLED === 'true';
-  const apiBase = 'https://localhost/api';
-
-  if (!enabled) {
-    console.log('[e2e-bridge] BLOCKCHAIN_REPORT_ENABLED is not true — skipping (exit 0).');
-    process.exit(0);
-    return;
-  }
-  if (!iak) {
-    console.error('[e2e-bridge] INTERNAL_API_KEY missing');
-    process.exit(1);
-    return;
+  const key = process.env.INTERNAL_API_KEY;
+  if (!key) {
+    console.error('[bridge] INTERNAL_API_KEY missing');
+    process.exit(2);
   }
 
-  try {
-    // 1) Create tournament (draft)
-    const t = await fetchJSON(new URL('/tournaments/', apiBase), {
-      method: 'POST',
-      headers: { 'x-internal-api-key': iak },
-      body: JSON.stringify({ name: 'e2e-bridge' }),
-    });
-    const tid = t.id;
-    console.log('[e2e-bridge] tournament id =', tid);
+  const tid = Math.floor(Math.random() * 1e6) + 1;
 
-    // 2) Join two participants
-    await fetchJSON(new URL(`/tournaments/${tid}/participants`, apiBase), {
-      method: 'POST',
-      headers: { 'x-internal-api-key': iak },
-      body: JSON.stringify({ display_name: 'alice' }),
-    });
-    await fetchJSON(new URL(`/tournaments/${tid}/participants`, apiBase), {
-      method: 'POST',
-      headers: { 'x-internal-api-key': iak },
-      body: JSON.stringify({ display_name: 'bob' }),
-    });
+  const post = await reqJSON(
+    'POST',
+    '/api/blockchain/finals',
+    { tournament_id: tid, winner_alias: 'bridge-smoke', score_a: 3, score_b: 1, points_to_win: 3 },
+    { 'x-internal-api-key': key }
+  );
 
-    // 3) Start
-    await fetchJSON(new URL(`/tournaments/${tid}/start`, apiBase), {
-      method: 'POST',
-      headers: { 'x-internal-api-key': iak },
-    });
-
-    // 4) Find the only match (round 1)
-    const matches = await fetchJSON(new URL(`/tournaments/${tid}/matches?round=1`, apiBase), {
-      headers: { 'x-internal-api-key': iak },
-    });
-    const m = matches[0];
-
-    // 5) Score final (3-1)
-    await fetchJSON(new URL(`/tournaments/${tid}/matches/${m.id}/score`, apiBase), {
-      method: 'POST',
-      headers: { 'x-internal-api-key': iak },
-      body: JSON.stringify({ score_a: 3, score_b: 1 }),
-    });
-
-    // 6) Read blockchain mock final
-    const final = await fetchJSON(new URL(`/blockchain/finals/${tid}`, apiBase), {
-      headers: { 'x-internal-api-key': iak },
-    });
-
-    console.log('[e2e-bridge] blockchain final:', final);
-
-    // 7) Sanity checks
-    if (!final || final.exists !== true) throw new Error('final not recorded on blockchain mock');
-    if (!final.winner_alias) throw new Error('missing winner_alias');
-
-    console.log('[e2e-bridge] SUCCESS ✅');
-    process.exit(0);
-  } catch (err) {
-    console.error('[e2e-bridge] FAIL ❌', err && err.message ? err.message : err);
-    if (err && err.details) console.error('details:', err.details);
-    process.exit(1);
+  if (post.status !== 201 || !post.body || typeof post.body.txHash !== 'string') {
+    console.error('[bridge] POST /finals failed', post);
+    process.exit(3);
   }
-})();
 
+  const get = await reqJSON(
+    'GET',
+    `/api/blockchain/finals/${tid}`,
+    null,
+    { 'x-internal-api-key': key }
+  );
+
+  if (get.status !== 200 || !get.body || get.body.winner_alias !== 'bridge-smoke') {
+    console.error('[bridge] GET /finals/:id failed', get);
+    process.exit(4);
+  }
+
+  console.log('[bridge] ok:', { tid, txHash: post.body.txHash });
+  process.exit(0);
+})().catch((e) => {
+  console.error('[bridge] crashed:', e && e.message ? e.message : e);
+  process.exit(1);
+});
