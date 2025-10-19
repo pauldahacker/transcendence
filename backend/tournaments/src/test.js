@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/17 20:21:19 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 23:29:49 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -422,6 +422,49 @@ process.on('unhandledRejection', (e) => { console.error(e); process.exit(1); });
         // restore flag for the rest of the suite/process
         process.env.BLOCKCHAIN_REPORT_ENABLED = prev;
       }
+    // ---------------------------
+    // Blockchain reporter timeout + retry (non-blocking, fast return)
+    // ---------------------------
+    {
+      // Save current env to restore later
+      const prev = {
+        flag: process.env.BLOCKCHAIN_REPORT_ENABLED,
+        base: process.env.BLOCKCHAIN_API_BASE,
+        timeout: process.env.BLOCKCHAIN_REPORT_TIMEOUT_MS,
+        retries: process.env.BLOCKCHAIN_REPORT_RETRIES,
+        backoff: process.env.BLOCKCHAIN_REPORT_BACKOFF_MS,
+      };
+
+      // Enable reporter, but point at an unreachable port and keep it fast
+      process.env.BLOCKCHAIN_REPORT_ENABLED = 'true';
+      process.env.BLOCKCHAIN_API_BASE = 'https://localhost:9';  // unreachable
+      process.env.BLOCKCHAIN_REPORT_TIMEOUT_MS = '200';          // short per-attempt timeout
+      process.env.BLOCKCHAIN_REPORT_RETRIES = '1';               // 1 retry (total 2 attempts)
+      process.env.BLOCKCHAIN_REPORT_BACKOFF_MS = '100';          // small backoff
+
+      const { reportFinalIfEnabled } = require('./app/blockchainReporter');
+
+      const start = Date.now();
+      // Should swallow errors and return quickly even if unreachable
+      await reportFinalIfEnabled({
+        tournament_id: 555001,
+        winner_alias: 'quick-check',
+        score_a: 3,
+        score_b: 1,
+        points_to_win: 3,
+      }, console);
+      const elapsed = Date.now() - start;
+
+      // 2 attempts * 200ms + small backoff/jitter < ~1s; keep a generous ceiling
+      assert(elapsed < 2000, `reporter took too long (${elapsed}ms), expected < 2000ms`);
+
+      // Restore env
+      process.env.BLOCKCHAIN_REPORT_ENABLED = prev.flag;
+      process.env.BLOCKCHAIN_API_BASE = prev.base;
+      process.env.BLOCKCHAIN_REPORT_TIMEOUT_MS = prev.timeout;
+      process.env.BLOCKCHAIN_REPORT_RETRIES = prev.retries;
+      process.env.BLOCKCHAIN_REPORT_BACKOFF_MS = prev.backoff;
+    }
     }
     console.log('✅ Tournaments service tests passed');
     await app.close();
