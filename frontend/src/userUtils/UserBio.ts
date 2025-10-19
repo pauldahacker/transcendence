@@ -28,9 +28,20 @@ export async function setupBIoButton(user_id: number, bio: string) {
       bioInput.focus();
     });
 
+    bioInput.addEventListener("input", () => {
+      if (bioInput.value.length > 120) {
+        bioInput.value = bioInput.value.slice(0, 120);
+        alert("Bio cannot exceed 120 characters");
+      }
+    });
+
     updateBioBtn.addEventListener("click", () => {
       const newBio = bioInput.value.trim();
       if (newBio) {
+        if (newBio.length > 120) {
+          alert("Bio cannot exceed 120 characters");
+          return;
+        }
         bio = newBio;
         bioElement.textContent = bio;
         updateBio(user_id, newBio);
