@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 16:10:19 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 17:21:42 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,6 +303,22 @@ async function runTest(name, fn) {
       assert(threw, 'expected ALREADY_RECORDED');
     });
     tally(t14);
+  
+    const t15 = await runTest('adapter real-mode (skipped if env missing)', async () => {
+      if (process.env.BLOCKCHAIN_ENABLED !== 'true' ||
+          !process.env.RPC_URL || !process.env.PRIVATE_KEY || !process.env.REGISTRY_ADDRESS) {
+        // skip silently
+        return;
+      }
+      const { recordFinal, getFinal } = require('./app/chain');
+      const tid = Math.floor(Math.random() * 1e6) + 1;
+      const rec = await recordFinal({ tournament_id: tid, winner_alias: 'smoke', score_a: 3, score_b: 1, points_to_win: 3 });
+      assert(rec && typeof rec.txHash === 'string' && rec.txHash.startsWith('0x'), 'expected real txHash');
+      const got = await getFinal(tid);
+      assert(got && got.winner_alias === 'smoke', 'expected on-chain value');
+    });
+    tally(t15);
+
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
