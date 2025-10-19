@@ -62,6 +62,8 @@ test:
 	$(call help_message, "Running end-to-end tournament test...")
 	$(MAKE) e2e_tournament
 	$(MAKE) blockchain_test
+	$(call help_message, "Running end-to-end blockchain bridge (flag dependent)...")
+	$(MAKE) e2e_blockchain_bridge
 
 e2e_tournament:
 	@cd backend/tournaments/src/scripts && \
@@ -87,6 +89,12 @@ blockchain_test: blockchain_dev_certs
 	npm install --prefix $(BLOCKCHAIN_DIR)
 	npm test --prefix $(BLOCKCHAIN_DIR)
 
+e2e_blockchain_bridge:
+	@cd backend/blockchain/src/scripts && \
+	BLOCKCHAIN_REPORT_ENABLED=$$(grep -E '^BLOCKCHAIN_REPORT_ENABLED=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
+	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
+	node e2e_blockchain_bridge.js
+
 down:
 	$(call help_message, "Stopping the containerized application...")
 	docker compose down
@@ -106,4 +114,5 @@ fclean: clean
 re: clean up
 
 .PHONY: all up test build down clean fclean re \
-	e2e_tournament blockchain_dev_certs blockchain_test
+	e2e_tournament blockchain_dev_certs blockchain_test \
+	e2e_blockchain_bridge 

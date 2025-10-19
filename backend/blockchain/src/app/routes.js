@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 17:36:14 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 20:49:27 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,10 +97,16 @@ async function routes(fastify) {
 
   fastify.get('/config', async () => {
     const enabled = process.env.BLOCKCHAIN_ENABLED === 'true';
-    const network = process.env.BLOCKCHAIN_NETWORK || null;       // e.g., "fuji"
-    const registryAddress = process.env.REGISTRY_ADDRESS || null; // public contract address (when set)
     const hasCreds = Boolean(process.env.RPC_URL && process.env.PRIVATE_KEY && process.env.REGISTRY_ADDRESS);
     const ready = enabled && hasCreds;
+    const network = ready
+      ? (process.env.BLOCKCHAIN_NETWORK && process.env.BLOCKCHAIN_NETWORK.trim()
+        ? process.env.BLOCKCHAIN_NETWORK.trim()
+        : 'fuji')
+      : (process.env.BLOCKCHAIN_NETWORK && process.env.BLOCKCHAIN_NETWORK.trim()
+        ? process.env.BLOCKCHAIN_NETWORK.trim()
+        : null);
+    const registryAddress = process.env.REGISTRY_ADDRESS || null; // public contract address (when set)
     const mode = ready ? 'real' : 'mock';
     return { enabled, mode, ready, network, registryAddress };
   }); 
