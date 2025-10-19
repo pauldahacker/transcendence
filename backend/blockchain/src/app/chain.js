@@ -6,11 +6,15 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 22:03:44 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 15:34:30 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 17:21:39 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 'use strict';
+
+const fs = require('fs');
+const path = require('path');
+let ethers; // lazy require to avoid loading if unused
 
 // mock store for finals in memory
 const _store = new Map();
@@ -18,19 +22,60 @@ const _store = new Map();
 function isEnabled() {
   return process.env.BLOCKCHAIN_ENABLED === 'true';
 }
+// /**
+//  * a mock record stores the final inn memory and returns a mock transcation hash
+//  * will switch to calling a real contract after everything is enabled and configured 
+//  *
+//  * @param {Object} p
+//  * @param {number} p.tournament_id
+//  * @param {string} p.winner_alias
+//  * @param {number} p.score_a
+//  * @param {number} p.score_b
+//  * @param {number} p.points_to_win
+//  * @returns {Promise<{ txHash: string }>}
+//  */
 
-/**
- * a mock record stores the final inn memory and returns a mock transcation hash
- * will switch to calling a real contract after everything is enabled and configured 
- *
- * @param {Object} p
- * @param {number} p.tournament_id
- * @param {string} p.winner_alias
- * @param {number} p.score_a
- * @param {number} p.score_b
- * @param {number} p.points_to_win
- * @returns {Promise<{ txHash: string }>}
- */
+// cache for provider/signer/contract to avoid re-init each call
+let _cache = null;
+
+// try to init ethers and contract when enabled . retunrs null\ if not ready.
+function _getContractIfReady() {
+  if (!isEnabled()) return null;
+
+  const RPC_URL = process.env.RPC_URL;
+  const PRIVATE_KEY = process.env.PRIVATE_KEY;
+  const REGISTRY_ADDRESS = process.env.REGISTRY_ADDRESS;
+
+  if (!RPC_URL || !PRIVATE_KEY || !REGISTRY_ADDRESS) return null;
+
+  try {
+    if (!ethers) {
+      // lazy load
+      // eslint-disable-next-line global-require
+      ethers = require('ethers');
+    }
+    if (_cache?.address === REGISTRY_ADDRESS && _cache?.url === RPC_URL) {
+      return _cache.contract;
+    }
+
+    // load ABI from artifacts  (safe, same path as /abi endpoint)
+    const abiPath = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'TournamentRegistry.sol', 'TournamentRegistry.json');
+    const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
+
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const signer = new ethers.Wallet(PRIVATE_KEY, provider);
+    const contract = new ethers.Contract(REGISTRY_ADDRESS, abi, signer);
+
+    _cache = { url: RPC_URL, address: REGISTRY_ADDRESS, contract };
+    return contract;
+  } catch (e) {
+    // if anything fails ( e.g.  bad env or rmissing artifcats) will stay in mock mode
+    return null;
+  }
+}
+
+//store final result on chain (real mode) or in memory (mock mode )
+
 async function recordFinal(p) {
   const id = Number(p.tournament_id);
   if (!Number.isInteger(id) || id < 1) {
@@ -38,7 +83,23 @@ async function recordFinal(p) {
     err.code = 'BAD_ID';
     throw err;
   }
-  // guard for idempotency
+
+  const c = _getContractIfReady();
+  if (c) {
+    // real mode -  call contract, assuming solidity signature matches these fields
+    // function recordFinal(uint256 tournamentId, string winnerAlias, uint8 scoreA, uint8 scoreB, uint8 pointsToWin)
+    const tx = await c.recordFinal(
+      id,
+      String(p.winner_alias),
+      Number(p.score_a),
+      Number(p.score_b),
+      Number(p.points_to_win)
+    );
+    const receipt = await tx.wait();
+    return { txHash: receipt?.hash || tx.hash };
+  }
+
+  // mock mode (current behaviour)
   if (_store.has(id)) {
     const err = new Error('already_recorded');
     err.code = 'ALREADY_RECORDED';
@@ -50,19 +111,11 @@ async function recordFinal(p) {
     score_b: Number(p.score_b),
     points_to_win: Number(p.points_to_win),
   });
-  // for the moment we always return a mock transaction hash 
-  // (even if BLOCKCHAIN_ENABLED is true).
-  // whe real-chain calls is wired this behaviour will be changed
   return { txHash: `0xmock_${id}_${Date.now()}` };
 }
 
-/**
- * Mock read: returns stored final or null.
- * Later, when enabled, will read from the chain.
- *
- * @param {number} tournamentId
- * @returns {Promise<null | { winner_alias:string, score_a:number, score_b:number, points_to_win:number }>}
- */
+//read final result froim chain (real mode) or  memory (mock mode )
+
 async function getFinal(tournamentId) {
   const id = Number(tournamentId);
   if (!Number.isInteger(id) || id < 1) {
@@ -70,7 +123,24 @@ async function getFinal(tournamentId) {
     err.code = 'BAD_ID';
     throw err;
   }
+
+  const c = _getContractIfReady();
+  if (c) {
+    // real mode: assume getFinal returns tuple [winner, a, b, toWin, exists]
+    const res = await c.getFinal(id);
+    // ethers v6 returns arrays with named props if ABI has names, so normalize preemtively 
+    const winner_alias = res.winnerAlias ?? res[0];
+    const score_a = Number(res.scoreA ?? res[1]);
+    const score_b = Number(res.scoreB ?? res[2]);
+    const points_to_win = Number(res.pointsToWin ?? res[3]);
+    const exists = Boolean(res.exists ?? res[4] ?? false);
+    if (!exists) return null;
+    return { winner_alias, score_a, score_b, points_to_win };
+  }
+
+  // mock mode:
   return _store.get(id) || null;
 }
 
 module.exports = { isEnabled, recordFinal, getFinal, _store };
+
