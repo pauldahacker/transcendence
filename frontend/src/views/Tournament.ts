@@ -2,6 +2,7 @@ import { createTournamentState } from "../tournament/state";
 import { createAliasOverlay, createMatchList } from "../tournament/ui";
 import { playNextMatch, showMatchList } from "../tournament/controller";
 import { getUsernameFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
+import { getUserDisplayName } from "@/userUtils/DisplayName";
 
 export async function renderTournament(root: HTMLElement) {
   const container = document.createElement("div");
@@ -77,8 +78,8 @@ export async function renderTournament(root: HTMLElement) {
       }
 
       // No name can exceed 16 characters
-      if (aliases.some((name) => name.length > 16)) {
-        alert("Player names cannot exceed 16 characters.");
+      if (aliases.some((name) => name.length > 20)) {
+        alert("Player names cannot exceed 20 characters.");
         return;
       }
 
@@ -118,10 +119,11 @@ export async function renderTournament(root: HTMLElement) {
   }
 
   // skip the overlay only if user is logged in
-  function skipAliasOverlay(numPlayers: number) {
-    const username = getCurrentUsername() || "Guest"; // should never be "Guest" because its called after isLoggedIn()
+  async function skipAliasOverlay(numPlayers: number) {
+    const displayName = await getUserDisplayName();
+    const name = displayName || "Guest"; // should never be "Guest" because its called after isLoggedIn()
 
-    const aliases: string[] = [username];
+    const aliases: string[] = [name];
     const totalAI = numPlayers - 1;
     for (let i = 1; i <= totalAI; i++) {
       aliases.push(`[AI] ${i}`);
@@ -137,10 +139,5 @@ export async function renderTournament(root: HTMLElement) {
 
     const state = createTournamentState(matches);
     showMatchList(root, state);
-  }
-
-  function getCurrentUsername() {
-    const token = localStorage.getItem("auth_token");
-    return token ? getUsernameFromToken(token) : null;
   }
 }

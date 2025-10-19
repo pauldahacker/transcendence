@@ -15,6 +15,9 @@ async function router() {
   const app = document.getElementById("app")!;
   app.innerHTML = ""; // clear
 
+  const loggedIn = await isUserLoggedIn();
+  const route = location.hash;
+
   switch (location.hash) {
     case "#/1player":
       renderGame(app, {onePlayer: true});
@@ -38,9 +41,10 @@ async function router() {
       renderRegister(app);
       break;
     case "#/profile":
-      if (await isUserLoggedIn()) {
+      if (loggedIn) {
         renderProfile(app);
       } else {
+        localStorage.removeItem("auth_token");
         window.location.hash = "#/home";
       }
     break;
