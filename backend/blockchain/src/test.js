@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/17 21:29:13 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 13:15:10 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,6 +235,32 @@ async function runTest(name, fn) {
       }
     });
     tally(t9);
+
+    // ---- chain adapter unit tests (disabled-mode mock) ----
+    const { isEnabled, recordFinal, getFinal, _store } = require('./app/chain');
+
+    const t10 = await runTest('chain.isEnabled returns boolean', async () => {
+      const b = isEnabled();
+      assert(typeof b === 'boolean', 'isEnabled() must return a boolean');
+    });
+    tally(t10);
+
+    const t11 = await runTest('chain.recordFinal stores and returns mock tx', async () => {
+      _store.clear();
+      const res = await recordFinal({ tournament_id: 123, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 });
+      assert(res && typeof res.txHash === 'string' && res.txHash.startsWith('0xmock_'), 'expected mock txHash');
+      const got = await getFinal(123);
+      assert(got && got.winner_alias === 'alice', 'expected stored winner_alias');
+      assert(got.score_a === 3 && got.score_b === 1 && got.points_to_win === 3, 'expected stored scores');
+    });
+    tally(t11);
+
+    const t12 = await runTest('chain.getFinal returns null when missing', async () => {
+      _store.clear();
+      const got = await getFinal(999);
+      assert(got === null, 'expected null for missing final');
+    });
+    tally(t12);
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
