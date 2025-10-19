@@ -1,5 +1,4 @@
-
-export function getUsernameFromToken(token: string): string | null {
+function decodeTokenPayload(token: string): Record<string, unknown> | null {
   try {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -9,11 +8,35 @@ export function getUsernameFromToken(token: string): string | null {
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
         .join("")
     );
-    const payload = JSON.parse(jsonPayload);
-    return payload.username || null;
+    return JSON.parse(jsonPayload);
   } catch {
     return null;
   }
+}
+
+export function getUsernameFromToken(token: string): string | null {
+  const payload = decodeTokenPayload(token);
+  if (!payload) return null;
+  const username = payload.username;
+  return typeof username === "string" ? username : null;
+}
+
+export function getUserIdFromToken(): number  {
+  const token: string | null = localStorage.getItem("auth_token");
+  if (!token) return 0;
+
+  const payload = decodeTokenPayload(token);
+  if (!payload || payload.id == null) return 0;
+
+  const id = payload.id;
+
+  if (typeof id === "number") return id;
+
+  if (typeof id === "string" && id.trim() !== "") {
+    const parsed = parseInt(id, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
 }
 
 export function setAuthToken(token: string) {
