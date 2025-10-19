@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 14:56:43 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 16:08:41 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,8 +71,15 @@ async function routes(fastify) {
 
   fastify.post('/finals', { schema: { body: finalsPostSchema } }, async (req, reply) => {
     const { tournament_id, winner_alias, score_a, score_b, points_to_win } = req.body;
-    const { txHash } = await recordFinal({ tournament_id, winner_alias, score_a, score_b, points_to_win });
-    reply.code(201).send({ txHash });
+    try {
+      const { txHash } = await recordFinal({ tournament_id, winner_alias, score_a, score_b, points_to_win });
+      reply.code(201).send({ txHash });
+    } catch (err) {
+      if (err && err.code === 'ALREADY_RECORDED') {
+        return reply.code(409).send({ error: 'already_recorded' });
+      }
+      throw err; // just a precautin for fastify to produce 500 for unexpected cases 
+    }
   });
 
   fastify.get('/finals/:tournament_id', async (req, reply) => {

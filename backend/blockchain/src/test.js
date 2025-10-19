@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 13:15:10 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 16:10:19 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,48 @@ async function runTest(name, fn) {
       assert(got === null, 'expected null for missing final');
     });
     tally(t12);
+
+    // POST /finals idempotency: second call -> 409
+    const t13 = await runTest('POST /finals twice -> 201 then 409', async () => {
+      const first = await app.inject({
+        method: 'POST',
+        url: '/finals',
+        payload: { tournament_id: 321, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 }
+      });
+      if (first.statusCode !== 201) {
+        const body = (() => { try { return first.json(); } catch { return first.body; } })();
+        const err = new Error(`Expected 201, got ${first.statusCode}`);
+        err.details = { body };
+        throw err;
+      }
+      const second = await app.inject({
+        method: 'POST',
+        url: '/finals',
+        payload: { tournament_id: 321, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 }
+      });
+      if (second.statusCode !== 409) {
+        const body = (() => { try { return second.json(); } catch { return second.body; } })();
+        const err = new Error(`Expected 409, got ${second.statusCode}`);
+        err.details = { body };
+        throw err;
+      }
+    });
+    tally(t13);
+
+    // Adapter-level: recordFinal throws ALREADY_RECORDED
+    const t14 = await runTest('adapter: recordFinal throws on duplicate', async () => {
+      const { _store, recordFinal } = require('./app/chain');
+      _store.clear();
+      await recordFinal({ tournament_id: 999, winner_alias: 'x', score_a: 1, score_b: 0, points_to_win: 1 });
+      let threw = false;
+      try {
+        await recordFinal({ tournament_id: 999, winner_alias: 'x', score_a: 1, score_b: 0, points_to_win: 1 });
+      } catch (e) {
+        threw = (e && e.code === 'ALREADY_RECORDED');
+      }
+      assert(threw, 'expected ALREADY_RECORDED');
+    });
+    tally(t14);
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
