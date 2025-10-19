@@ -327,6 +327,35 @@ test('GET `/blockchain/config` with internal API key -> 200 + fields', async (t)
   t.assert.ok(Object.prototype.hasOwnProperty.call(res.body, 'registryAddress'), 'missing registryAddress');
 });
 
+// --- Blockchain finals duplicate guard via proxy ---
+test('POST `/blockchain/finals` twice -> 201 then 409 (idempotent)', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
+
+  const tid = 13579;
+
+  // First call -> 201
+  const first = await supertest(app.server)
+    .post('/blockchain/finals')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .send({ tournament_id: tid, winner_alias: 'dup', score_a: 3, score_b: 1, points_to_win: 3 })
+    .expect(201)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.ok(first.body && typeof first.body.txHash === 'string', 'expected txHash string');
+
+  // Second call with same id -> 409
+  const second = await supertest(app.server)
+    .post('/blockchain/finals')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    .send({ tournament_id: tid, winner_alias: 'dup', score_a: 3, score_b: 1, points_to_win: 3 })
+    .expect(409)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+  t.assert.equal(second.body && second.body.error, 'already_recorded', 'expected already_recorded error');
+});
+
 
 
 // test('OPTIONS preflight -> 204 (no auth)', async (t) => {
