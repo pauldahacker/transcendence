@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 18:16:08 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 20:54:38 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -347,8 +347,8 @@ async function runTest(name, fn) {
       process.env.RPC_URL = prev.url || 'https://example.invalid'; // bogus is fine for config computation
       process.env.PRIVATE_KEY = prev.pk || '0x' + '11'.repeat(32);
       process.env.REGISTRY_ADDRESS = prev.addr || '0x0000000000000000000000000000000000000001';
-      process.env.BLOCKCHAIN_NETWORK = prev.net || 'fuji';
-
+      // process.env.BLOCKCHAIN_NETWORK = prev.net || 'fuji';
+      process.env.BLOCKCHAIN_NETWORK = 'fuji';
       const { app: app2 } = buildFastify({ logger: false });
       await app2.ready();
 
