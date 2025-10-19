@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/17 11:25:26 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 23:31:45 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 const https = require('https');
 const { URL } = require('url');
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // a small fetch wrapper allowing an https.Agent override
 async function doFetch(url, opts) {
@@ -59,35 +61,66 @@ async function reportFinalIfEnabled(p, log = console) {
       rejectUnauthorized: INTERNAL_DEV_SKIP_TLS_VERIFY === 'true' ? false : true,
     });
 
-    const res = await doFetch(target, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-internal-api-key': INTERNAL_API_KEY,
-      },
-      body: JSON.stringify({
-        tournament_id: p.tournament_id,
-        winner_alias: p.winner_alias,
-        score_a: p.score_a,
-        score_b: p.score_b,
-        points_to_win: p.points_to_win,
-      }),
-      // pass the agent to handle self-signed certs
-      agent,
-    });
+    const TIMEOUT_MS = Number(process.env.BLOCKCHAIN_REPORT_TIMEOUT_MS || 2000);
+    const RETRIES = Math.max(0, Number(process.env.BLOCKCHAIN_REPORT_RETRIES || 2)); // extra attempts
+    const BACKOFF_BASE_MS = Math.max(50, Number(process.env.BLOCKCHAIN_REPORT_BACKOFF_MS || 150));
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      log.warn?.('[blockchainReporter] non-2xx response', { status: res.status, text });
-      return;
+    let attempt = 0;
+    while (true) {
+      attempt += 1;
+
+      // per attempt timeout via AbortController
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+
+      try {
+        const res = await doFetch(target, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'x-internal-api-key': INTERNAL_API_KEY,
+          },
+          body: JSON.stringify({
+            tournament_id: p.tournament_id,
+            winner_alias: p.winner_alias,
+            score_a: p.score_a,
+            score_b: p.score_b,
+            points_to_win: p.points_to_win,
+          }),
+          // @ts-ignore: node-fetch compatible
+          agent,
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          log.warn?.('[blockchainReporter] non-2xx response', { status: res.status, text, attempt });
+        } else {
+          const body = await res.json().catch(() => ({}));
+          log.info?.('[blockchainReporter] reported final', { tournament_id: p.tournament_id, txHash: body.txHash, attempt });
+          return; // success, stop retrying
+        }
+      } catch (err) {
+        clearTimeout(timer);
+        // fetch aborted or network error; log and maybe retry
+        log.warn?.('[blockchainReporter] attempt failed', { attempt, err: err?.message || String(err) });
+      }
+
+      if (attempt > RETRIES) {
+        // give up silently
+        log.warn?.('[blockchainReporter] giving up after attempts', { attempts: attempt });
+        return;
+      }
+
+      // exponential bacckoff with small jitter
+      const jitter = Math.floor(Math.random() * 50);
+      const backoff = BACKOFF_BASE_MS * Math.pow(2, attempt - 1) + jitter;
+      await sleep(backoff);
     }
-
-    // optional: read transaction hash for logs
-    const body = await res.json().catch(() => ({}));
-    log.info?.('[blockchainReporter] reported final', { tournament_id: p.tournament_id, txHash: body.txHash });
   } catch (err) {
-    // disregard errors not to  impact the tournament flow
-    log.error?.('[blockchainReporter] report failure', { err: err && err.message ? err.message : err });
+    // ultra-safety - never throw
+    log.error?.('[blockchainReporter] report failure (outer)', { err: err && err.message ? err.message : err });
   }
 }
 
