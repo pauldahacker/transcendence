@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 16:08:41 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 17:36:14 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,8 +99,11 @@ async function routes(fastify) {
     const enabled = process.env.BLOCKCHAIN_ENABLED === 'true';
     const network = process.env.BLOCKCHAIN_NETWORK || null;       // e.g., "fuji"
     const registryAddress = process.env.REGISTRY_ADDRESS || null; // public contract address (when set)
-    return { enabled, network, registryAddress };
-  });
+    const hasCreds = Boolean(process.env.RPC_URL && process.env.PRIVATE_KEY && process.env.REGISTRY_ADDRESS);
+    const ready = enabled && hasCreds;
+    const mode = ready ? 'real' : 'mock';
+    return { enabled, mode, ready, network, registryAddress };
+  }); 
 }
 
 module.exports = routes;
