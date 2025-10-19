@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 22:03:44 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 13:08:04 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 15:34:30 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,12 @@ async function recordFinal(p) {
   if (!Number.isInteger(id) || id < 1) {
     const err = new Error('bad_tournament_id');
     err.code = 'BAD_ID';
+    throw err;
+  }
+  // guard for idempotency
+  if (_store.has(id)) {
+    const err = new Error('already_recorded');
+    err.code = 'ALREADY_RECORDED';
     throw err;
   }
   _store.set(id, {
