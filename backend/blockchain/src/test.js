@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 17:21:42 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/19 18:16:08 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,6 +319,62 @@ async function runTest(name, fn) {
     });
     tally(t15);
 
+    // /config shows mode/mock + ready=false by default
+    const t16 = await runTest('GET /config -> mode=mock, ready=false by default', async () => {
+      const res = await app.inject({ method: 'GET', url: '/config' });
+      const body = (() => { try { return res.json(); } catch { return res.body; } })();
+      if (res.statusCode !== 200) {
+        const err = new Error(`Expected 200, got ${res.statusCode}`);
+        err.details = { statusCode: res.statusCode, body };
+        throw err;
+      }
+      assert(body.mode === 'mock', 'expected mode=mock');
+      assert(body.ready === false, 'expected ready=false');
+    });
+    tally(t16);
+    
+    // /config shows mode=real + ready=true when flag and creds exist
+    const t17 = await runTest('GET /config -> mode=real, ready=true when enabled + env present', async () => {
+      const { buildFastify } = require('./app/app');
+      const prev = {
+        enabled: process.env.BLOCKCHAIN_ENABLED,
+        url: process.env.RPC_URL,
+        pk: process.env.PRIVATE_KEY,
+        addr: process.env.REGISTRY_ADDRESS,
+        net: process.env.BLOCKCHAIN_NETWORK,
+      };
+      process.env.BLOCKCHAIN_ENABLED = 'true';
+      process.env.RPC_URL = prev.url || 'https://example.invalid'; // bogus is fine for config computation
+      process.env.PRIVATE_KEY = prev.pk || '0x' + '11'.repeat(32);
+      process.env.REGISTRY_ADDRESS = prev.addr || '0x0000000000000000000000000000000000000001';
+      process.env.BLOCKCHAIN_NETWORK = prev.net || 'fuji';
+
+      const { app: app2 } = buildFastify({ logger: false });
+      await app2.ready();
+
+      try {
+        const res = await app2.inject({ method: 'GET', url: '/config' });
+        const body = (() => { try { return res.json(); } catch { return res.body; } })();
+        if (res.statusCode !== 200) {
+          const err = new Error(`Expected 200, got ${res.statusCode}`);
+          err.details = { statusCode: res.statusCode, body };
+          throw err;
+        }
+        assert(body.enabled === true, 'expected enabled=true');
+        assert(body.mode === 'real', 'expected mode=real');
+        assert(body.ready === true, 'expected ready=true');
+        assert(body.network === 'fuji', 'expected network=fuji');
+        assert(typeof body.registryAddress === 'string' && body.registryAddress.length > 0, 'expected registryAddress string');
+      } finally {
+        process.env.BLOCKCHAIN_ENABLED = prev.enabled;
+        process.env.RPC_URL = prev.url;
+        process.env.PRIVATE_KEY = prev.pk;
+        process.env.REGISTRY_ADDRESS = prev.addr;
+        process.env.BLOCKCHAIN_NETWORK = prev.net;
+        await app2.close();
+      }
+    });
+    tally(t17);
 
     if (counters.failed === 0) {
       console.log(`✅ blockchain ${counters.passed} of ${counters.total} service tests passed`);
