@@ -356,7 +356,36 @@ test('POST `/blockchain/finals` twice -> 201 then 409 (idempotent)', async (t) =
   t.assert.equal(second.body && second.body.error, 'already_recorded', 'expected already_recorded error');
 });
 
+test('Rate limit: multiple hits to `/blockchain/health` -> 200 then 429 (or 403)', async (t) => {
+  const app = buildFastify(opts = {});
+  t.after(() => app.close());
+  await app.ready();
 
+  // hit below the threshold first
+  for (let i = 0; i < 30; i++) {
+    await supertest(app.server)
+      .get('/blockchain/health')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+      .expect(200);
+  }
+
+  // the next immediate hit should be limited
+  const res = await supertest(app.server)
+    .get('/blockchain/health')
+    .set('x-internal-api-key', process.env.INTERNAL_API_KEY);
+
+  // Accept either 429 (rate limit) or 403 (auth short-circuit after limit)
+  t.assert.ok([429, 403].includes(res.statusCode), `expected 429/403, got ${res.statusCode}`);
+
+  const bodyText = typeof res.text === 'string' ? res.text : '';
+  const looksLimited =
+    /Too Many Requests/i.test(bodyText) ||
+    res.body?.code === 'FST_ERR_RATE_LIMIT' ||
+    /rate[- ]?limit/i.test(bodyText) ||
+    res.headers['x-ratelimit-limit'] !== undefined;
+
+  t.assert.ok(looksLimited, 'expected rate-limit style response or headers');
+});
 
 // test('OPTIONS preflight -> 204 (no auth)', async (t) => {
 //   const app = buildFastify(opts = {});
