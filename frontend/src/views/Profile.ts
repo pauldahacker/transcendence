@@ -1,7 +1,7 @@
-import { getUsernameFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
-import { getUserId, getUserData, UserData, UserStats, getUserDataFromName } from "@/userUtils/UserStats";
+import { getUsernameFromToken, getUserIdFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
+import { getUserData, UserData, UserStats, getUserStats, getUserDataFromName } from "@/userUtils/UserStats";
 import { updateBio, setupBIoButton } from "@/userUtils/UserBio";
-import { renderLastMatches } from "@/userUtils/UserMatches"; 
+import { renderLastMatches, seedTestMatches} from "@/userUtils/UserMatches"; 
 import { logoutUser } from "@/userUtils/LogoutUser";
 import { setupAvatarPopup } from "@/userUtils/UserAvatar";
 
@@ -11,8 +11,7 @@ export async function renderProfile(root: HTMLElement) {
     "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
   const token = localStorage.getItem("auth_token");
   let username = "Player";
-  
-  //let data: UserData | null = null;
+  const user_id = getUserIdFromToken();
   if (token) {
     const decoded = getUsernameFromToken(token);
     console.log(`token: ${token} || username ${decoded}`);
@@ -21,25 +20,18 @@ export async function renderProfile(root: HTMLElement) {
     }
   }
 
-/*   try {
-    const data = await getUserDataFromName(username);
-    console.log("Datos del usuario:", data);
-    console.log(`avatar: ${data.avatar_url}`);
-  } catch (e) {
-    console.error(e);
-  } */
-
   const medalUrl = new URL("../imgs/trophy.png", import.meta.url).href;
   const editUrl = new URL("../imgs/edit.png", import.meta.url).href;
   const data : UserData = await getUserDataFromName(username);
+  const stats : UserStats = await getUserStats(user_id);
   
   let avatarUrl = data?.avatar_url && data.avatar_url !== "null" && data.avatar_url.trim() !== ""
     ? data.avatar_url : new URL("../imgs/avatar.png", import.meta.url).href;
 
   let bio = data?.bio ?? "default";
-  const wins = data?.stats?.wins ?? 0;
-  const losses = data?.stats?.losses ?? 0;
-  const totalGames = data?.stats?.total_games ?? wins + losses;
+  const wins = stats?.wins ?? 0;
+  const losses = stats?.losses ?? 0;
+  const totalGames = stats?.total_games ?? wins + losses;
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
     
   console.log("avatar_url del backend:", data?.avatar_url);
@@ -173,7 +165,7 @@ export async function renderProfile(root: HTMLElement) {
 
       <div id="matchHistoryList" 
            class="divide-y divide-cyan-800 overflow-y-auto flex-1 min-h-0">
-           <div id="matchHistory" class="w-full p-4 bg-cyan-900/30 rounded-xl"></div>
+           <div id="matchHistory" class="w-full p-3 bg-cyan-900/30 rounded-xl"></div>
       </div>
     </div>
   </div>
@@ -201,7 +193,8 @@ export async function renderProfile(root: HTMLElement) {
     progressBar.style.width = `${winRate}%`;
 
 //--Match history
-  const user_id = await getUserId(username);
+
+  seedTestMatches(1, 2);
   renderLastMatches(user_id);
 
 //--Bio button
