@@ -333,6 +333,10 @@ POST /api/blockchain/finals
 
 Errors are **swallowed**; tournament scoring is never blocked by reporting failures.
 
+**Timeouts & retries:** The reporter is non-blocking and uses short HTTP timeouts and bounded retries when calling `/api/blockchain/finals`. Failures are logged and swallowed; tournament scoring still returns `200/204`.
+
+**Points to win:** The reporter forwards the tournament’s configured `points_to_win` together with the final score/winner.
+
 ---
 
 ### Health (service diagnostics)
@@ -445,6 +449,8 @@ It is all done in the test suite but  thgere’s no harm in trying ))
 
 Base: `https://localhost/api/blockchain/*`  
 Auth: **required** — `Authorization: Bearer <jwt>` OR `x-internal-api-key: <key>`.
+> **CORS:** `OPTIONS /api/blockchain/*` is handled **at the API Gateway** (no auth, `204` with CORS headers). Services do **not** handle CORS.
+> **Rate limit:** Standard gateway rate limiting applies to `/api/blockchain/*` (tests tolerate either `429` or `403` when the limiter is tripped).
 
 ### Health
 GET `/health` → `200 {"status":"ok"}`
@@ -466,10 +472,29 @@ Body:
   "score_b": 1,
   "points_to_win": 3
 }
+*All fields are required; `tournament_id` must be a positive integer.*
 Responses:
 - `201 {"txHash":"0xmock_42_<timestamp>"}` on success
 - `400` invalid body
 - `401` missing/invalid auth
+- `409 {"error":"already_recorded"}` when the final for the `tournament_id` was already stored (idempotency)
+
+**Idempotency example (second call → 409)**
+```bash
+# first call succeeds
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"tournament_id":42,"winner_alias":"alice","score_a":3,"score_b":1,"points_to_win":3}' \
+  https://localhost/api/blockchain/finals
+
+# second call with the same tournament_id returns 409
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"tournament_id":42,"winner_alias":"alice","score_a":3,"score_b":1,"points_to_win":3}' \
+  -w '\\nHTTP %{http_code}\\n' \
+  https://localhost/api/blockchain/finals
+```
+
 
 **Example**
 curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
@@ -483,7 +508,42 @@ GET `/finals/:tournament_id` →
 - `401` missing/invalid auth
 - `404` if not recorded
 
+### Service config / diagnostics
+GET `/config` → returns blockchain feature/connection diagnostics.
 
+Successful response:
+```json
+{
+  "enabled": false,
+  "mode": "mock",
+  "ready": false,
+  "network": null,
+  "registryAddress": null
+}
+```
+- `enabled`: reflects `.env` `BLOCKCHAIN_ENABLED === "true"`
+- `mode`: `"mock"` when not ready, otherwise `"real"`
+- `ready`: `true` only when `enabled` **and** all of `RPC_URL`, `PRIVATE_KEY`, and `REGISTRY_ADDRESS` are set
+- `network`: when ready, typically `"fuji"`; otherwise `null` (or the value from `BLOCKCHAIN_NETWORK` if set)
+- `registryAddress`: public contract address (string) or `null`
+
+**Example (ready/real mode):**
+```json
+{
+  "enabled": true,
+  "mode": "real",
+  "ready": true,
+  "network": "fuji",
+  "registryAddress": "0x0000000000000000000000000000000000000001"
+}
+```
+
+**Curl examples**
+```bash
+# Inspect blockchain service configuration via the gateway
+curl -sk -H "x-internal-api-key: $INTERNAL_API_KEY" \
+  https://localhost/api/blockchain/config | jq .
+```
 
 ## Health endpoints
 
