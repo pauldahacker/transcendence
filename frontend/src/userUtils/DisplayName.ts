@@ -42,13 +42,13 @@ export async function updateDisplayName(user_id: number, newDisplayName: string)
 
 // optional, needs updating
 export function setupDisplayNameEditor(user_id: number, displayName: string) {
-  const editNameWrapper = document.getElementById("editNameWrapper")!;
+  const nameHoverArea = document.getElementById("nameHoverArea")!;
   const namePopup = document.getElementById("namePopup")!;
   const updateNameBtn = document.getElementById("updateNameBtn")!;
   const nameInput = document.getElementById("nameInput") as HTMLInputElement;
   const nameElement = document.getElementById("currentDisplayName")!;
 
-  editNameWrapper.addEventListener("click", () => {
+  nameHoverArea.addEventListener("click", () => {
     nameInput.value = displayName;
     namePopup.classList.remove("hidden");
     nameInput.focus();

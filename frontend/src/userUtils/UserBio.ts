@@ -16,13 +16,13 @@ export async function updateBio(user_id: number, newBio: string){
 }
 
 export async function setupBIoButton(user_id: number, bio: string) {
-    const editBioWrapper = document.getElementById("editBioWrapper")!;
+    const bioHoverArea = document.getElementById("bioHoverArea")!;
     const bioPopup = document.getElementById("bioPopup")!;
     const updateBioBtn = document.getElementById("updateBioBtn")!;
     const bioInput = document.getElementById("bioInput") as HTMLInputElement;
     const bioElement = document.querySelector("p")!;
     
-    editBioWrapper.addEventListener("click", () => {
+    bioHoverArea.addEventListener("click", () => {
       bioInput.value = bio;
       bioPopup.classList.remove("hidden");
       bioInput.focus();
