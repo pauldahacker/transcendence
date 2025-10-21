@@ -35,10 +35,16 @@ async function router() {
       renderResults(app);
       break;
     case "#/login":
-      renderLogin(app);
+      if (!loggedIn)
+        renderLogin(app);
+      else
+        window.location.hash = "#/profile";
       break;
     case "#/register":
-      renderRegister(app);
+      if (!loggedIn)
+         renderRegister(app);
+      else
+        window.location.hash = "#/profile";
       break;
     case "#/profile":
       if (loggedIn) {
