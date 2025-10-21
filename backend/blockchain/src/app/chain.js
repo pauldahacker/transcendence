@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 22:03:44 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 17:21:39 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/21 21:32:05 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,10 @@ function _getContractIfReady() {
     }
 
     // load ABI from artifacts  (safe, same path as /abi endpoint)
-    const abiPath = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'TournamentRegistry.sol', 'TournamentRegistry.json');
-    const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
+    // const abiPath = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'TournamentRegistry.sol', 'TournamentRegistry.json');
+    // const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
 
+    const { abi } = require('../artifacts/contracts/TournamentRegistry.sol/TournamentRegistry.json');
     const provider = new ethers.JsonRpcProvider(RPC_URL);
     const signer = new ethers.Wallet(PRIVATE_KEY, provider);
     const contract = new ethers.Contract(REGISTRY_ADDRESS, abi, signer);
@@ -144,3 +145,41 @@ async function getFinal(tournamentId) {
 
 module.exports = { isEnabled, recordFinal, getFinal, _store };
 
+// --- diagnostics helper (no secrets) ---
+async function diagnostics() {
+  const out = {
+    enabled: isEnabled(),
+    envPresent: Boolean(process.env.RPC_URL && process.env.PRIVATE_KEY && process.env.REGISTRY_ADDRESS),
+    abiReadable: false, providerOk: false, walletOk: false, contractOk: false,
+    reason: null
+  };
+  if (!out.enabled || !out.envPresent) return out;
+  try {
+    // removing absolute require 
+    // const abiPath = path.join(__dirname, '..', '..', 'artifacts', 'contracts', 'TournamentRegistry.sol', 'TournamentRegistry.json');
+    // const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
+    // out.abiReadable = Array.isArray(abi);
+
+    // load ABI via relative require (robust in container)
+    const { abi } = require('../artifacts/contracts/TournamentRegistry.sol/TournamentRegistry.json');
+    out.abiReadable = Array.isArray(abi);
+
+    // lazy load ethers
+    if (!ethers) ethers = require('ethers');
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+    await provider.getBlockNumber(); // lightweight call
+    out.providerOk = true;
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    // cheap wallet check
+    await wallet.getAddress();
+    out.walletOk = true;
+    const c = new ethers.Contract(process.env.REGISTRY_ADDRESS, abi, wallet);
+    // do a harmless static call to ensure ABI/address shape (id 0 expected to exist=false)
+    try { await c.getFinal.staticCall(0).catch(() => {}); } catch {}
+    out.contractOk = true;
+  } catch (e) {
+    out.reason = e && e.message ? e.message : String(e);
+  }
+  return out;
+}
+module.exports.diagnostics = diagnostics;

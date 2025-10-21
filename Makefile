@@ -125,6 +125,12 @@ chain-real-smoke:
 	curl -sk "$(API_ORIGIN)/api/blockchain/finals/$${TID}" \
 	  -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq '.'
 
+# Quick health flags for real-mode adapter
+chain-diagnostics:
+	@curl -sk "$(API_ORIGIN)/api/blockchain/config/diagnostics" \
+	-H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq .
+
+
 # e2e_blockchain_bridge:
 # 	@cd backend/blockchain/src/scripts && \
 # 	BLOCKCHAIN_REPORT_ENABLED=$$(grep -E '^BLOCKCHAIN_REPORT_ENABLED=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
@@ -152,4 +158,4 @@ re: clean up
 .PHONY: all up test build down clean fclean re \
 	e2e_tournament blockchain_dev_certs blockchain_test \
 	e2e_blockchain_bridge chain-real-smoke chain-deploy-fuji \ 
-	chain-config
+	chain-config chain-diagnostics
