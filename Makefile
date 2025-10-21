@@ -15,6 +15,7 @@ ENV_FILE=.env
 CERTS_DIR=./common/certs
 TEST_DIR=./backend/test
 BLOCKCHAIN_DIR=./backend/blockchain/src
+API_ORIGIN ?= https://localhost
 
 all:
 	@echo
@@ -95,6 +96,35 @@ e2e_blockchain_bridge:
 	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
 	node e2e_blockchain_bridge.js
 
+
+# --- Blockchain helpers (Fuji) ---
+
+chain-deploy-fuji:
+	cd $(BLOCKCHAIN_DIR) && npm ci && \
+	RPC_URL="$${RPC_URL}" PRIVATE_KEY="$${PRIVATE_KEY}" \
+	npx hardhat run scripts/deploy.cjs --network fuji
+ 
+chain-config:
+	@curl -sk "$(API_ORIGIN)/api/blockchain/config" \
+	 -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq .
+
+# Usage: make chain-real-smoke TID=42 WIN=alice SA=3 SB=1 PTW=3
+chain-real-smoke:
+	@test -n "$${INTERNAL_API_KEY}" || (echo "INTERNAL_API_KEY required" && exit 1)
+	@echo "==> Config"; \
+	curl -sk "$(API_ORIGIN)/api/blockchain/config" \
+	 -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq '.'
+	@test -n "$${TID}" || (echo "Set TID=<tournament id>" && exit 1)
+	@WIN=$${WIN:-alice}; SA=$${SA:-3}; SB=$${SB:-1}; PTW=$${PTW:-3}; \
+	echo "==> POST /finals id=$${TID}"; \
+	curl -sk "$(API_ORIGIN)/api/blockchain/finals" \
+	  -H "x-internal-api-key: $${INTERNAL_API_KEY}" \
+	  -H "content-type: application/json" \
+	  --data "{\"tournament_id\":$${TID},\"winner_alias\":\"$${WIN}\",\"score_a\":$${SA},\"score_b\":$${SB},\"points_to_win\":$${PTW}}" | jq '.'
+	@echo "==> GET /finals/$$TID"; \
+	curl -sk "$(API_ORIGIN)/api/blockchain/finals/$${TID}" \
+	  -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq '.'
+
 # e2e_blockchain_bridge:
 # 	@cd backend/blockchain/src/scripts && \
 # 	BLOCKCHAIN_REPORT_ENABLED=$$(grep -E '^BLOCKCHAIN_REPORT_ENABLED=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
@@ -121,4 +151,5 @@ re: clean up
 
 .PHONY: all up test build down clean fclean re \
 	e2e_tournament blockchain_dev_certs blockchain_test \
-	e2e_blockchain_bridge 
+	e2e_blockchain_bridge chain-real-smoke chain-deploy-fuji \ 
+	chain-config

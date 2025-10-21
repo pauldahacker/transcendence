@@ -9,6 +9,10 @@ services:
     restart: always
     environment:
       - PORT=${BLOCKCHAIN_PORT}
+      - BLOCKCHAIN_ENABLED=${BLOCKCHAIN_ENABLED}
+      - RPC_URL=${RPC_URL}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - REGISTRY_ADDRESS=${REGISTRY_ADDRESS}
 
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$BLOCKCHAIN_PORT/health"]
