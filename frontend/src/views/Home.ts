@@ -1,6 +1,7 @@
 import { is3DActive } from "../tournament/state";
 import { setup3DSwitch } from "../3d/3dswitch";
 import { isUserLoggedIn } from "@/userUtils/TokenUtils";
+import { initSearchButton } from "@/Friends/searchBtn";
 
 export async function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
@@ -16,7 +17,20 @@ export async function renderHome(root: HTMLElement) {
     }
 
     container.innerHTML = `
-    <div class="absolute top-[2vh] right-[3vw] group">
+    <div class="absolute top-[2vh] right-[3vw] flex items-center gap-3">
+      ${logged ? `
+      <button id="newsBtn"
+        class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-4 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900 flex items-center gap-2">
+        <img src="src/imgs/bell.png" alt="Search" class="w-[3.5vh] h-[3.5vh] inline-block" />
+      </button>
+      <button id="searchBtn"
+        class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-4 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900 flex items-center gap-2">
+        <img src="src/imgs/lupa2.png" alt="Search" class="w-[3.5vh] h-[3.5vh] inline-block" />
+      </button>
+      ` : ''}
+
       <a href="${link}"
         class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-6 py-2 
           transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900">
@@ -90,6 +104,6 @@ export async function renderHome(root: HTMLElement) {
   root.appendChild(container);
 
   setup3DSwitch(container); 
-
+  initSearchButton();
 }
 
