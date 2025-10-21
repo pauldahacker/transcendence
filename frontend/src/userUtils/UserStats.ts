@@ -49,9 +49,3 @@ export async function getUserData(userId: number) {
   }
   return await res.json();
 }
-
-export async function getUserDataFromName(username: string) {
-  const id =  getUserIdFromToken();
-  if (id == 0) throw new Error(`Usuario "${username}" no encontrado`);
-  return await getUserData(id);
-}
