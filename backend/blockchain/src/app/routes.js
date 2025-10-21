@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/19 20:49:27 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/21 21:06:27 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 const fs = require('fs');
 const path = require('path');
 const { finalsPostSchema } = require('./schemas');
-const { recordFinal, getFinal } = require('./chain');
+// const { recordFinal, getFinal } = require('./chain');
+const { recordFinal, getFinal, diagnostics } = require('./chain');
 
 // no longer needed due to switch away from internal mock up
 // const finalsStore = new Map();
@@ -93,6 +94,12 @@ async function routes(fastify) {
     if (!data) return reply.code(404).send({ error: 'not_found' });
     // return a copy of the data
     return { ...data, exists: true };
+  });
+
+  // diagnostics: surface adapter readiness without secrets
+  fastify.get('/config/diagnostics', async (_req, _reply) => {
+    const d = await diagnostics();
+    return d;
   });
 
   fastify.get('/config', async () => {

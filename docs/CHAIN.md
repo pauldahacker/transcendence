@@ -10,8 +10,14 @@
  ```bash
  export BLOCKCHAIN_ENABLED=true
  export RPC_URL="https://api.avax-test.network/ext/bc/C/rpc"  # or your provider
- export PRIVATE_KEY="0xYOUR_PRIVATE_KEY"                      # dev wallet
- export REGISTRY_ADDRESS="0x...";                             # after deploy
+export PRIVATE_KEY="0xYOUR_PRIVATE_KEY"                      # dev wallet (0x + 64 hex)
+# Sanity-check format (must print "OK 66"):
+python - <<'PY'
+import os,re
+k=os.environ.get("PRIVATE_KEY","")
+print("OK" if re.fullmatch(r"0x[0-9a-fA-F]{64}",k) else "BAD", len(k))
+PY
+# Tip: never use the Unicode ellipsis character (…); paste the full 66-char key. export REGISTRY_ADDRESS="0x...";                             # after deploy
  export INTERNAL_API_KEY="your-internal-key"                  # gateway auth
  ```
 
@@ -34,6 +40,15 @@
  curl -sk https://localhost/api/blockchain/abi/TournamentRegistry \
    -H "x-internal-api-key: $INTERNAL_API_KEY" | jq '.[0]'
  ```
+ ### (Optional) Adapter diagnostics
+Shows non-secret flags for real-mode readiness:
+```bash
+make chain-diagnostics
+# Expect:
+# { "enabled": true, "envPresent": true, "abiReadable": true,
+#   "providerOk": true, "walletOk": true, "contractOk": true, "reason": null }
+```
+
 
  ## Smoke test (record + read final)
  ```bash
