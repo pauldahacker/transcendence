@@ -56,7 +56,8 @@ export function setupAvatarPopup(userId: number) {
 
     //ResetAvatar
     resetBtn.addEventListener("click", () => {
-        const defaultAvatar = "https://avatar.iran.liara.run/public";
+        const randomSeed = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
+        const defaultAvatar = `https://api.dicebear.com/9.x/bottts-neutral/svg?size=200&seed=${randomSeed}`;
         deleteAvatar(userId, defaultAvatar);
         avatarImg.setAttribute("src", defaultAvatar);
         modal.classList.add("hidden");
