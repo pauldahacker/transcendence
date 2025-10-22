@@ -40,6 +40,7 @@ function routes(app, db) {
 					id: db.getUser(request.body.username).id,
 					username: request.body.username,
 					jti: uuidv6()}, { expiresIn: '1h' });
+				db.setSessionState(request.body.username, true);
 				return reply.send({ token });
 			} catch (err) {
 				throw err;
@@ -55,6 +56,7 @@ function routes(app, db) {
 		request.log.info('User logging out');
 		try {
 			tokenBlacklist.add(request.user.jti);
+			db.setSessionState(request.user.username, false);
 			return reply.send({ message: 'Logged out successfully' });
 		} catch (err) {
 					throw err;
@@ -75,7 +77,7 @@ function routes(app, db) {
 				throw err;
 			}
 		}
-	);
+	);		
 
 	app.get('/:user_id/stats', {
 			preHandler: [app.auth([

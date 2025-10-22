@@ -19,6 +19,7 @@ class UsersDatabase extends Database {
         display_name TEXT UNIQUE,
         avatar_url TEXT DEFAULT 'https://avatar.iran.liara.run/public',
         bio TEXT DEFAULT 'Hey! this is me, and I haven''t updated my bio yet...',
+        is_active BOOLEAN DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
 
@@ -192,7 +193,7 @@ class UsersDatabase extends Database {
   getProfile(user_id) {
     try {
       const stmt = this.prepare(`
-        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at
+        SELECT ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at, up.is_active
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
         WHERE up.user_id = ?
@@ -307,6 +308,20 @@ class UsersDatabase extends Database {
         insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
         return { message: 'Friend request sent' };
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  setSessionState(username, is_active) {
+    try {
+      const stmt = this.prepare(`
+        UPDATE users_profile
+        SET is_active = ?
+        WHERE user_id = (SELECT id FROM users_auth WHERE username = ?)
+      `);
+      const info = stmt.run(is_active ? 1 : 0, username);
+      if (info.changes === 0) throw JSONError('User not found', 404);
     } catch (error) {
       throw error;
     }
