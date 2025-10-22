@@ -67,9 +67,10 @@ const profileResponseSchema = {
     display_name: { type: 'string' },
     avatar_url: { type: 'string', format: 'uri' },
     bio: { type: 'string' },
-    created_at: { type: 'string', format: 'date-time' }
+    created_at: { type: 'string', format: 'date-time' },
+    is_active: { type: 'boolean' }
   },
-  required: ['username', 'display_name', 'avatar_url', 'bio', 'created_at'],
+  required: ['username', 'display_name', 'avatar_url', 'bio', 'created_at', 'is_active'],
   additionalProperties: false
 };
 

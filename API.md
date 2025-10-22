@@ -117,7 +117,8 @@ Response body:
   "display_name": "string",
   "avatar_url": "string",
   "bio": "string",
-  "created_at": "string"
+  "created_at": "string",
+  "is_active": "boolean"
 }
 ```
 Error responses:
@@ -162,7 +163,7 @@ Error responses:
 - `404`: User not found
 - `403`: User not authorized
 
-### Endpoint: `GET    /api/users/:user_id/stats`
+### Endpoint: `GET    /api/users/{user_id}/stats`
 
 Response body:
 ```json
@@ -176,7 +177,7 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-### Endpoint: `GET    /api/users/:user_id/friends`
+### Endpoint: `GET    /api/users/{user_id}/friends`
 
 Query parameter `filter`:
 - `confirmed`: returns only confirmed friends
@@ -203,7 +204,7 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-### Endpoint: `GET    /api/users/:user_id/match-history`
+### Endpoint: `GET    /api/users/{user_id}/match-history`
 
 Response body:
 ```json
@@ -223,9 +224,9 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-### Endpoint: `POST    /api/users/:user_id/friend-request`
+### Endpoint: `POST    /api/users/{user_id}/friend-request`
 
-User with id `:user_id` recieves a friend request from the authenticated user.
+User with id `{user_id}` recieves a friend request from the authenticated user.
 
 Response body:
 
