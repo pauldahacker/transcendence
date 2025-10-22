@@ -12,10 +12,10 @@ export function update(
   const { paddleHeight, paddleWidth, ballSize } = config;
 
   // Player movement (depends on keys pressed)
-  if (keys["w"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
-  if (keys["s"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
-  if (keys["ArrowUp"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
-  if (keys["ArrowDown"]) state.paddle2Y = Math.min(height - paddleHeight, state.paddle2Y + config.paddleSpeed);
+  if (keys["w"] || keys["a"]) state.paddle1Y = Math.max(0, state.paddle1Y - config.paddleSpeed);
+  if (keys["s"] || keys["d"]) state.paddle1Y = Math.min(height - paddleHeight, state.paddle1Y + config.paddleSpeed);
+  if (keys["ArrowUp"] || keys["ArrowRight"]) state.paddle2Y = Math.max(0, state.paddle2Y - config.paddleSpeed);
+  if (keys["ArrowDown"] || keys["ArrowLeft"]) state.paddle2Y = Math.min(height - paddleHeight, state.paddle2Y + config.paddleSpeed);
 
   // Ball movement
   state.ballX += state.ballSpeedX;
