@@ -97,7 +97,7 @@ const progressBar = container.querySelector(".bg-green-400");
 //--Bio button
   setupBIoButton(user_id, bio);
 //--Match history
-  seedTestMatches(1, 2);
+  //seedTestMatches(1, 2);
   renderLastMatches(user_id);
 //--Logout button
   const logoutBtn = container.querySelector("#logoutBtn");

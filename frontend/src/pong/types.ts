@@ -22,6 +22,13 @@ export interface GameConfig {
 	maxSpeed : number;
 	maxBounceAngle : number;
 }
+
+export interface GameOverState {
+	winner: number;
+	score1: number;
+	score2: number;
+	state: GameState;
+}
   
 export type KeyState = Record<string, boolean>;
   

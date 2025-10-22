@@ -1,4 +1,4 @@
-import { GameState, GameConfig, KeyState } from "./types";
+import { GameState, GameConfig, KeyState, GameOverState } from "./types";
 import { draw } from "./draw";
 import { update } from "./update";
 import { setupInput } from "./input";
@@ -13,12 +13,12 @@ startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, p
   options: which player(s) should be AI-controlled
 */
 export function startPong(canvas: HTMLCanvasElement,
-  onGameOver: (winner: number) => void,
+  onGameOver: (result: GameOverState) => void,
   options: {
     aiPlayer1?: boolean;
     aiPlayer2?: boolean;
-    render3D?: (state: GameState, config: GameConfig) => void; // ⬅ nuevo hook por frame
-    skip2DDraw?: boolean;                                       // ⬅ no dibujar el canvas 2D
+    render3D?: (state: GameState, config: GameConfig) => void;
+    skip2DDraw?: boolean;
   } = {}
 ) {
   const {
@@ -30,16 +30,14 @@ export function startPong(canvas: HTMLCanvasElement,
 
   const ctx = canvas.getContext("2d")!;
 
-  // Dimensiones reales del canvas (para el caso en que SÍ dibujemos 2D)
   canvas.width = canvas.clientWidth || canvas.width;
   canvas.height = canvas.clientHeight || canvas.height;
 
-  // Espacio virtual fijo para la física
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
   const targetFPS = 60;
-  // velocidades en "pixeles virtuales por frame"
+
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
