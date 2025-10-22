@@ -17,11 +17,20 @@ class UsersDatabase extends Database {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL UNIQUE,
         display_name TEXT UNIQUE,
-        avatar_url TEXT DEFAULT 'https://avatar.iran.liara.run/public',
+        avatar_url TEXT,
         bio TEXT DEFAULT 'Hey! this is me, and I haven''t updated my bio yet...',
         is_active BOOLEAN DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users_auth(id) ON DELETE CASCADE
       );
+
+      CREATE TRIGGER IF NOT EXISTS set_random_avatar
+        AFTER INSERT ON users_profile
+        FOR EACH ROW
+        BEGIN
+          UPDATE users_profile
+          SET avatar_url = 'https://api.dicebear.com/9.x/bottts-neutral/svg?size=200&seed=' || hex(randomblob(8))
+          WHERE id = NEW.id;
+      END;
 
       CREATE TABLE IF NOT EXISTS friends (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
