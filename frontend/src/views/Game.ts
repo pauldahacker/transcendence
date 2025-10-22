@@ -1,6 +1,9 @@
 import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
 import { is3DActive } from "@/tournament/state";
+import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
+import { getUserIdFromToken } from "@/userUtils";
+import { isUserLoggedIn } from "@/userUtils";
 
 type RenderGameOptions = {
   onePlayer?: boolean;
@@ -92,10 +95,17 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
 
     stopGame = start(
       canvas,
-      (winner: number) => {
+      async (winner: number) => {
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
-    
+        
+		if (!(aiP2 && aiP1)){
+			await postMatch({
+				tournament_id: 0,
+				a_participant_score: 11,
+				b_participant_score: 7,
+			});
+		}
         // Winner message
         if (onePlayer) {
           overlay.innerHTML =

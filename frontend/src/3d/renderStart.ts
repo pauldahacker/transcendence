@@ -1,6 +1,6 @@
 // src/3d/renderStart3D.ts
 import { startPong } from "@/pong/startPong";
-import type { GameState, GameConfig } from "@/pong/types";
+import type { GameState, GameConfig, GameOverState } from "@/pong/types";
 import { ScoreLights, buildborders, addSkyDome } from "@/3d/sceneUtils"
 import {
 	Engine,
