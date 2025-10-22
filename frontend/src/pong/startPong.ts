@@ -14,7 +14,6 @@ startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, p
 */
 export function startPong(canvas: HTMLCanvasElement,
   onGameOver: (winner: number) => void,
-<<<<<<< HEAD:frontend/src/pong/startPong.ts
   options: {
     aiPlayer1?: boolean;
     aiPlayer2?: boolean;
@@ -29,11 +28,6 @@ export function startPong(canvas: HTMLCanvasElement,
     skip2DDraw = false,
   } = options;
 
-=======
-  options: { aiPlayer1?: boolean; aiPlayer2?: boolean } = {})
-{
-  const { aiPlayer1 = false, aiPlayer2 = false } = options; // default
->>>>>>> c0243c5 (added comments):srcs/frontend/src/pong/startPong.ts
   const ctx = canvas.getContext("2d")!;
 
   // Dimensiones reales del canvas (para el caso en que SÍ dibujemos 2D)
@@ -44,17 +38,8 @@ export function startPong(canvas: HTMLCanvasElement,
   const BASE_WIDTH = 900;
   const BASE_HEIGHT = 600;
 
-<<<<<<< HEAD:frontend/src/pong/startPong.ts
   const targetFPS = 60;
   // velocidades en "pixeles virtuales por frame"
-=======
-  // changed the speed to fixed FPS:
-  // -> we measure speed in how much time it takes to go from one end to the other
-  const targetFPS = 60; // requestAnimationFrame() is by default 60 FPS (1 frame every 16.667 ms)
-  
-
-  // Physics config (independent of actual screen size)
->>>>>>> c0243c5 (added comments):srcs/frontend/src/pong/startPong.ts
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
@@ -125,11 +110,7 @@ export function startPong(canvas: HTMLCanvasElement,
     loop();
   });
 
-<<<<<<< HEAD:frontend/src/pong/startPong.ts
   // función de parada/limpieza
-=======
-  // when leaving the game screen, startPong() returns this cleanup function
->>>>>>> c0243c5 (added comments):srcs/frontend/src/pong/startPong.ts
   return () => {
     state.gameRunning = false;
     if (state.animationId) cancelAnimationFrame(state.animationId);

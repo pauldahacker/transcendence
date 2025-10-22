@@ -16,21 +16,32 @@ export async function updateBio(user_id: number, newBio: string){
 }
 
 export async function setupBIoButton(user_id: number, bio: string) {
-    const editBioWrapper = document.getElementById("editBioWrapper")!;
+    const bioHoverArea = document.getElementById("bioHoverArea")!;
     const bioPopup = document.getElementById("bioPopup")!;
     const updateBioBtn = document.getElementById("updateBioBtn")!;
     const bioInput = document.getElementById("bioInput") as HTMLInputElement;
     const bioElement = document.querySelector("p")!;
     
-    editBioWrapper.addEventListener("click", () => {
+    bioHoverArea.addEventListener("click", () => {
       bioInput.value = bio;
       bioPopup.classList.remove("hidden");
       bioInput.focus();
     });
 
+    bioInput.addEventListener("input", () => {
+      if (bioInput.value.length > 120) {
+        bioInput.value = bioInput.value.slice(0, 120);
+        alert("Bio cannot exceed 120 characters");
+      }
+    });
+
     updateBioBtn.addEventListener("click", () => {
       const newBio = bioInput.value.trim();
       if (newBio) {
+        if (newBio.length > 120) {
+          alert("Bio cannot exceed 120 characters");
+          return;
+        }
         bio = newBio;
         bioElement.textContent = bio;
         updateBio(user_id, newBio);

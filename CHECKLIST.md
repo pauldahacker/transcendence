@@ -20,15 +20,15 @@
 :black_square_button: Use OAuth 2.0 to implement a remote authentication - 1 point.
 
 ### Gameplay and user experience
-:heavy_check_mark: Remote players - 1 point.
+:black_square_button: Remote players - 1 point.
 
-:heavy_check_mark: Multiplayer (more than 2 players in the same game) - 1 point.
+:black_square_button: Multiplayer (more than 2 players in the same game) - 1 point.
 
 :black_square_button: Add another game with user history and matchmaking - 1 point.
 
-:black_square_button: Game customization options - 0.5 point.
+:heavy_check_mark: Game customization options - 0.5 point.
 
-:heavy_check_mark: Live chat - 1 point.
+:black_square_button: Live chat - 1 point.
 
 ### AI-Algo
 :white_check_mark: Introduce an AI opponent - 1 point.
@@ -43,7 +43,8 @@
 :black_square_button: Implement Two-Factor Authentication (2FA) and JWT - 1 point.
 
 ### Devops
-:black_square_button: Infrastructure setup for log management - 1 point.
+
+:heavy_check_mark: Infrastructure setup for log management - 1 point.
 
 :black_square_button: Monitoring system - 0.5 point.
 
