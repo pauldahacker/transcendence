@@ -4,6 +4,7 @@ import { is3DActive } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
 import { getUserIdFromToken } from "@/userUtils";
 import { isUserLoggedIn } from "@/userUtils";
+import type { GameOverState } from "@/pong/types";
 
 type RenderGameOptions = {
   onePlayer?: boolean;
@@ -13,7 +14,7 @@ type RenderGameOptions = {
   player2?: string;
   aiPlayer1?: boolean;
   aiPlayer2?: boolean;
-  onGameOver?: (winner: number) => void;
+  onGameOver?: (result: GameOverState) => void;
 };
 
 /*
@@ -95,17 +96,25 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
 
     stopGame = start(
       canvas,
-      async (winner: number) => {
+      async (result: GameOverState) => {
+		const { winner, score1, score2} = result;
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
         
 		if (!(aiP2 && aiP1)){
-			await postMatch({
-				tournament_id: 0,
-				a_participant_score: 11,
-				b_participant_score: 7,
-			});
-		}
+			const userScore = aiP1 && !aiP2 ? score2 : score1;
+          	const opponentScore = aiP1 && !aiP2 ? score1 : score2;
+			try {
+            	await postMatch({
+            		tournament_id: 0,
+            		a_participant_score: userScore,
+            		b_participant_score: opponentScore,
+            	});
+          } catch (error) {
+            console.error("Failed to post match", error);
+          }
+        }
+		
         // Winner message
         if (onePlayer) {
           overlay.innerHTML =
@@ -124,7 +133,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
         setTimeout(() => {
           if (tournament && onGameOver) {
             // tournament: go to next match
-            onGameOver(winner);
+            onGameOver(result);
           } else {
             // normal game: show Play Again
             const buttonOverlay = document.createElement("div");

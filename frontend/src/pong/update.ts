@@ -1,4 +1,4 @@
-import { GameState, GameConfig, KeyState } from "./types";
+import { GameState, GameConfig, KeyState, GameOverState } from "./types";
 
 // updates the game state for a single frame (width & height are the virtual game are dimensions).
 export function update(
@@ -7,7 +7,7 @@ export function update(
   state: GameState,
   config: GameConfig,
   keys: KeyState,
-  onGameOver: (winner: number) => void
+  onGameOver: (result: GameOverState) => void
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
 
@@ -67,11 +67,21 @@ export function update(
   // Game over
   if (state.score1 === 3) {
     state.gameRunning = false;
-    onGameOver(1);
+    onGameOver({
+      winner: 1,
+      score1: state.score1,
+      score2: state.score2,
+      state: {...state}
+    });
   }
   if (state.score2 === 3) {
     state.gameRunning = false;
-    onGameOver(2);
+    onGameOver({
+      winner: 2,
+      score1: state.score1,
+      score2: state.score2,
+      state: {...state}
+    });
   }
 }
 
