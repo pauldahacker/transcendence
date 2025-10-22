@@ -10,7 +10,7 @@ import {
 } from "babylonjs";
 
 import { startPong } from "../pong/startPong";
-import { GameState, GameConfig } from "../pong/types";
+import { GameState, GameConfig, GameOverState } from "../pong/types";
 
 export function renderGame3D(root: HTMLElement) {
   // Contenedor + canvas
@@ -163,7 +163,7 @@ export function renderGame3D(root: HTMLElement) {
   // Start game
   const stopPong = startPong(
     hidden2D,
-    (winner: number) => {
+    ({winner}: GameOverState) => {
       const overlay = document.createElement("div");
       overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
   
