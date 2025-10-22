@@ -34,6 +34,28 @@ export function setAuthToken(token: string) {
   window.dispatchEvent(new Event("authChanged"));
 }
 
+export async function getDisplayName(): Promise<string | null> {
+  const token = localStorage.getItem("auth_token");
+  if (!token) return null;
+  const userId = getUserIdFromToken(token);
+  const res = await fetch(`/api/users/${userId}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    console.error(`Failed to fetch user ${userId}: ${res.status}`);
+    return null;
+  }
+
+  const data = await res.json();
+  return data.display_name && data.display_name.trim() !== ""
+    ? data.display_name
+    : data.username || null;
+}
+
 // User session is still valid?
 export async function isUserLoggedIn(): Promise<boolean> {
   const token = localStorage.getItem("auth_token");
