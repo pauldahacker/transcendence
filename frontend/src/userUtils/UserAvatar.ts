@@ -56,7 +56,7 @@ export function setupAvatarPopup(userId: number) {
 
     //ResetAvatar
     resetBtn.addEventListener("click", () => {
-        const defaultAvatar = new URL("../imgs/avatar.png", import.meta.url).href;
+        const defaultAvatar = "https://avatar.iran.liara.run/public";
         deleteAvatar(userId, defaultAvatar);
         avatarImg.setAttribute("src", defaultAvatar);
         modal.classList.add("hidden");
