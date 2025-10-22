@@ -251,6 +251,9 @@ class UsersDatabase extends Database {
 
   addMatchResult(match) {
     try {
+      if (match.a_participant_id === 0 && match.b_participant_id === 0)
+        throw JSONError('Both participants are bots', 400);
+
       const stmt = this.prepare(`
         INSERT INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

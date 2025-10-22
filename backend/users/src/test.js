@@ -300,9 +300,37 @@ test('POST `/match` route', async (t) => {
     const response = await supertest(app.server)
     .post('/match')
     .set('Authorization', `Bearer ${token_1}`)
-    .send({ tournament_id: 1, match_id: 5, match_date: '2024-01-01T12:00:00Z', a_participant_id: 1, b_participant_id: 2, a_participant_score: 21 })
+    .send({
+      tournament_id: 1,
+      match_id: 5,
+      match_date: '2024-01-01T12:00:00Z',
+      a_participant_id: 1,
+      b_participant_id: 2,
+      a_participant_score: 21
+    })
     .expect(400)
     .expect('Content-Type', 'application/json; charset=utf-8');
+  });
+
+  await t.test('Add match result with both participants as bots', async (t) => {
+    const response = await supertest(app.server)
+    .post('/match')
+    .set('Authorization', `Bearer ${token_1}`)
+    .send({
+      tournament_id: 1,
+      match_id: 6,
+      match_date: '2024-01-01T12:00:00Z',
+      a_participant_id: 0,
+      b_participant_id: 0,
+      a_participant_score: 3,
+      b_participant_score: 5,
+      winner_id: 0,
+      loser_id: 0
+    })
+    .expect(400)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body, schemas.JSONError('Both participants are bots', 400));
   });
 
   await t.test('Add match result with valid data', async (t) => {
@@ -311,7 +339,17 @@ test('POST `/match` route', async (t) => {
       const response = await supertest(app.server)
       .post('/match')
       .set('Authorization', `Bearer ${token_1}`)
-      .send({ tournament_id: 1, match_id: 1, match_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 15, winner_id: 1, loser_id: 2 })
+      .send({
+        tournament_id: 1,
+        match_id: 1,
+        match_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        a_participant_id: 1,
+        b_participant_id: 2,
+        a_participant_score: 21,
+        b_participant_score: 15,
+        winner_id: 1,
+        loser_id: 2
+      })
       .expect(201);
     });
 
@@ -319,7 +357,17 @@ test('POST `/match` route', async (t) => {
       const response = await supertest(app.server)
       .post('/match')
       .set('Authorization', `Bearer ${token_1}`)
-      .send({ tournament_id: 1, match_id: 2, match_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 18, b_participant_score: 21, winner_id: 2, loser_id: 1 })
+      .send({
+        tournament_id: 1,
+        match_id: 2,
+        match_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+        a_participant_id: 1,
+        b_participant_id: 2,
+        a_participant_score: 18,
+        b_participant_score: 21,
+        winner_id: 2,
+        loser_id: 1
+      })
       .expect(201);
     });
 
@@ -327,7 +375,17 @@ test('POST `/match` route', async (t) => {
       const response = await supertest(app.server)
       .post('/match')
       .set('Authorization', `Bearer ${token_1}`)
-      .send({ tournament_id: 1, match_id: 3, match_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 19, winner_id: 1, loser_id: 2 })
+      .send({
+        tournament_id: 1,
+        match_id: 3,
+        match_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        a_participant_id: 1,
+        b_participant_id: 2,
+        a_participant_score: 21,
+        b_participant_score: 19,
+        winner_id: 1,
+        loser_id: 2
+      })
       .expect(201);
     });
 
@@ -335,7 +393,17 @@ test('POST `/match` route', async (t) => {
       const response = await supertest(app.server)
       .post('/match')
       .set('Authorization', `Bearer ${token_1}`)
-      .send({ tournament_id: 1, match_id: 4, match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), a_participant_id: 1, b_participant_id: 2, a_participant_score: 21, b_participant_score: 17, winner_id: 1, loser_id: 2 })
+      .send({
+        tournament_id: 1,
+        match_id: 4,
+        match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        a_participant_id: 1,
+        b_participant_id: 2,
+        a_participant_score: 21,
+        b_participant_score: 17,
+        winner_id: 1,
+        loser_id: 2
+      })
       .expect(201);
     });
   });

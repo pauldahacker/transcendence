@@ -107,6 +107,7 @@ Response body:
 Error responses:
 - `401`: Invalid token header
 - `400`: Bad request
+- `304`: Both participants are bots
 
 ### Endpoint: `GET    /api/users/{user_id}/`
 
