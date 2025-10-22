@@ -40,7 +40,7 @@ $(ENV_FILE): $(ENV_FILE).example
 	cp .env.example .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
-	echo "\nVITE_INTERNAL_API_KEY=$$INTERNAL_API_KEY" >> $(ENV_FILE)
+#	echo "\nVITE_INTERNAL_API_KEY=$$INTERNAL_API_KEY" >> $(ENV_FILE)
 
 build: $(ENV_FILE) $(CERTS_DIR)
 
