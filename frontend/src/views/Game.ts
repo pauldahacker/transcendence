@@ -2,7 +2,7 @@ import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
 import { is3DActive } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
-import { getUserIdFromToken } from "@/userUtils";
+import { getUserIdFromToken, getUsernameFromToken, getDisplayName} from "@/userUtils";
 import { isUserLoggedIn } from "@/userUtils";
 import type { GameOverState } from "@/pong/types";
 
@@ -26,12 +26,14 @@ Handles overlays for Winner message, Play Again button, or Proceed to next match
 
 Returns a cleanup function to stop the game when leaving the page.
 */
-export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
+export async function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   const {
     onePlayer = false,
     tournament = false,
     onGameOver
   } = options;
+
+  const logged = await isUserLoggedIn();
 
   let p1 = options.player1 ?? "Player 1";
   let p2 = options.player2 ?? "Player 2";
@@ -40,7 +42,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   if (onePlayer)
   {
     p1 = "AI";
-    p2 = "You";
+    p2 = logged ? (await getDisplayName() ?? "You") : "You";
     aiP1 = true;
     aiP2 = false;
   }
