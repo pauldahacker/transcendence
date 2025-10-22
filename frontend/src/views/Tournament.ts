@@ -1,6 +1,7 @@
 import { createTournamentState } from "../tournament/state";
 import { createAliasOverlay, createMatchList } from "../tournament/ui";
 import { playNextMatch, showMatchList } from "../tournament/controller";
+import { getUsernameFromToken, isLoggedIn } from "@/userUtils/TokenUtils";
 
 export function renderTournament(root: HTMLElement) {
   const container = document.createElement("div");
@@ -33,8 +34,15 @@ export function renderTournament(root: HTMLElement) {
   const button4p = container.querySelector<HTMLButtonElement>("#btn-4p")!;
   const backHomeLink = container.querySelector<HTMLAnchorElement>("a[href='#/']")!;
 
-  button2p.addEventListener("click", () => showAliasOverlay(2));
-  button4p.addEventListener("click", () => showAliasOverlay(4));
+  button2p.addEventListener("click", () => {
+    if (isLoggedIn()) skipAliasOverlay(2); // if logged in, show display name + play against bots
+    else showAliasOverlay(2);
+  });
+  
+  button4p.addEventListener("click", () => {
+    if (isLoggedIn()) skipAliasOverlay(4);
+    else showAliasOverlay(4);
+  });
 
   backHomeLink.addEventListener("click", () => {
     document.querySelectorAll(".overlay").forEach((el) => el.remove());
@@ -107,5 +115,32 @@ export function renderTournament(root: HTMLElement) {
     backButton.addEventListener("click", () => {
       overlay.remove();
     });
+  }
+
+  // skip the overlay only if user is logged in
+  function skipAliasOverlay(numPlayers: number) {
+    const username = getCurrentUsername() || "Guest"; // should never be "Guest" because its called after isLoggedIn()
+
+    const aliases: string[] = [username];
+    const totalAI = numPlayers - 1;
+    for (let i = 1; i <= totalAI; i++) {
+      aliases.push(`[AI] ${i}`);
+    }
+    const shuffled = aliases.sort(() => Math.random() - 0.5);
+
+    const matches: [string, string][] = [];
+    for (let i = 0; i < shuffled.length; i += 2) {
+      matches.push([shuffled[i], shuffled[i + 1]]);
+    }
+
+    container.remove();
+
+    const state = createTournamentState(matches);
+    showMatchList(root, state);
+  }
+
+  function getCurrentUsername() {
+    const token = localStorage.getItem("auth_token");
+    return token ? getUsernameFromToken(token) : null;
   }
 }
