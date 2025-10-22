@@ -40,15 +40,12 @@ class UsersDatabase extends Database {
         tournament_id INTEGER NOT NULL,
         match_id INTEGER NOT NULL,
         match_date TEXT NOT NULL,
-        a_participant_id INTEGER NOT NULL,
-        b_participant_id INTEGER NOT NULL,
+        a_participant_id INTEGER,
+        b_participant_id INTEGER,
         a_participant_score INTEGER NOT NULL,
         b_participant_score INTEGER NOT NULL,
-        winner_id INTEGER NOT NULL,
-        loser_id INTEGER NOT NULL,
-
-        FOREIGN KEY (a_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE,
-        FOREIGN KEY (b_participant_id) REFERENCES users_auth(id) ON DELETE CASCADE
+        winner_id INTEGER,
+        loser_id INTEGER
       );
     `);
   }
