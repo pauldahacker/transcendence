@@ -203,7 +203,7 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-### Endpoint: `GET    /api/users/:user_id/match_history`
+### Endpoint: `GET    /api/users/:user_id/match-history`
 
 Response body:
 ```json
