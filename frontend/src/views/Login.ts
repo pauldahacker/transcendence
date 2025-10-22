@@ -67,11 +67,6 @@ export function renderLogin(root: HTMLElement) {
     try {
       const token = await login(username, password);
       console.log("Login OK, token:", token);
-      await postMatch({
-				tournament_id: 0,
-				a_participant_score: 11,
-				b_participant_score: 7,
-			});
       location.hash = "#/profile";
     } catch (err) {
       alert((err as Error).message);

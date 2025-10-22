@@ -25,7 +25,7 @@ import { update } from "@/pong/update";
 
   export function startPong3D(
 	canvas3D: HTMLCanvasElement,
-  	onGameEnd: (winner: number) => void,
+  	onGameEnd: (result: GameOverState) => void,
   	options: Start3DOptions = {}
 	): () => void {
 		let engine: Engine | null = null;
@@ -147,8 +147,8 @@ import { update } from "@/pong/update";
 
 		const stopPong2D = startPong(
 		hidden2D,
-		(winner: number) => {
-		  onGameEnd(winner);
+		(result: GameOverState) => {
+		  onGameEnd(result);
 		},
 		{
 			skip2DDraw: true,
