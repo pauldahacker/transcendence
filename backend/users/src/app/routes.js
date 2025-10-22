@@ -120,7 +120,7 @@ function routes(app, db) {
 		}
 	});
 
-	app.get('/:user_id/match_history', {
+	app.get('/:user_id/match-history', {
 		preHandler: [app.auth([
 					app.verifyJWT
 			]), app.verifyUserExists

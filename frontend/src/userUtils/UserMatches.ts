@@ -13,7 +13,7 @@ export type Match = {
 
 async function getMatchHistory(userId: number): Promise<Match[]> {
     const token = localStorage.getItem("auth_token");
-    const url = `/api/users/${userId}/match_history`;
+    const url = `/api/users/${userId}/match-history`;
     const res = await fetch(url, {
         method: "GET",
         headers: {

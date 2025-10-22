@@ -559,7 +559,7 @@ test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
   });
 });
 
-test('GET `/:user_id/match_history` route', async (t) => {
+test('GET `/:user_id/match-history` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
   t.after(() => app.close());
@@ -567,7 +567,7 @@ test('GET `/:user_id/match_history` route', async (t) => {
 
   await t.test('Get user match history with missing token', async (t) => {
     const response = await supertest(app.server)
-      .get('/1/match_history')
+      .get('/1/match-history')
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -576,7 +576,7 @@ test('GET `/:user_id/match_history` route', async (t) => {
 
   await t.test('Get user match history with valid token', async (t) => {
     const response = await supertest(app.server)
-      .get('/1/match_history')
+      .get('/1/match-history')
       .set('Authorization', `Bearer ${token_1}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
@@ -593,7 +593,7 @@ test('GET `/:user_id/match_history` route', async (t) => {
 
   await t.test('Get another user match history', async (t) => {
     const response = await supertest(app.server)
-      .get('/2/match_history')
+      .get('/2/match-history')
       .set('Authorization', `Bearer ${token_1}`)
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
