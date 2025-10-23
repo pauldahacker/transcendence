@@ -58,18 +58,31 @@ export function renderLogin(root: HTMLElement) {
 
   const form = container.querySelector("#login-form") as HTMLFormElement;
   
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const username = (container.querySelector("#username") as HTMLInputElement).value;
-    const password = (container.querySelector("#password") as HTMLInputElement).value;
-    console.log("Login attempt:", { username, password });
-     
-    try {
-      const token = await login(username, password);
-      console.log("Login OK, token:", token);
-      location.hash = "#/profile";
-    } catch (err) {
-      alert((err as Error).message);
-    }
-  });
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = (container.querySelector("#username") as HTMLInputElement).value;
+  const password = (container.querySelector("#password") as HTMLInputElement).value;
+  //console.log("Login attempt:", { username, password });
+
+  let msg = container.querySelector("#login-msg") as HTMLParagraphElement;
+  if (!msg) {
+    msg = document.createElement("p");
+    msg.id = "login-msg";
+    msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300";
+    form.appendChild(msg); //added to the end of the form
+  }
+
+  msg.textContent = "";
+  msg.classList.remove("text-red-400");
+
+  try {
+    const token = await login(username, password);
+    //console.log("Login OK, token:", token);
+    location.hash = "#/profile";
+  } catch (err) {
+    msg.textContent = (err as Error).message || "Login failed.";
+    msg.classList.add("text-red-400");
+  }
+});
+
 }

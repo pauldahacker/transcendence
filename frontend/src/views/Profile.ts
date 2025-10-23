@@ -1,4 +1,6 @@
 import { renderUser, renderStats, renderHistory} from '../renderProfile'
+import { getTournamentWins } from '../userUtils';
+import { getUserRank } from '@/userUtils/UserRank';
 import {
   getUsernameFromToken,
   getUserIdFromToken,
@@ -8,7 +10,6 @@ import {
   getUserStats,
   setupBIoButton,
   renderLastMatches,
-  seedTestMatches,
   logoutUser,
   setupAvatarPopup,
   setupDisplayNameEditor
@@ -37,9 +38,13 @@ export async function renderProfile(root: HTMLElement) {
   // If /api/users/{id} fails with 404, clear the token before proceeding
   let data:   UserData;
   let stats:  UserStats;
+  let ranks;
+  let tournamentWins;
   try {
     stats = await getUserStats(user_id);
     data = await getUserData(user_id);
+    ranks = await getUserRank(user_id);
+    tournamentWins = await getTournamentWins(user_id);
   } catch (err) {
     console.error("Error fetching user data:", err);
     // token might be valid format but invalid server-side
@@ -56,8 +61,8 @@ export async function renderProfile(root: HTMLElement) {
   const losses = stats?.losses ?? 0;
   const totalGames = stats?.total_games ?? wins + losses;
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
-  const rank = 2;
-  const tournaments = 3;
+  const rank = ranks;
+  const tournaments = tournamentWins;
   const friends = data?.friends?.length ?? 0;
 
   container.innerHTML = `
