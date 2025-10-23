@@ -36,7 +36,7 @@ export async function deleteAvatar(user: number, defaultUrl: string) {
         return 
     } catch (err){
         console.error(err);
-        alert("Failed to delete user avatar");
+        throw new Error("Failed to delete user avatar");
     }
 }
 
@@ -47,6 +47,17 @@ export function setupAvatarPopup(userId: number) {
     const confirmBtn = document.getElementById("confirmAvatar")!;
     const input = document.getElementById("avatarUrlInput") as HTMLInputElement;
     const avatarImg = document.getElementById("avatarImg")!;
+    const buttonsWrapper = document.getElementById("avatarButtonsWrapper")!;
+
+    let msg = document.querySelector("#bio-msg");
+    if (!msg){
+      msg = document.createElement("span");
+      msg.id = "register-msg";
+      msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300 w-full";
+      buttonsWrapper.insertAdjacentElement("afterend", msg);
+    }
+    msg.textContent = null;
+    msg.classList.add("text-red-400");
 
     //SHow
     avatarWrapper.addEventListener("click", () => {
@@ -58,15 +69,24 @@ export function setupAvatarPopup(userId: number) {
     resetBtn.addEventListener("click", () => {
         const randomSeed = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
         const defaultAvatar = `https://api.dicebear.com/9.x/bottts-neutral/svg?size=200&seed=${randomSeed}`;
-        deleteAvatar(userId, defaultAvatar);
+        try{
+            deleteAvatar(userId, defaultAvatar);
+        } catch (err){
+            msg.classList.add("text-red-400");
+            msg.textContent = (err as Error).message || "Registration failed.";
+        }
         avatarImg.setAttribute("src", defaultAvatar);
         modal.classList.add("hidden");
+        msg.textContent = null;
+        msg.classList.remove("text-red-400");
     });
 
     //Close
     modal.addEventListener("click", (event) => {
         if (event.target === modal) {
             modal.classList.add("hidden");
+            msg.textContent = null;
+            msg.classList.remove("text-red-400");
         }
     });
 
@@ -74,15 +94,21 @@ export function setupAvatarPopup(userId: number) {
     confirmBtn.addEventListener("click", async () => {
         const newUrl = input.value.trim();
         if (!(await checkAvatarUrl(newUrl))) {
-            alert("Invalid or unreachable image URL!");
+            //alert("Invalid or unreachable image URL!");
+            msg.classList.add("text-red-400");
+            msg.textContent = "Invalid or unreachable image URL!";
             return;
         }
         try {
             await updateAvatar(userId, newUrl);
             avatarImg.setAttribute("src", newUrl);
             modal.classList.add("hidden");
+            msg.textContent = null;
+            msg.classList.remove("text-red-400");
         } catch (err) {
-            alert("Error updating avatar.");
+            //alert("Error updating avatar.");
+            msg.classList.add("text-red-400");
+            msg.textContent = "Error updating avatar.";
             console.error(err);
         }
     });
