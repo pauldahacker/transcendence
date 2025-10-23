@@ -44,7 +44,7 @@ build: $(ENV_FILE) $(CERTS_DIR)
 
 up: build
 	$(call help_message, "Running the containerized application...")
-	docker compose up --build --watch
+	docker compose up --build
 
 test:
 	$(call help_message, "Running unit tests...")
