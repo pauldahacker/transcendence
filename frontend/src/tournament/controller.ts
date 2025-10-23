@@ -1,3 +1,4 @@
+import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
 import { renderGame } from "../views/Game";
 import { TournamentState } from "./state";
 import { createMatchList } from "./ui";
@@ -12,9 +13,9 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
 
   state.stopCurrentGame = renderGame(
-    root, { tournament: true, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: ({ winner }: GameOverState) => {
+    root, { tournament: true, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: (result: GameOverState) => {
       if (!state.active) return;
-      const resolvedWinner = winner === 1 ? p1 : p2;
+      const resolvedWinner = result.winner === 1 ? p1 : p2;
       state.winners.push(resolvedWinner);
 
       const gameContainer = root.querySelector<HTMLDivElement>("#game-container");
@@ -43,6 +44,13 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
         // Tournament finished
         if (state.currentMatch >= state.matches.length) {
           alert("Tournament finished! Winner: " + state.winners[0]);
+          if (!(p1.startsWith("[AI]") && p2.startsWith("[AI]"))){
+            postMatch({
+              tournament_id: generateMatchId(),
+              a_participant_score: result.score1,
+              b_participant_score: result.score2,
+            });
+          }
           location.hash = "/";
           return;
         }
