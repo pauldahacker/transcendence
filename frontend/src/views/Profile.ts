@@ -10,7 +10,6 @@ import {
   getUserStats,
   setupBIoButton,
   renderLastMatches,
-  seedTestMatches,
   logoutUser,
   setupAvatarPopup,
   setupDisplayNameEditor

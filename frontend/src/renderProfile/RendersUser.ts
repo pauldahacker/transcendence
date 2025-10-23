@@ -56,34 +56,35 @@ export function renderAvatarPopup() : string{
         <input id="avatarUrlInput" type="text"
               class="w-full p-2 rounded-md bg-cyan-950 border border-cyan-700 text-white font-bit text-[2vh]"
               placeholder="Enter your new avatar image URL..." />
-        <div class="flex justify-end mt-4 gap-2">
+        
+        <div id="avatarButtonsWrapper" class="flex justify-end mt-4 gap-2"> 
           <button id="confirmAvatar"
-                  class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">
+                    class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">
             Save
           </button>
           <button id="resetAvatar"
-                  class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">
+                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">
             Reset to default
           </button>
         </div>
-      </div>
+        </div>
     </div>
   `;
 }
 
 export function renderDisplayNamePopup() : string{
-    return `<!-- Hidden popup for editing name -->
-      <div id="namePopup" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    return `<div id="namePopup" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-cyan-900 border-4 border-cyan-700 rounded-2xl p-6 w-[30vw] shadow-2xl">
           <h3 class="font-bit text-[2.5vh] text-white mb-4 text-center">Edit Display Name</h3>
           <input id="nameInput" type="text"
-                 class="w-full p-2 rounded-md bg-cyan-950 border border-cyan-700 text-white font-bit text-[2vh]"
-                 placeholder="Enter your new display name..." />
-          <div class="flex justify-end mt-4">
+                    class="w-full p-2 rounded-md bg-cyan-950 border border-cyan-700 text-white font-bit text-[2vh]"
+                    placeholder="Enter your new display name..." />
+          
+          <div id="nameButtonWrapper" class="flex justify-end mt-4"> 
             <button id="updateNameBtn"
-                    class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">Update</button>
+                      class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-1 rounded-md font-bit text-[1.8vh]">Update</button>
           </div>
-        </div>
+          </div>
       </div>`
 }
 
