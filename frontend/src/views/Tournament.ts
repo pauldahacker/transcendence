@@ -70,16 +70,26 @@ export async function renderTournament(root: HTMLElement) {
     startButton.addEventListener("click", () => {
       // When the start button is clicked, check the aliases
       let aliases = Array.from(overlay.querySelectorAll<HTMLInputElement>("input")).map((input) => input.value.trim());
+      let msg = overlay.querySelector("#tournament-msg") as HTMLParagraphElement;
+      if (!msg){
+        msg = document.createElement("p");
+        msg.id = "tournament-msg";
+        msg.className = "mt-2 pt-2 text-center font-bit text-[3vh] transition-all duration-300";
+        backButton.appendChild(msg);
+      }
 
+      msg.textContent = "";
+      msg.classList.remove("text-red-400");
+      msg.classList.add("text-red-400");
       // Brackets reserved for bots (e.g. [AI] 1)
       if (aliases.some(name => name.includes("[") || name.includes("]"))) {
-        alert("No brackets [] allowed.");
+        msg.textContent = "No brackets [] allowed.";
         return;
       }
 
       // No name can exceed 16 characters
       if (aliases.some((name) => name.length > 20)) {
-        alert("Player names cannot exceed 20 characters.");
+        msg.textContent = "Player names cannot exceed 20 characters.";
         return;
       }
 
@@ -95,7 +105,7 @@ export async function renderTournament(root: HTMLElement) {
       // No repeated names
       const uniqueAliases = new Set(aliases);
       if (uniqueAliases.size !== aliases.length) {
-        alert("Player names must be unique.");
+        msg.textContent = "Player names must be unique.";
         return;
       }
 

@@ -61,8 +61,18 @@ export function renderRegister(root: HTMLElement) {
     const password = (container.querySelector("#password") as HTMLInputElement).value;
     const displayN = (container.querySelector("#display_name") as HTMLInputElement).value.trim();
     const displayName = displayN || username;
-    console.log("Register attempt:", { username, password });
+    //console.log("Register attempt:", { username, password });
 
+    let msg = container.querySelector("#register-msg") as HTMLParagraphElement;
+    if (!msg){
+      msg = document.createElement("p");
+      msg.id = "register-msg";
+      msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300";
+      form.appendChild(msg);
+    }
+
+    msg.textContent = "";
+    msg.classList.remove("text-red-400");
     try {
       // Register new user
       const regResponse = await register(username, password);
@@ -76,10 +86,12 @@ export function renderRegister(root: HTMLElement) {
       if (token && regData?.id) {
         await updateDisplayName(regData.id, displayName);
       }
-      alert("Registration successful!");
+      //alert("Registration successful!");
       await login(username, password);
     } catch (err) {
-      alert(`Registration failed: ${(err as Error).message}`);
+      msg.textContent = (err as Error).message || "Registration failed.";
+      msg.classList.add("text-red-400");
+      //alert(`Registration failed: ${(err as Error).message}`);
     }
   });
 

@@ -22,6 +22,16 @@ export async function setupBIoButton(user_id: number, bio: string) {
     const bioInput = document.getElementById("bioInput") as HTMLInputElement;
     const bioElement = document.querySelector("p")!;
     
+    let msg = document.querySelector("#bio-msg");
+    if (!msg){
+      msg = document.createElement("span");
+      msg.id = "register-msg";
+      msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300";
+      updateBioBtn.insertAdjacentElement("beforebegin", msg);
+    }
+    msg.textContent = null;
+    msg.classList.add("text-red-400");
+
     bioHoverArea.addEventListener("click", () => {
       bioInput.value = bio;
       bioPopup.classList.remove("hidden");
@@ -31,7 +41,9 @@ export async function setupBIoButton(user_id: number, bio: string) {
     bioInput.addEventListener("input", () => {
       if (bioInput.value.length > 120) {
         bioInput.value = bioInput.value.slice(0, 120);
-        alert("Bio cannot exceed 120 characters");
+        //alert("Bio cannot exceed 120 characters");
+        msg.classList.add("text-red-400");
+        msg.textContent = "Bio cannot exceed 120 characters";
       }
     });
 
@@ -39,7 +51,9 @@ export async function setupBIoButton(user_id: number, bio: string) {
       const newBio = bioInput.value.trim();
       if (newBio) {
         if (newBio.length > 120) {
-          alert("Bio cannot exceed 120 characters");
+          msg.classList.add("text-red-400");
+          msg.textContent = "Bio cannot exceed 120 characters";
+          //alert("Bio cannot exceed 120 characters");
           return;
         }
         bio = newBio;
@@ -47,10 +61,14 @@ export async function setupBIoButton(user_id: number, bio: string) {
         updateBio(user_id, newBio);
       }
       bioPopup.classList.add("hidden");
+      msg.textContent = null;
+      msg.classList.remove("text-red-400");
     });
 
     bioPopup.addEventListener("click", (e) => {
       if (e.target === bioPopup) bioPopup.classList.add("hidden");
+      msg.textContent = null;
+      msg.classList.remove("text-red-400");
     });
     
 }
