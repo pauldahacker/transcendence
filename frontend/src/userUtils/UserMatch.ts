@@ -34,9 +34,6 @@ export async function postMatch({
     const winner_id = a_participant_score > b_participant_score ? userId : null;
     const loser_id = b_participant_score > a_participant_score ? userId : null;
 
-    if (!tournament_id){
-        const match_id = generateMatchId();
-    }
     console.log("Sending match:", {
   tournament_id,
   match_id,
