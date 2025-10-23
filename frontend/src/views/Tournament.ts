@@ -87,7 +87,7 @@ export async function renderTournament(root: HTMLElement) {
         return;
       }
 
-      // No name can exceed 16 characters
+      // No name can exceed 20 characters
       if (aliases.some((name) => name.length > 20)) {
         msg.textContent = "Player names cannot exceed 20 characters.";
         return;
