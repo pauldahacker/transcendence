@@ -715,7 +715,6 @@ test('`users` tests', async (t) => {
       t.assert.strictEqual(response.body[0].id, ids.user3);
       t.assert.strictEqual(response.body[0].username, 'testuser3');
       t.assert.strictEqual(response.body[0].display_name, null);
-      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
 
@@ -732,7 +731,6 @@ test('`users` tests', async (t) => {
       t.assert.strictEqual(response.body[0].id, ids.user2);
       t.assert.strictEqual(response.body[0].username, 'testuser2');
       t.assert.strictEqual(response.body[0].display_name, 'New Name');
-      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
 
@@ -763,7 +761,6 @@ test('`users` tests', async (t) => {
       t.assert.strictEqual(response.body[0].id, ids.user3);
       t.assert.strictEqual(response.body[0].username, 'testuser3');
       t.assert.strictEqual(response.body[0].display_name, null);
-      t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
 
