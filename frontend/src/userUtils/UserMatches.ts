@@ -37,15 +37,16 @@ export async function renderLastMatches(userId: number) {
         return;
     }
     const list = matches
+      .filter((m) => m.tournament_id === 0)
       .map(
         (m) => `
-      <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2">
-        <span>AI</span>
-        <span class="${m.user_score > m.opponent_score ? "text-green-500" : "text-red-500"}">
-          ${m.user_score} - ${m.opponent_score}
-        </span>
-        <span>${timeAgo(m.match_date)}</span>
-      </li>`
+          <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2">
+            <span>AI</span>
+            <span class="${m.user_score > m.opponent_score ? "text-green-500" : "text-red-500"}">
+              ${m.user_score} - ${m.opponent_score}
+            </span>
+            <span>${timeAgo(m.match_date)}</span>
+          </li>`
       )
       .join("");
 
@@ -58,45 +59,17 @@ export async function renderLastMatches(userId: number) {
 }
 
 
-export async function seedTestMatches(userId: number, opponentId: number) {
-  const token = localStorage.getItem("auth_token");
-  if (!token) throw new Error("No auth token found");
+export async function getTournamentWins(userId: number): Promise<number> {
+  try {
+    const matches = await getMatchHistory(userId);
 
-  const now = new Date();
+    const tournamentWins = matches.filter(
+      (m) => m.tournament_id !== 0 && m.result === "win"
+    ).length;
 
-  // 5 partidas con resultados alternos
-  const matches = Array.from({ length: 5 }, (_, i) => {
-    const userWins = i % 2 === 0; // alterna victorias/derrotas
-    return {
-      tournament_id: 1,
-      match_id: 1000 + i,
-      match_date: new Date(now.getTime() - i * 3600 * 1000).toISOString(),
-      a_participant_id: userWins ? userId : opponentId,
-      b_participant_id: userWins ? opponentId : userId,
-      a_participant_score: userWins ? 0 : 2,
-      b_participant_score: userWins ? 2 : 1,
-      winner_id: userWins ? userId : opponentId,
-      loser_id: userWins ? opponentId : userId,
-    };
-  });
-
-  for (const match of matches) {
-    const res = await fetch(`/api/users/match`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(match),
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      console.error(`❌ Error al crear partida ${match.match_id}: ${res.status} ${text}`);
-    } else {
-      console.log(`✅ Partida ${match.match_id} creada correctamente`);
-    }
+    return tournamentWins;
+  } catch (err) {
+    console.error("Error getting tournament wins:", err);
+    return 0;
   }
-
-  console.log("🎮 Seeding de partidas completado");
 }

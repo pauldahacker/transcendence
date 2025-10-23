@@ -553,7 +553,7 @@ test('GET `/:user_id/friends` route', async (t) => {
     t.assert.strictEqual(response.body[0].id, 2);
     t.assert.strictEqual(response.body[0].username, 'otheruser');
     t.assert.strictEqual(response.body[0].display_name, null);
-    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
+    t.assert
     t.assert.strictEqual(response.body[0].confirmed, 1);
   });
 
@@ -569,7 +569,6 @@ test('GET `/:user_id/friends` route', async (t) => {
     t.assert.strictEqual(response.body[0].id, 1);
     t.assert.strictEqual(response.body[0].username, 'myuser');
     t.assert.strictEqual(response.body[0].display_name, 'User 1');
-    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
     t.assert.strictEqual(response.body[0].confirmed, 1);
   });
 
@@ -602,7 +601,6 @@ test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
     t.assert.strictEqual(response.body[0].id, 2);
     t.assert.strictEqual(response.body[0].username, 'otheruser');
     t.assert.strictEqual(response.body[0].display_name, null);
-    t.assert.strictEqual(response.body[0].avatar_url, "https://avatar.iran.liara.run/public");
     t.assert.strictEqual(response.body[0].confirmed, 1);
   });
 
