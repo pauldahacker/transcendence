@@ -50,22 +50,15 @@ test:
 	$(call help_message, "Running unit tests...")
 	docker compose exec api npm run test
 	docker compose exec users npm run test
+	docker compose exec tournaments npm test
 	$(call help_message, "Running integration tests...")
 	npm install --prefix $(TEST_DIR)
 	node --env-file=.env $(TEST_DIR)/test.js
-	$(call help_message, "Running tournaments unit tests...")
-	docker compose exec tournaments npm test
+	node --env-file=.env backend/tournaments/src/scripts/e_2_e_tournament.js
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
 	$(call help_message, "Running tournaments score reporting tests...")
 	docker compose exec tournaments node score_reporting_test.js
-	$(call help_message, "Running end-to-end tournament test...")
-	$(MAKE) e2e_tournament	
-
-e2e_tournament:
-	@cd backend/tournaments/src/scripts && \
-	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
-	node e_2_e_tournament.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
@@ -85,4 +78,4 @@ fclean: clean
 
 re: clean up
 
-.PHONY: all up test build down clean fclean re e2e_tournament
+.PHONY: all up test build down clean fclean re
