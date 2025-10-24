@@ -68,6 +68,9 @@ Response body:
   {
     "id": "number",
     "username": "string",
+    "display_name": "string",
+    "avatar_url": "string",
+    "bio": "string",
     "created_at": "string",
     "is_active": "boolean"
   }
