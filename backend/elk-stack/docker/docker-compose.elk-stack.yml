@@ -32,6 +32,7 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - ./conf/setup.sh:/tmp/setup.sh:ro
+      - ./conf/ilm-policy.json:/tmp/ilm-policy.json:ro
     user: "root"
     environment:
       - ELASTIC_PASSWORD
