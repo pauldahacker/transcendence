@@ -2,8 +2,7 @@ import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
 import { is3DActive } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
-import { getUserIdFromToken, getUsernameFromToken, getDisplayName} from "@/userUtils";
-import { isUserLoggedIn } from "@/userUtils";
+import { getUserIdFromToken, getUsernameFromToken, getDisplayName, isUserLoggedIn } from "@/userUtils";
 import type { GameOverState } from "@/pong/types";
 
 type RenderGameOptions = {

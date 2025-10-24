@@ -1,7 +1,8 @@
 import { is3DActive } from "../tournament/state";
 import { setup3DSwitch } from "../3d/3dswitch";
 import { isUserLoggedIn } from "@/userUtils/TokenUtils";
-import { initSearchButton } from "@/Friends/searchBtn";
+import { initSearchButton } from "@/friends/searchBtn";
+import { initNewsButton } from "@/friends/newsBtn";
 
 export async function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
@@ -105,5 +106,6 @@ export async function renderHome(root: HTMLElement) {
 
   setup3DSwitch(container); 
   initSearchButton();
+  initNewsButton();
 }
 
