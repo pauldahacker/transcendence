@@ -1,3 +1,21 @@
+#!/bin/bash
+
+INSTANCE_LIST="
+instances:
+  - name: es01
+    dns:
+      - es01
+      - localhost
+    ip:
+      - 127.0.0.1
+  - name: kibana
+    dns:
+      - kibana
+      - localhost
+    ip:
+      - 127.0.0.1
+"
+
 if [ x${ELASTIC_PASSWORD} == x ]; then
   echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
   exit 1;
@@ -12,21 +30,7 @@ if [ ! -f config/certs/ca.zip ]; then
 fi;
 if [ ! -f config/certs/certs.zip ]; then
   echo "Creating certs";
-  echo -ne \
-  "instances:\n"\
-  "  - name: es01\n"\
-  "    dns:\n"\
-  "      - es01\n"\
-  "      - localhost\n"\
-  "    ip:\n"\
-  "      - 127.0.0.1\n"\
-  "  - name: kibana\n"\
-  "    dns:\n"\
-  "      - kibana\n"\
-  "      - localhost\n"\
-  "    ip:\n"\
-  "      - 127.0.0.1\n"\
-  > config/certs/instances.yml;
+  echo "$INSTANCE_LIST" | while IFS= read -r line; do echo "$line" >> config/certs/instances.yml; done
   bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
   unzip config/certs/certs.zip -d config/certs;
 fi;
