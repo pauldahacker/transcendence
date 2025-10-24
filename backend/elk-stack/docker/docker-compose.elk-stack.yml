@@ -19,8 +19,15 @@ networks:
 
 name: elk-stack
 
+x-shared-config: &shared-config
+  profiles:
+    - all
+    - elk-stack
+
 services:
   setup:
+    <<: *shared-config
+    container_name: elk-stack-setup
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
@@ -37,6 +44,8 @@ services:
       retries: 120
 
   es01:
+    <<: *shared-config
+    container_name: elk-stack-elasticsearch
     depends_on:
       - setup
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -80,6 +89,8 @@ services:
       retries: 120
 
   kibana:
+    <<: *shared-config
+    container_name: elk-stack-kibana
     depends_on:
       es01:
         condition: service_healthy
@@ -112,6 +123,8 @@ services:
       retries: 120
 
   metricbeat01:
+    <<: *shared-config
+    container_name: elk-stack-metricbeat
     depends_on:
       es01:
         condition: service_healthy
@@ -141,6 +154,8 @@ services:
       - LOGSTASH_HOSTS=http://logstash01:9600
 
   filebeat01:
+    <<: *shared-config
+    container_name: elk-stack-filebeat
     depends_on:
       es01:
         condition: service_healthy
@@ -167,6 +182,8 @@ services:
       - LOGSTASH_HOSTS=http://logstash01:9600
 
   logstash01:
+    <<: *shared-config
+    container_name: elk-stack-logstash
     depends_on:
       es01:
         condition: service_healthy
