@@ -285,41 +285,56 @@ class UsersDatabase extends Database {
     }
   }
 
-  manageFriendRequest(a_friend_id, b_friend_id) {
+  manageFriendRequest(a_friend_id, b_friend_id, action) {
     try {
-      b_friend_id = parseInt(b_friend_id);
-      if (a_friend_id === b_friend_id) {
-        throw JSONError('Cannot send friend request to oneself', 400);
-      }
-      const checkStmt = this.prepare(`
-        SELECT * FROM friends 
-        WHERE (a_friend_id = ? AND b_friend_id = ?) 
-           OR (b_friend_id = ? AND a_friend_id = ?)
-      `);
-      const existingRequest = checkStmt.get(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
+      if (action === 'add') {
+        if (a_friend_id === b_friend_id) {
+          throw JSONError('Cannot send friend request to oneself', 400);
+        }
 
-      if (existingRequest) {
-        if (existingRequest.confirmed) {
-          throw JSONError('You are already friends', 400);
-        } else if (existingRequest.requested_by_id === a_friend_id) {
-          throw JSONError('Friend request already sent', 409);
-        } else {
-          const updateStmt = this.prepare(`
-            UPDATE friends 
-            SET confirmed = 1 
-            WHERE (a_friend_id = ? AND b_friend_id = ?) 
-               OR (b_friend_id = ? AND a_friend_id = ?)
+        const checkStmt = this.prepare(`
+          SELECT * FROM friends
+          WHERE (a_friend_id = ? AND b_friend_id = ?)
+             OR (a_friend_id = ? AND b_friend_id = ?)
+        `);
+        const existing = checkStmt.get(a_friend_id, b_friend_id, b_friend_id, a_friend_id);
+        if (existing) {
+          if (existing.confirmed) {
+            throw JSONError('Users are already friends', 400);
+          } else {
+            if (existing.requested_by_id === a_friend_id) {
+              throw JSONError('Friend request already sent', 409);
+            } else {
+              const updateStmt = this.prepare(`
+                UPDATE friends
+                SET confirmed = 1
+                WHERE id = ?
+              `);
+              updateStmt.run(existing.id);
+              return { message: 'Friend request accepted' };
+            }
+          }
+        } else if (action === 'remove') {
+          const deleteStmt = this.prepare(`
+            DELETE FROM friends
+            WHERE (a_friend_id = ? AND b_friend_id = ?)
+               OR (a_friend_id = ? AND b_friend_id = ?)
           `);
-          updateStmt.run(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
-          return { message: 'Friend request accepted'};
+          const info = deleteStmt.run(a_friend_id, b_friend_id, b_friend_id, a_friend_id);
+          if (info.changes === 0) {
+            throw JSONError('Cannot remove a friend who is not in the friend list', 400);
+          }
+          return { message: 'Friend removed or friend request cancelled' };
+        } else {
+          const insertStmt = this.prepare(`
+            INSERT INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at)
+            VALUES (?, ?, ?, datetime('now'))
+          `);
+          insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
+          return { message: 'Friend request sent' };
         }
       } else {
-        const insertStmt = this.prepare(`
-          INSERT INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at) 
-          VALUES (?, ?, ?, datetime('now'))
-        `);
-        insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
-        return { message: 'Friend request sent' };
+        throw JSONError('Invalid action', 400);
       }
     } catch (error) {
       throw error;

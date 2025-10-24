@@ -115,7 +115,7 @@ function routes(app, db) {
 		]}, async (request, reply) => {
 		request.log.info('Managing friend request');
 		try {
-			const info = db.manageFriendRequest(request.user.id, request.params.user_id);
+			const info = db.manageFriendRequest(request.user.id, request.params.user_id, request.query.action);
 			return reply.send(info);
 		} catch (err) {
 			throw err;
