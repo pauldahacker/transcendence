@@ -21,6 +21,7 @@ all:
 
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
 	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Generate \`.env\` file and SSL certificates"
+	@echo "  ${GREEN}${BOLD}logs    ${CYAN}- Run ELK stack for log management"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
@@ -44,7 +45,11 @@ build: $(ENV_FILE) $(CERTS_DIR)
 
 up: build
 	$(call help_message, "Running the containerized application...")
-	docker compose up --build --watch
+	docker compose --profile app up --watch
+
+logs:
+	$(call help_message, "Running ELK stack...")
+	docker compose --profile elk-stack up
 
 test:
 	$(call help_message, "Running unit tests...")
@@ -62,11 +67,11 @@ test:
 
 down:
 	$(call help_message, "Stopping the containerized application...")
-	docker compose down
+	docker compose --profile all down
 
 clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
-	docker compose down -v || true
+	docker compose --profile all down -v || true
 
 fclean: clean
 	$(call help_message, "Removing container images...")

@@ -1,5 +1,8 @@
 name: trascendence
 
+include:
+  - backend/elk-stack/docker/docker-compose.elk-stack.yml
+
 x-internal-ports: &internal-ports
   environment:
     - API_PORT
@@ -10,6 +13,9 @@ x-internal-ports: &internal-ports
     - APP_PORT
 
 x-shared-config: &shared-config
+  profiles:
+    - all
+    - app
   volumes:
       - ./common/certs/:/app/certs/:ro
   env_file:
