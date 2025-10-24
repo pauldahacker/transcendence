@@ -82,7 +82,7 @@ class UsersDatabase extends Database {
   getAllUsers() {
     try {
       const stmt = this.prepare(`
-        SELECT ua.id, ua.username, ua.created_at, up.is_active
+        SELECT ua.id, ua.username, ua.created_at, up.is_active, up.display_name, up.avatar_url
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
       `);
