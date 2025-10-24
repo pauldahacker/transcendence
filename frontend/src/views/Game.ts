@@ -101,7 +101,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
       async (result: GameOverState) => {
 		const { winner, score1, score2} = result;
         const overlay = document.createElement("div");
-        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
+        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
         
 		if (!(aiP2 && aiP1)){
 			const userScore = aiP1 && !aiP2 ? score2 : score1;

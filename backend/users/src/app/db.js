@@ -81,7 +81,11 @@ class UsersDatabase extends Database {
 
   getAllUsers() {
     try {
-      const stmt = this.prepare('SELECT id, username, created_at FROM users_auth');
+      const stmt = this.prepare(`
+        SELECT ua.id, ua.username, ua.created_at, up.is_active
+        FROM users_auth ua
+        JOIN users_profile up ON ua.id = up.user_id
+      `);
       return stmt.all();
     } catch (error) {
       throw error;
