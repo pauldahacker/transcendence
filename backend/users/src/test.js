@@ -461,7 +461,7 @@ test('GET `/:user_id/stats` route', async (t) => {
   });
 });
 
-test('POST `/:user_id/friend-request` route', async (t) => {
+test('POST `/:user_id/friend-request?action=add` route', async (t) => {
   const { app } = buildFastify(opts = {}, DB_PATH);
 
   t.after(() => app.close());
@@ -469,7 +469,7 @@ test('POST `/:user_id/friend-request` route', async (t) => {
 
   await t.test('Send friend request with missing token', async (t) => {
     const response = await supertest(app.server)
-    .post('/2/friend-request')
+    .post('/2/friend-request?action=add')
     .expect(401)
     .expect('Content-Type', 'application/json; charset=utf-8');
     t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
@@ -477,52 +477,104 @@ test('POST `/:user_id/friend-request` route', async (t) => {
 
   await t.test('Send friend request to oneself', async (t) => {
     const response = await supertest(app.server)
-    .post('/1/friend-request')
+    .post('/1/friend-request?action=add')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(400)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Cannot send friend request to oneself', 400));
+    t.assert.deepStrictEqual(response.body.message, 'Cannot send friend request to oneself');
   });
 
   await t.test('Send friend request with valid token', async (t) => {
     const response = await supertest(app.server)
-    .post('/2/friend-request')
+    .post('/2/friend-request?action=add')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, { message: 'Friend request sent' });
+    t.assert.deepStrictEqual(response.body.message, 'Friend request sent');
   });
 
   await t.test('Send duplicate friend request with valid token', async (t) => {
     const response = await supertest(app.server)
-    .post('/2/friend-request')
+    .post('/2/friend-request?action=add')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(409)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('Friend request already sent', 409));
+    t.assert.deepStrictEqual(response.body.message, 'Friend request already sent');
   });
 
   await t.test('Send friend request with invalid user ID', async (t) => {
     const response = await supertest(app.server)
-    .post('/999/friend-request')
+    .post('/999/friend-request?action=add')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(404)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, schemas.JSONError('User not found', 404));
+    t.assert.deepStrictEqual(response.body.message, 'User not found');
   });
 
   await t.test('Accept friend request with valid token', async (t) => {
     const response = await supertest(app.server)
-    .post('/1/friend-request')
+    .post('/1/friend-request?action=add')
     .set('Authorization', `Bearer ${token_2}`)
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
-    t.assert.deepStrictEqual(response.body, { message: 'Friend request accepted' });
+    t.assert.deepStrictEqual(response.body.message, 'Friend request accepted');
+  });
+});
+
+test('POST `/:user_id/friend-request?action=remove` route', async (t) => {
+  const { app } = buildFastify(opts = {}, DB_PATH);
+
+  t.after(() => app.close());
+  await app.ready();
+
+  await t.test('Remove friend with missing token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/2/friend-request?action=remove')
+    .expect(401)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+    t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
+  });
+
+  await t.test('Remove friend with valid token', async (t) => {
+    const response = await supertest(app.server)
+    .post('/2/friend-request?action=remove')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.message, 'Friend removed successfully');
+  });
+
+  await t.test('Remove non-existent friend', async (t) => {
+    const response = await supertest(app.server)
+    .post('/999/friend-request?action=remove')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(400)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.message, 'Cannot remove a friend who is not in the friend list');
+  });
+
+  await t.test('Reject friend request with valid token', async (t) => {
+    // First, send a friend request again
+    await supertest(app.server)
+    .post('/2/friend-request?action=add')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(200);
+
+    // Then, reject it
+    const response = await supertest(app.server)
+    .post('/1/friend-request?action=remove')
+    .set('Authorization', `Bearer ${token_2}`)
+    .expect(200)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.message, 'Friend request rejected');
   });
 });
 

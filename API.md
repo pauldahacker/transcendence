@@ -230,28 +230,27 @@ Error responses:
 - `401`: Invalid token header
 - `404`: User not found
 
-### Endpoint: `POST    /api/users/{user_id}/friend-request`
+### Endpoint: `POST    /api/users/{user_id}/friend-request?action={action}`
 
-User with id `{user_id}` recieves a friend request from the authenticated user.
+Manages friend requests.
+
+Query parameter `action`:
+- `add`: send or accept a friend request
+- `remove`: remove a friend or cancel a pending/requested friend request
 
 Response body:
+```json
+{
+  "message": "string"
+}
+```
 
-On first request (`user_1` sends request to user `user_2`):
-```json
-{
-  "message": "Friend request sent"
-}
-```
-On second request (`user_2` sends request to user `user_1`):
-```json
-{
-  "message": "Friend request accepted"
-}
-```
 Error responses:
 - `401`: Invalid token header
+- `400`: Invalid action
 - `400`: Cannot send friend request to oneself
 - `400`: Cannot send friend request to an existing friend
+- `400`: Cannot remove a friend who is not in the friend list
 - `409`: Friend request already exists
 - `404`: User not found
 
