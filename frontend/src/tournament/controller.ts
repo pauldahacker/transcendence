@@ -32,6 +32,7 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
       overlay.appendChild(nextBtn);
 
       nextBtn.addEventListener("click", () => {
+        document.querySelectorAll(".overlay").forEach(el => el.remove());
         state.currentMatch++;
 
         // If 4 players and first round finished, set up final
@@ -43,18 +44,41 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
 
         // Tournament finished
         if (state.currentMatch >= state.matches.length) {
-          alert("Tournament finished! Winner: " + state.winners[0]);
-          if (!(p1.startsWith("[AI]") && p2.startsWith("[AI]"))){
+          const finalOverlay = document.createElement("div");
+          finalOverlay.className =
+            "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay bg-black/80 text-white font-bit text-center";
+          
+          const title = document.createElement("h2");
+          title.textContent = "Tournament Finished";
+          title.className = "text-[10vh] text-stone-600 mb-4";
+          finalOverlay.appendChild(title);
+
+          const msg = document.createElement("p");
+          msg.textContent = `${state.winners[0]} won!`;
+          msg.className = "text-[8vh] mb-6 text-lime-400 animate-bounce drop-shadow-[0_0_10px_gold]";
+          finalOverlay.appendChild(msg);
+
+          if (!(p1.startsWith("[AI]") && p2.startsWith("[AI]"))) {
             postMatch({
               tournament_id: generateMatchId(),
               a_participant_score: result.score1,
               b_participant_score: result.score2,
             });
           }
-          location.hash = "/";
+
+          const homeBtn = document.createElement("button");
+          homeBtn.textContent = "Back to Home";
+          homeBtn.className =
+            "w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black min-w-[300px]";
+          homeBtn.addEventListener("click", () => {
+            finalOverlay.remove();
+            location.hash = "/";
+          });
+          finalOverlay.appendChild(homeBtn);
+
+          gameContainer.appendChild(finalOverlay);
           return;
         }
-        
         showMatchList(root, state);
       });
     },

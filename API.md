@@ -67,7 +67,9 @@ Response body:
 [
   {
     "id": "number",
-    "username": "string"
+    "username": "string",
+    "created_at": "string",
+    "is_active": "boolean"
   }
 ]
 ```
