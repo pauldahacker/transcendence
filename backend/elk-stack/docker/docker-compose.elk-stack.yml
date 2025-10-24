@@ -38,8 +38,7 @@ services:
 
   es01:
     depends_on:
-      setup:
-        condition: service_healthy
+      - setup
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     labels:
       co.elastic.logs/module: elasticsearch
@@ -118,12 +117,18 @@ services:
         condition: service_healthy
       kibana:
         condition: service_healthy
-    image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
+    build:
+      context: .
+      dockerfile: ./root.Dockerfile
+      args:
+        - IMAGE_BASE=docker.elastic.co/beats/metricbeat
+        - STACK_VERSION=${STACK_VERSION}
+        - CONFIG_FILE=metricbeat.yml
+        - CONFIG_PATH=metricbeat
     user: root
     volumes:
       - certs:/usr/share/metricbeat/certs
       - metricbeatdata01:/usr/share/metricbeat/data
-      - "./conf/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
       - "/proc:/hostfs/proc:ro"
@@ -133,18 +138,25 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOSTS=https://es01:9200
       - KIBANA_HOSTS=http://kibana:5601
+      - LOGSTASH_HOSTS=http://logstash01:9600
 
   filebeat01:
     depends_on:
       es01:
         condition: service_healthy
-    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    build:
+      context: .
+      dockerfile: ./root.Dockerfile
+      args:
+        - IMAGE_BASE=docker.elastic.co/beats/filebeat
+        - STACK_VERSION=${STACK_VERSION}
+        - CONFIG_FILE=filebeat.yml
+        - CONFIG_PATH=filebeat
     user: root
     volumes:
       - certs:/usr/share/filebeat/certs
       - filebeatdata01:/usr/share/filebeat/data
       - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
-      - "./conf/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     environment:
@@ -160,7 +172,14 @@ services:
         condition: service_healthy
       kibana:
         condition: service_healthy
-    image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
+    build:
+      context: .
+      dockerfile: ./root.Dockerfile
+      args:
+        - IMAGE_BASE=docker.elastic.co/logstash/logstash
+        - STACK_VERSION=${STACK_VERSION}
+        - CONFIG_FILE=logstash.conf
+        - CONFIG_PATH=logstash/pipeline
     labels:
       co.elastic.logs/module: logstash
     user: root
@@ -168,7 +187,6 @@ services:
       - certs:/usr/share/logstash/certs
       - logstashdata01:/usr/share/logstash/data
       - "./logstash_ingest_data/:/usr/share/logstash/ingest_data/"
-      - "./conf/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
