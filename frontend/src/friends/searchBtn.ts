@@ -1,5 +1,5 @@
 import { fetchUsers } from "@/userUtils/FetchUsers";
-import { sendFriendRequest } from "@/userUtils/SendFriendRequest";
+import { sendFriendRequest } from "./sendFriendRequest";
 import { getUserIdFromToken } from "@/userUtils/TokenUtils";
 
 export function initSearchButton() {
@@ -95,17 +95,15 @@ export async function searchBtnPopup() {
 
         try {
           const res = await sendFriendRequest(userId);
-
-          if (!popup.isConnected) return; // popup closed mid-request
-
-          button.textContent = "Sent ✓";
+        
+          button.textContent = "Pending";
           button.disabled = true;
+          button.classList.remove("bg-cyan-700");
           button.classList.add("bg-gray-600");
           showMessage(res.message || "Friend request sent!", "success");
         } catch (err) {
-          console.error(err);
-          showMessage((err as Error).message || "Failed to send friend request.", "error");
-        }
+          showMessage((err as Error).message, "error");
+        }        
       });
     });
   }
