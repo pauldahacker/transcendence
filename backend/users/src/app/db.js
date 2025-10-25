@@ -82,7 +82,7 @@ class UsersDatabase extends Database {
   getAllUsers() {
     try {
       const stmt = this.prepare(`
-        SELECT ua.id, ua.username, ua.created_at, up.is_active
+        SELECT ua.id, ua.username, up.display_name, up.avatar_url, up.bio, ua.created_at, up.is_active
         FROM users_auth ua
         JOIN users_profile up ON ua.id = up.user_id
       `);
@@ -285,42 +285,81 @@ class UsersDatabase extends Database {
     }
   }
 
-  manageFriendRequest(a_friend_id, b_friend_id) {
-    try {
-      b_friend_id = parseInt(b_friend_id);
-      if (a_friend_id === b_friend_id) {
-        throw JSONError('Cannot send friend request to oneself', 400);
-      }
-      const checkStmt = this.prepare(`
-        SELECT * FROM friends 
-        WHERE (a_friend_id = ? AND b_friend_id = ?) 
-           OR (b_friend_id = ? AND a_friend_id = ?)
-      `);
-      const existingRequest = checkStmt.get(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
+  addFriend(a_user_id, b_user_id) {
+    let message;
 
-      if (existingRequest) {
-        if (existingRequest.confirmed) {
-          throw JSONError('You are already friends', 400);
-        } else if (existingRequest.requested_by_id === a_friend_id) {
+    try {
+      if (a_user_id === b_user_id)
+        throw JSONError('Cannot send friend request to oneself', 400);
+      if (this.getUserById(b_user_id) === null)
+        throw JSONError('User not found', 404);
+
+      const existingFriendship = this.prepare(`
+        SELECT * FROM friends
+        WHERE (a_friend_id = ? AND b_friend_id = ?)
+           OR (a_friend_id = ? AND b_friend_id = ?)
+      `).get(a_user_id, b_user_id, b_user_id, a_user_id);
+      
+      if (existingFriendship) {
+        if (existingFriendship.confirmed)
+          throw JSONError('Users are already friends', 409);
+        if (existingFriendship.requested_by_id === a_user_id)
           throw JSONError('Friend request already sent', 409);
-        } else {
-          const updateStmt = this.prepare(`
-            UPDATE friends 
-            SET confirmed = 1 
-            WHERE (a_friend_id = ? AND b_friend_id = ?) 
-               OR (b_friend_id = ? AND a_friend_id = ?)
-          `);
-          updateStmt.run(a_friend_id, b_friend_id, a_friend_id, b_friend_id);
-          return { message: 'Friend request accepted'};
-        }
+
+        this.prepare(`
+          UPDATE friends
+          SET confirmed = 1
+          WHERE (a_friend_id = ? AND b_friend_id = ?)
+        `).run(b_user_id, a_user_id);
+        
+        message = 'Friend request accepted';
       } else {
-        const insertStmt = this.prepare(`
-          INSERT INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at) 
+        this.prepare(`
+          INSERT INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at)
           VALUES (?, ?, ?, datetime('now'))
-        `);
-        insertStmt.run(a_friend_id, b_friend_id, a_friend_id);
-        return { message: 'Friend request sent' };
+        `).run(a_user_id, b_user_id, a_user_id);
+
+        message = 'Friend request sent';
       }
+
+      return { message: message };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  removeFriend(a_user_id, b_user_id) {
+    let message;
+
+    try {
+      if (a_user_id === b_user_id)
+        throw JSONError('Cannot remove oneself from friends', 400);
+      if (this.getUserById(b_user_id) === null)
+        throw JSONError('User not found', 404);
+
+      const existingFriendship = this.prepare(`
+        SELECT * FROM friends
+        WHERE (a_friend_id = ? AND b_friend_id = ?)
+          OR (a_friend_id = ? AND b_friend_id = ?)
+      `).get(a_user_id, b_user_id, b_user_id, a_user_id);
+
+      if (!existingFriendship)
+        throw JSONError('Cannot remove a friend who is not in the friend list', 400);
+
+      if (existingFriendship.confirmed) {
+        message = 'Friend removed successfully';
+      } else {
+        message = 'Friend request rejected';
+      }
+
+      const stmt = this.prepare(`
+        DELETE FROM friends
+        WHERE (a_friend_id = ? AND b_friend_id = ?)
+          OR (a_friend_id = ? AND b_friend_id = ?)
+      `);
+      stmt.run(a_user_id, b_user_id, b_user_id, a_user_id);
+
+      return { message: message };
     } catch (error) {
       throw error;
     }
