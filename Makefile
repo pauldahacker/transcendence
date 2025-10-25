@@ -22,6 +22,7 @@ all:
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
 	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Generate \`.env\` file and SSL certificates"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
+	@echo "  ${GREEN}${BOLD}load	  ${CYAN}- Load initial data into the database"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
 	@echo "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
@@ -66,6 +67,10 @@ e2e_tournament:
 	@cd backend/tournaments/src/scripts && \
 	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
 	node e_2_e_tournament.js
+
+load:
+	$(call help_message, "Loading initial data into the database...")
+	docker compose exec users node load-db.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
