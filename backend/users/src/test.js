@@ -552,12 +552,22 @@ test('POST `/:user_id/friend-request?action=remove` route', async (t) => {
 
   await t.test('Remove non-existent friend', async (t) => {
     const response = await supertest(app.server)
-    .post('/999/friend-request?action=remove')
+    .post('/2/friend-request?action=remove')
     .set('Authorization', `Bearer ${token_1}`)
     .expect(400)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     t.assert.deepStrictEqual(response.body.message, 'Cannot remove a friend who is not in the friend list');
+  });
+
+  await t.test('Remove non-existent user', async (t) => {
+    const response = await supertest(app.server)
+    .post('/999/friend-request?action=remove')
+    .set('Authorization', `Bearer ${token_1}`)
+    .expect(404)
+    .expect('Content-Type', 'application/json; charset=utf-8');
+
+    t.assert.deepStrictEqual(response.body.message, 'User not found');
   });
 
   await t.test('Reject friend request with valid token', async (t) => {
@@ -576,6 +586,17 @@ test('POST `/:user_id/friend-request?action=remove` route', async (t) => {
 
     t.assert.deepStrictEqual(response.body.message, 'Friend request rejected');
   });
+
+  // Add friendship back for further tests
+  await supertest(app.server)
+  .post('/2/friend-request?action=add')
+  .set('Authorization', `Bearer ${token_1}`)
+  .expect(200);
+
+  await supertest(app.server)
+  .post('/1/friend-request?action=add')
+  .set('Authorization', `Bearer ${token_2}`)
+  .expect(200);
 });
 
 test('GET `/:user_id/friends` route', async (t) => {

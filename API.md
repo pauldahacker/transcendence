@@ -236,7 +236,7 @@ Manages friend requests.
 
 Query parameter `action`:
 - `add`: send or accept a friend request
-- `remove`: remove a friend or cancel a pending/requested friend request
+- `remove`: remove a friend or cancel a pending friend request
 
 Response body:
 ```json
@@ -249,9 +249,10 @@ Error responses:
 - `401`: Invalid token header
 - `400`: Invalid action
 - `400`: Cannot send friend request to oneself
-- `400`: Cannot send friend request to an existing friend
+- `400`: Cannot remove oneself from friends
+- `400`: Users are already friends
+- `409`: Friend request already sent
 - `400`: Cannot remove a friend who is not in the friend list
-- `409`: Friend request already exists
 - `404`: User not found
 
 ## Tournament endpoints
