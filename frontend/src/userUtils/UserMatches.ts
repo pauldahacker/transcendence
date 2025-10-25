@@ -31,32 +31,47 @@ async function getMatchHistory(userId: number): Promise<Match[]> {
 export async function renderLastMatches(userId: number) {
   try {
     const matches = await getMatchHistory(userId);
-    if (!matches || matches.length === 0){
-      document.getElementById("matchHistory")!.innerHTML = `
-        <p class="text-gray-400 font-bit text-[2vh] text-center py-10">No matches played</p>`;
-        return;
+    const container = document.getElementById("matchHistory")!;
+    if (!matches || matches.length === 0) {
+      container.innerHTML = `
+        <p class="text-gray-400 font-bit text-[2vh] text-center py-10">
+          No matches played
+        </p>`;
+      return;
     }
+    const trophy_url = new URL("../imgs/trophy.png", import.meta.url).href;
+
     const list = matches
-      .filter((m) => m.tournament_id === 0)
-      .map(
-        (m) => `
-          <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2">
-            <span>AI</span>
-            <span class="${m.user_score > m.opponent_score ? "text-green-500" : "text-red-500"}">
-              ${m.user_score} - ${m.opponent_score}
+      .map((m) => {
+        const isTournament = (m.tournament_id !== 0 && (m.user_score > m.opponent_score));
+        const icon = isTournament
+          ? `<img src=${trophy_url} alt="Tournament" class="inline w-3 h-3 mr-0 align-middle" />`: "-";
+
+        return `
+          <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2 items-center">
+            <span class="flex items-center gap-1">
+              <span>AI</span>
+            </span>
+            <span class="${
+              m.user_score > m.opponent_score
+                ? "text-green-500"
+                : "text-red-500"
+            }">
+              ${m.user_score} ${icon} ${m.opponent_score}
             </span>
             <span>${timeAgo(m.match_date)}</span>
-          </li>`
-      )
+          </li>`;
+      })
       .join("");
 
-    document.getElementById("matchHistory")!.innerHTML = `<ul class="w-full text-gray-400 font-bit text-[2vh]">${list}</ul>`;
+    container.innerHTML = `<ul class="w-full text-gray-400 font-bit text-[2vh]">${list}</ul>`;
   } catch (err) {
     console.error("Error al obtener el historial:", err);
     document.getElementById("matchHistory")!.innerHTML = `
         <p class="text-gray-400 font-bit text-[2vh] text-center py-10">No matches found</p>`;
   }
 }
+
 
 
 export async function getTournamentWins(userId: number): Promise<number> {
