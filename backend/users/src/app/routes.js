@@ -115,7 +115,14 @@ function routes(app, db) {
 		]}, async (request, reply) => {
 		request.log.info('Managing friend request');
 		try {
-			const info = db.manageFriendRequest(request.user.id, request.params.user_id);
+			request.params.user_id = parseInt(request.params.user_id);
+			if (request.query.action === 'add')
+				var info = db.addFriend(request.user.id, request.params.user_id);
+			else if (request.query.action === 'remove')
+				var info = db.removeFriend(request.user.id, request.params.user_id);
+			else
+				throw new Error('Invalid action', 400);
+
 			return reply.send(info);
 		} catch (err) {
 			throw err;
