@@ -44,7 +44,7 @@
 
 ### Devops
 
-:heavy_check_mark: Infrastructure setup for log management - 1 point.
+:white_check_mark: Infrastructure setup for log management - 1 point.
 
 :black_square_button: Monitoring system - 0.5 point.
 
@@ -70,7 +70,7 @@
 :black_square_button: Enabling Pong gameplay via CLI against web users with API integration - 1 point.
 
 ## Total points
-- Major modules completed: 4 (4 points)
+- Major modules completed: 5 (5 points)
 - Minor modules completed: 3 (1.5 points)
 
-- Total points: 5.5/7
+- Total points: 6.5/7
