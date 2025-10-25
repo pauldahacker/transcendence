@@ -65,8 +65,8 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
             const opponentScore = aiP1 && !aiP2 ? result.score1 : result.score2;
             postMatch({
               tournament_id: generateMatchId(),
-              a_participant_score: result.score1,
-              b_participant_score: result.score2,
+              a_participant_score: userScore,
+              b_participant_score: opponentScore,
             });
           }
 
