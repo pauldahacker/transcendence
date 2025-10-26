@@ -3,7 +3,7 @@ import { setup3DSwitch } from "../3d/3dswitch";
 import { isUserLoggedIn } from "@/userUtils/TokenUtils";
 import { initSearchButton } from "@/friends/searchBtn";
 import { initNewsButton, updateNewsBadge } from "@/friends/newsBtn";
-import { fetchFriendRequests } from "@/friends/fetchFriendRequests";
+import { fetchIncomingFriendRequests } from "@/friends/fetchFriendRequests";
 
 export async function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
@@ -111,17 +111,13 @@ export async function renderHome(root: HTMLElement) {
   setup3DSwitch(container); 
   initSearchButton();
   initNewsButton();
-  // refresh news badge every 10 seconds.
   if (logged) {
-    const refreshBadge = async () => {
-      try {
-        const requests = await fetchFriendRequests();
-        updateNewsBadge(requests.length);
-      } catch {}
-    };
-  
-    refreshBadge();
-    setInterval(refreshBadge, 10000);
+    try {
+      const requests = await fetchIncomingFriendRequests();
+      updateNewsBadge(requests.length);
+    } catch (err) {
+      console.error("Failed to load friend request badge:", err);
+    }
   }
 }
 

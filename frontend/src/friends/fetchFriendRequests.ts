@@ -1,6 +1,6 @@
 import { getUserIdFromToken } from "@/userUtils/TokenUtils"
 
-export async function fetchFriendRequests() {
+export async function fetchIncomingFriendRequests() {
   const token = localStorage.getItem("auth_token");
   if (!token) throw new Error("Not logged in");
 
@@ -12,5 +12,6 @@ export async function fetchFriendRequests() {
 
   if (!res.ok) throw new Error(`Failed (${res.status})`);
 
-  return res.json();
+  const all = await res.json();
+  return all.filter((r: any) => r.requested_by_id !== userId);
 }
