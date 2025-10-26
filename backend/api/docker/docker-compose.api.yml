@@ -10,9 +10,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$API_PORT/health"]
       interval: 1m30s
-      timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 10s
+      start_interval: 1s
     develop:
       watch:
         - action: sync+restart
