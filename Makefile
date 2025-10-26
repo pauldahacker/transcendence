@@ -23,6 +23,7 @@ all:
 	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Generate \`.env\` file and SSL certificates"
 	@echo "  ${GREEN}${BOLD}logs    ${CYAN}- Run ELK stack for log management"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
+	@echo "  ${GREEN}${BOLD}load	  ${CYAN}- Load initial data into the database"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
 	@echo "  ${GREEN}${BOLD}clean   ${CYAN}- Stop the application and remove the database volume"
 	@echo "  ${GREEN}${BOLD}fclean  ${CYAN}- Remove container images"
@@ -65,6 +66,10 @@ test:
 	docker compose exec tournaments npm run db:smoke
 	$(call help_message, "Running tournaments score reporting tests...")
 	docker compose exec tournaments node score_reporting_test.js
+
+load:
+	$(call help_message, "Loading initial data into the database...")
+	docker compose exec users node load-db.js
 
 down:
 	$(call help_message, "Stopping the containerized application...")
