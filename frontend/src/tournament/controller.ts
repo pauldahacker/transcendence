@@ -13,7 +13,7 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
 
   state.stopCurrentGame = renderGame(
-    root, { tournament: true, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: (result: GameOverState) => {
+    root, { tournament: true, tournamentState: state, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: (result: GameOverState) => {
       if (!state.active) return;
       const resolvedWinner = result.winner === 1 ? p1 : p2;
       state.winners.push(resolvedWinner);
@@ -58,11 +58,15 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
           msg.className = "text-[8vh] mb-6 text-lime-400 animate-bounce drop-shadow-[0_0_10px_gold]";
           finalOverlay.appendChild(msg);
 
-          if (!(p1.startsWith("[AI]") && p2.startsWith("[AI]"))) {
+          const aiP1 = p1.startsWith("[AI]");
+          const aiP2 = p2.startsWith("[AI]");
+          if (!(aiP1 && aiP2)) {
+            const userScore = aiP1 && !aiP2 ? result.score2 : result.score1;
+            const opponentScore = aiP1 && !aiP2 ? result.score1 : result.score2;
             postMatch({
               tournament_id: generateMatchId(),
-              a_participant_score: result.score1,
-              b_participant_score: result.score2,
+              a_participant_score: userScore,
+              b_participant_score: opponentScore,
             });
           }
 

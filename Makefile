@@ -21,6 +21,7 @@ all:
 
 	@echo "  ${GREEN}${BOLD}up      ${CYAN}- Run the containerized application"
 	@echo "  ${GREEN}${BOLD}build   ${CYAN}- Generate \`.env\` file and SSL certificates"
+	@echo "  ${GREEN}${BOLD}logs    ${CYAN}- Run ELK stack for log management"
 	@echo "  ${GREEN}${BOLD}test    ${CYAN}- Run unit and integration tests"
 	@echo "  ${GREEN}${BOLD}load	  ${CYAN}- Load initial data into the database"
 	@echo "  ${GREEN}${BOLD}down    ${CYAN}- Stop the containerized application"
@@ -40,33 +41,31 @@ $(ENV_FILE): $(ENV_FILE).example
 	cp .env.example .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
+	sed -i '0,/{generated-by-makefile}/s//$(shell openssl rand -hex 32)/' .env
 
 build: $(ENV_FILE) $(CERTS_DIR)
 
 up: build
 	$(call help_message, "Running the containerized application...")
-	docker compose up --build --watch
+	docker compose --profile app up --watch
+
+logs:
+	$(call help_message, "Running ELK stack...")
+	docker compose --profile elk-stack up
 
 test:
 	$(call help_message, "Running unit tests...")
 	docker compose exec api npm run test
 	docker compose exec users npm run test
+	docker compose exec tournaments npm test
 	$(call help_message, "Running integration tests...")
 	npm install --prefix $(TEST_DIR)
 	node --env-file=.env $(TEST_DIR)/test.js
-	$(call help_message, "Running tournaments unit tests...")
-	docker compose exec tournaments npm test
+	node --env-file=.env backend/tournaments/src/scripts/e_2_e_tournament.js
 	$(call help_message, "Running tournaments DB smoke test...")
 	docker compose exec tournaments npm run db:smoke
 	$(call help_message, "Running tournaments score reporting tests...")
 	docker compose exec tournaments node score_reporting_test.js
-	$(call help_message, "Running end-to-end tournament test...")
-	$(MAKE) e2e_tournament	
-
-e2e_tournament:
-	@cd backend/tournaments/src/scripts && \
-	INTERNAL_API_KEY=$$(grep -E '^INTERNAL_API_KEY=' $(CURDIR)/.env | cut -d= -f2- | tr -d '\r') \
-	node e_2_e_tournament.js
 
 load:
 	$(call help_message, "Loading initial data into the database...")
@@ -74,11 +73,11 @@ load:
 
 down:
 	$(call help_message, "Stopping the containerized application...")
-	docker compose down
+	docker compose --profile all down
 
 clean:
 	$(call help_message, "Stopping the containerized application and removing the database volume...")
-	docker compose down -v || true
+	docker compose --profile all down -v || true
 
 fclean: clean
 	$(call help_message, "Removing container images...")
@@ -90,4 +89,4 @@ fclean: clean
 
 re: clean up
 
-.PHONY: all up test build down clean fclean re e2e_tournament
+.PHONY: all up test build down clean fclean re
