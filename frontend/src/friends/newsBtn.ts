@@ -1,4 +1,4 @@
-import { fetchFriendRequests } from "./fetchFriendRequests";
+import { fetchIncomingFriendRequests } from "./fetchFriendRequests";
 import { respondFriendRequest } from "./respondFriendRequest";
 
 export function initNewsButton() {
@@ -30,7 +30,8 @@ async function showNewsPopup() {
   list.innerHTML = "Loading...";
 
   try {
-    const requests = await fetchFriendRequests();
+    const requests = await fetchIncomingFriendRequests();
+
     if (!requests.length) {
       list.innerHTML = `<p class="text-gray-300">No pending requests.</p>`;
       return;
@@ -69,7 +70,7 @@ async function showNewsPopup() {
             setTimeout(() => row.remove(), 1500);
           }
           // refresh notifications
-          const remaining = await fetchFriendRequests();
+          const remaining = await fetchIncomingFriendRequests();
           updateNewsBadge(remaining.length);
         } catch {
             alert("Failed to respond to request.");
