@@ -29,14 +29,25 @@ async function showNewsPopup() {
   const list = document.getElementById("requestsList")!;
   list.innerHTML = "Loading...";
 
+  // only refresh badge till an incoming friend request is detected
+  async function refreshBadge() {
+    try {
+      const remaining = await fetchIncomingFriendRequests();
+      updateNewsBadge(remaining.length);
+    } catch (err) {
+      console.error("Failed to update badge:", err);
+    }
+  }
+
   try {
     const requests = await fetchIncomingFriendRequests();
 
     if (!requests.length) {
       list.innerHTML = `<p class="text-gray-300">No pending requests.</p>`;
+      await refreshBadge(); // blocks here until at least 1 incoming request
       return;
     }
-    updateNewsBadge(requests);
+    await refreshBadge();
 
     list.innerHTML = requests.map((r: any) => `
       <div class="flex justify-between items-center p-2 hover:bg-cyan-800 rounded">
@@ -70,8 +81,7 @@ async function showNewsPopup() {
             setTimeout(() => row.remove(), 1500);
           }
           // refresh notifications
-          const remaining = await fetchIncomingFriendRequests();
-          updateNewsBadge(remaining.length);
+          await refreshBadge();
         } catch {
             alert("Failed to respond to request.");
         }

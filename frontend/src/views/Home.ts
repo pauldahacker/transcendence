@@ -112,12 +112,15 @@ export async function renderHome(root: HTMLElement) {
   initSearchButton();
   initNewsButton();
   if (logged) {
-    try {
-      const requests = await fetchIncomingFriendRequests();
-      updateNewsBadge(requests.length);
-    } catch (err) {
-      console.error("Failed to load friend request badge:", err);
-    }
+    // update notifications every 5 seconds
+    setInterval(async () => {
+      try {
+        const requests = await fetchIncomingFriendRequests();
+        updateNewsBadge(requests.length);
+      } catch (err) {
+        console.error("Failed to refresh news badge:", err);
+      }
+    }, 5000);
   }
 }
 
