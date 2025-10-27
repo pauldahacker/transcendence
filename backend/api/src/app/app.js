@@ -14,11 +14,11 @@ function buildFastify(opts) {
     routes(app);
   });
 
-  app.decorate('verifyJWT', async (request, _reply) => {
+  app.decorate('verifyJWT', async (request, reply) => {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(Error('Token not valid', 401));
+      reply.send(err);
     }
   });
 

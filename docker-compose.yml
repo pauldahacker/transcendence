@@ -1,5 +1,8 @@
 name: trascendence
 
+include:
+  - backend/elk-stack/docker/docker-compose.elk-stack.yml
+
 x-internal-ports: &internal-ports
   environment:
     - API_PORT
@@ -11,6 +14,9 @@ x-internal-ports: &internal-ports
     - BLOCKCHAIN_PORT
 
 x-shared-config: &shared-config
+  profiles:
+    - all
+    - app
   volumes:
       - ./common/certs/:/app/certs/:ro
   env_file:
@@ -20,8 +26,10 @@ services:
   proxy:
     <<: [*shared-config, *internal-ports]
     depends_on:
-      - frontend
-      - api
+      frontend:
+        condition: service_healthy
+      api:
+        condition: service_healthy
     ports:
       - $APP_PORT:$PROXY_PORT
     extends:
@@ -37,9 +45,13 @@ services:
   api:
     <<: [*shared-config, *internal-ports]
     depends_on:
-      - users
-      - tournaments
-      - blockchain
+      
+      users:
+        condition: service_healthy
+      tournaments:
+        condition: service_healthy
+      blockchain:
+        condition: service_healthy
     extends:
       file: backend/api/docker/docker-compose.api.yml
       service: api

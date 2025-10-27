@@ -8,13 +8,13 @@ services:
     environment:
       - TOURNAMENTS_PORT
       - TOURN_DB_PATH=app/db/tournaments.db
-
+      - REPORT_GUEST_AS_ZERO=${REPORT_GUEST_AS_ZERO:-true} #if we want to change guest reporting approach, this can be set to false
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$TOURNAMENTS_PORT/health"]
       interval: 1m30s
-      timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 10s
+      start_interval: 1s
     develop:
       watch:
         - action: sync+restart

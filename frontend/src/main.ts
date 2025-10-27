@@ -6,13 +6,18 @@ import { renderTournament} from "./views/Tournament";
 import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
+import { isUserLoggedIn } from "./userUtils/TokenUtils";
 // NB! this is to test the tournamenbt functionality
 import { renderTournamentDev } from "./views/TournamentDev";
 import { renderBlockchainDev } from './views/BlockchainDev';
 
-function router() {
+
+async function router() {
   const app = document.getElementById("app")!;
   app.innerHTML = ""; // clear
+
+  const loggedIn = await isUserLoggedIn();
+  const route = location.hash;
 
   switch (location.hash) {
     case "#/1player":
@@ -31,14 +36,25 @@ function router() {
       renderResults(app);
       break;
     case "#/login":
-      renderLogin(app);
+      if (!loggedIn)
+        renderLogin(app);
+      else
+        window.location.hash = "#/profile";
       break;
     case "#/register":
-      renderRegister(app);
+      if (!loggedIn)
+         renderRegister(app);
+      else
+        window.location.hash = "#/profile";
       break;
     case "#/profile":
-      renderProfile(app);
-      break;
+      if (loggedIn) {
+        renderProfile(app);
+      } else {
+        localStorage.removeItem("auth_token");
+        window.location.hash = "#/home";
+      }
+    break;
     //NB! this is to test the tournament backend functionality
     case "#/tournament-dev": {
       const devEnabled = String(import.meta.env.VITE_ENABLE_DEV_PAGES) === "true";

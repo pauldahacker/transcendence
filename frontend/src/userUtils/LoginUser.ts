@@ -1,10 +1,10 @@
 export async function login(username: string, password: string): Promise<string> {
     
-    const response = await fetch("https://localhost/api/users/login", {
+    const response = await fetch("/api/users/login", {
     method: "POST",
     headers: {
 	    'content-type': 'application/json;charset=UTF-8',
-        'x-internal-api-key': (import.meta as any).env.VITE_INTERNAL_API_KEY,
+      'x-internal-api-key': (import.meta as any).env.VITE_INTERNAL_API_KEY,
 	},
     body: JSON.stringify({ username, password }),
   });
