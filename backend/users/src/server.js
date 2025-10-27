@@ -1,7 +1,6 @@
 const fs = require('fs')
 const { buildFastify } = require('./app/app');
-
-const DB_PATH = '/app/db/users.db'
+const { DB_PATH } = require('./config');
 
 const optsFastify = {
   logger: {

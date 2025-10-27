@@ -2,7 +2,6 @@ import { GameState, GameConfig, KeyState } from "./types";
 
 /*
 How the AI works:
-
 The subject requires the AI to:
 - NOT use the A* algo,
 - read the game data once per second,
@@ -16,14 +15,14 @@ We use setInterval() to execute code repeatedly at fixed time intervals (in ms):
    - Simulate pressing up/down keys to move towards targetY.
 
 This makes the AI a bit dumb (can only update its prediction once per second),
-but it reacts smoothly at 60 fps by holding keys.
+but it moves smoothly by pressing keys at 60 fps (once every 16 ms).
 */
 
 export interface AIController {
   stop: () => void;
 }
 
-/** Predict where the ball will intersect with the paddle, considering wall bounces */
+// Predict where the ball will intersect with the paddle, considering wall bounces
 function predictBallY(
   state: GameState,
   config: GameConfig,
@@ -75,14 +74,12 @@ export function startSimpleAI(
     const ballGoingRight = state.ballSpeedX > 0;
 
     if ((playerIndex === 0 && !ballGoingRight) || (playerIndex === 1 && ballGoingRight)) {
-      const paddleX = playerIndex === 0
-        ? 20 + config.paddleWidth
-        : width - 20 - config.paddleWidth;
+      const paddleX = playerIndex === 0 ? 20 + config.paddleWidth : width - 20 - config.paddleWidth;
 
       // Bounce-aware prediction
       targetY = predictBallY(state, config, width, height, paddleX);
     } else {
-      // Idle in center when ball going away
+      // Target Y is the center when ball is going away
       targetY = height / 2;
     }
   }, 1000);

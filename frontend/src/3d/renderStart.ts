@@ -1,6 +1,6 @@
 // src/3d/renderStart3D.ts
 import { startPong } from "@/pong/startPong";
-import type { GameState, GameConfig } from "@/pong/types";
+import type { GameState, GameConfig, GameOverState } from "@/pong/types";
 import { ScoreLights, buildborders, addSkyDome } from "@/3d/sceneUtils"
 import {
 	Engine,
@@ -13,7 +13,6 @@ import {
 	StandardMaterial,
 	DynamicTexture,
   } from "babylonjs";
-import { update } from "@/pong/update";
 
 
 
@@ -25,7 +24,7 @@ import { update } from "@/pong/update";
 
   export function startPong3D(
 	canvas3D: HTMLCanvasElement,
-  	onGameEnd: (winner: number) => void,
+  	onGameEnd: (result: GameOverState) => void,
   	options: Start3DOptions = {}
 	): () => void {
 		let engine: Engine | null = null;
@@ -40,19 +39,24 @@ import { update } from "@/pong/update";
   		scene.clearColor = new Color3(0, 0, 0).toColor4(1);
 
 		//camera
-		const camera = new ArcRotateCamera(
-			"cam",
-			(3 * Math.PI) / 2,
-			Math.PI / 4,
-			10,
-			new Vector3(0, 0, 0),
-			scene
-		);
+		let alpha = (3 * Math.PI) / 2;
+		let beta = Math.PI / 4;
+		let radius = 10;
+		const target = new Vector3(0, 0, 0);
+		if (options.aiPlayer1 && !options.aiPlayer2) {
+			alpha = 0;
+			beta = Math.PI / 2.7; 
+		} else if (options.aiPlayer2 && !options.aiPlayer1) {
+		  	alpha = Math.PI;
+			beta = Math.PI / 2.7; 
+		}
+		const camera = new ArcRotateCamera("cam", alpha, beta, radius, target, scene);
 		camera.attachControl(canvas3D, true);
 		camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
 		camera.lowerBetaLimit = 0.1;
 		camera.upperBetaLimit = Math.PI / 2;
 		camera.wheelPrecision = 40;
+		
 
 		//light
 		const light = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
@@ -147,8 +151,8 @@ import { update } from "@/pong/update";
 
 		const stopPong2D = startPong(
 		hidden2D,
-		(winner: number) => {
-		  onGameEnd(winner);
+		(result: GameOverState) => {
+		  onGameEnd(result);
 		},
 		{
 			skip2DDraw: true,

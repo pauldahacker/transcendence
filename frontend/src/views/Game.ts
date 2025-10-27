@@ -1,24 +1,39 @@
 import { startPong } from "../pong/startPong";
 import { startPong3D } from "../3d/renderStart";
-import { is3DActive } from "@/tournament/state";
+import { is3DActive, type TournamentState } from "@/tournament/state";
+import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
+import { getUserIdFromToken, getUsernameFromToken, getDisplayName, isUserLoggedIn } from "@/userUtils";
+import type { GameOverState } from "@/pong/types";
 
 type RenderGameOptions = {
   onePlayer?: boolean;
   tournament?: boolean;
-
+  tournamentState?: TournamentState;
   player1?: string;
   player2?: string;
   aiPlayer1?: boolean;
   aiPlayer2?: boolean;
-  onGameOver?: (winner: number) => void;
+  onGameOver?: (result: GameOverState, tournament?: TournamentState) => void;
 };
 
-export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
+/*
+renderGame mounts Pong into the DOM and configures players.
+By default, it mounts a 2-player (Human vs Human) non-tournament game.
+But the onePlayer or tournament flag can be set for adaptability.
+
+Handles overlays for Winner message, Play Again button, or Proceed to next match.
+
+Returns a cleanup function to stop the game when leaving the page.
+*/
+export async function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   const {
     onePlayer = false,
     tournament = false,
+    tournamentState,
     onGameOver
   } = options;
+
+  const logged = await isUserLoggedIn();
 
   let p1 = options.player1 ?? "Player 1";
   let p2 = options.player2 ?? "Player 2";
@@ -27,7 +42,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
   if (onePlayer)
   {
     p1 = "AI";
-    p2 = "You";
+    p2 = logged ? (await getDisplayName() ?? "You") : "You";
     aiP1 = true;
     aiP2 = false;
   }
@@ -83,10 +98,31 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
 
     stopGame = start(
       canvas,
-      (winner: number) => {
+      async (result: GameOverState) => {
+		const { winner, score1, score2} = result;
         const overlay = document.createElement("div");
-        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6";
-    
+        overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
+        
+        const isTournamentFinalMatch = Boolean(
+          tournamentState?.active &&
+          tournamentState.matches.length === 1 &&
+          tournamentState.currentMatch === 0
+        );
+        if (!(aiP2 && aiP1) && !isTournamentFinalMatch) {
+          console.log(`current: ${tournamentState?.currentMatch}, is final: ${isTournamentFinalMatch}`);
+          const userScore = aiP1 && !aiP2 ? score2 : score1;
+          const opponentScore = aiP1 && !aiP2 ? score1 : score2;
+          try {
+            await postMatch({
+              tournament_id: 0,
+              a_participant_score: userScore,
+              b_participant_score: opponentScore,
+            });
+          } catch (error) {
+            console.error("Failed to post match", error);
+          }
+        }
+		
         // Winner message
         if (onePlayer) {
           overlay.innerHTML =
@@ -105,7 +141,7 @@ export function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
         setTimeout(() => {
           if (tournament && onGameOver) {
             // tournament: go to next match
-            onGameOver(winner);
+            onGameOver(result, tournamentState);
           } else {
             // normal game: show Play Again
             const buttonOverlay = document.createElement("div");

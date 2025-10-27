@@ -1,60 +1,83 @@
-import { getUsernameFromToken } from "@/userUtils/TokenUtils";
-import { logout } from "@/userUtils/LogoutUser";
+import { renderUser, renderStats, renderHistory} from '../renderProfile'
+import { getTournamentWins } from '../userUtils';
+import { getUserRank } from '@/userUtils/UserRank';
+import {
+  getUsernameFromToken,
+  getUserIdFromToken,
+  getUserData,
+  UserData,
+  UserStats,
+  getUserStats,
+  setupBIoButton,
+  renderLastMatches,
+  logoutUser,
+  setupAvatarPopup,
+  setupDisplayNameEditor
+} from "../userUtils";
 
-export function renderProfile(root: HTMLElement) {
+export async function renderProfile(root: HTMLElement) {
   const container = document.createElement("div");
-  container.className =
-    "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
-
-  // Datos base
+  container.className = "flex flex-col items-center justify-start min-h-[400px] min-w-[600px] gap-[3vh] pb-[5vh] h-screen pt-[8vh]";
+  
   const token = localStorage.getItem("auth_token");
-  let username = "Player"; // valor por defecto
-
-  if (token) {
-    const decoded = getUsernameFromToken(token);
-    if (decoded) username = decoded;
+  if (!token) {
+    window.location.hash = "#/login";
+    return;
   }
-  const avatarUrl = new URL("../avatarDefault/avatar.png", import.meta.url).href;
-  const wins = 15;
-  const losses = 10;
-  const totalGames = wins + losses;
+  const user_id = getUserIdFromToken(token);  
+  const username = getUsernameFromToken(token);
+  if (!username || user_id === null) {
+    localStorage.removeItem("auth_token");
+    window.location.hash = "#/login";
+    return;
+  }
+
+  console.log(`Valid token for username: ${username}`);
+
+  
+  // If /api/users/{id} fails with 404, clear the token before proceeding
+  let data:   UserData;
+  let stats:  UserStats;
+  let ranks;
+  let tournamentWins;
+  try {
+    stats = await getUserStats(user_id);
+    data = await getUserData(user_id);
+    ranks = await getUserRank(user_id);
+    tournamentWins = await getTournamentWins(user_id);
+  } catch (err) {
+    console.error("Error fetching user data:", err);
+    // token might be valid format but invalid server-side
+    localStorage.removeItem("auth_token");
+    window.location.hash = "#/login";
+    return;
+  }
+
+  const medalUrl = new URL("../imgs/trophy.png", import.meta.url).href;
+  let avatarUrl = data?.avatar_url && data.avatar_url !== "null" && data.avatar_url.trim() !== "" ? data.avatar_url : new URL("../imgs/avatar.png", import.meta.url).href;
+  let displayName = data?.display_name ?? username;
+  let bio = data?.bio ?? "default";
+  const wins = stats?.wins ?? 0;
+  const losses = stats?.losses ?? 0;
+  const totalGames = stats?.total_games ?? wins + losses;
   const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
+  const rank = ranks;
+  const tournaments = tournamentWins;
+  const friends = data?.friends?.length ?? 0;
 
   container.innerHTML = `
-    <h1 class="font-honk text-[10vh] animate-wobble">Profile</h1>
+    <h1 class="font-honk text-[10vh] animate-wobble mb-[5vh]">Profile</h1>
 
-    <!-- Avatar + Nombre -->
-    <div class="flex flex-col items-center bg-cyan-900/30 border-4 border-cyan-800 rounded-3xl p-[3vh] shadow-xl w-[30vw]">
-      <!-- Wrapper con overlay de hover -->
-      <div id="avatarWrapper" class="relative group cursor-pointer mb-[2vh]">
-        <img id="avatarImg" src="${avatarUrl}" alt="User Avatar"
-             class="w-[15vh] h-[15vh] rounded-full border-4 border-cyan-500 shadow-[0_0_15px_#00ffff] object-cover">
-        <!-- Overlay -->
-        <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bit text-[2.2vh] text-white select-none">Change avatar</span>
-        </div>
-      </div>
-      <h2 class="font-bit text-[4vh] text-gray-100">${username}</h2>
-    </div>
-
-    <!-- Stats -->
-    <div class="flex flex-col items-center bg-cyan-900/30 border-4 border-cyan-800 rounded-3xl p-[3vh] shadow-xl w-[30vw]">
-      <h3 class="font-bit text-[3vh] text-gray-100 mb-[2vh]">Game Stats</h3>
-      <div class="flex justify-between w-full px-[2vw] font-bit text-[2.5vh]">
-        <span class="text-green-400">Wins: ${wins}</span>
-        <span class="text-red-400">Losses: ${losses}</span>
-      </div>
-
-      <div class="mt-[2vh] w-[90%] bg-red-400 rounded-full h-[2.5vh] overflow-hidden">
-        <div class="h-full bg-green-400 transition-all duration-500" style="width: ${winRate}%"></div>
-      </div>
-
-      <p class="font-bit text-gray-100 text-[2.2vh] mt-[1vh]">${winRate}% Win Rate</p>
-    </div>
+    <!-- layout -->
+    <div class="flex justify-center items-stretch gap-[5vw] w-[90%] h-[65vh]">
+      
+      ${renderUser(username, avatarUrl, displayName, bio)}
+      ${renderStats(wins, losses, friends,  tournaments, rank, medalUrl)}
+      ${renderHistory()}
 
     <!-- Back Home -->
     <a href="#/"
-       class="flex items-center justify-center w-[25vw] h-[7vh] mt-[4vh] rounded-full
+      class="flex items-center justify-center w-[25vw] h-[7vh] mt-[4vh] mx-auto rounded-full
               border-2 border-gray-100 text-gray-100 font-bit text-[3vh]
               transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
       Back Home
@@ -66,14 +89,22 @@ export function renderProfile(root: HTMLElement) {
       Logout
     </button>
   `;
-
   root.appendChild(container);
 
-  const progressBar = container.querySelector(".bg-green-400");
+//--Win Rate Bar
+const progressBar = container.querySelector(".bg-green-400");
   if (progressBar instanceof HTMLElement)
-    progressBar.style.width = `${winRate}%`;  
-
+    progressBar.style.width = `${winRate}%`;
+//--Avatar Button
+  setupAvatarPopup(user_id);
+//--Display name editor
+  setupDisplayNameEditor(user_id, data.display_name || username);
+//--Bio button
+  setupBIoButton(user_id, bio);
+//--Match history
+  //seedTestMatches(1, 2);
+  renderLastMatches(user_id);
+//--Logout button
   const logoutBtn = container.querySelector("#logoutBtn");
-  logoutBtn?.addEventListener("click", () => {logout()});
-
+  logoutBtn?.addEventListener("click", () => {logoutUser()});
 }

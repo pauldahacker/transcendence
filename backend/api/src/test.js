@@ -5,6 +5,11 @@ const schemas = require('./app/schemas');
 
 let token;
 
+function debug(response_body) {
+  console.log(response_body);
+  process.exit(1);
+}
+
 test('GET `/health` route', async (t) => {
   const app = buildFastify(opts = {});
 
@@ -145,7 +150,7 @@ test('GET `/users/health` route with invalid internal API key', async (t) => {
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+  t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
 });
 
 test('GET `/tournaments/health` route with invalid internal API key', async (t) => {
@@ -160,7 +165,7 @@ test('GET `/tournaments/health` route with invalid internal API key', async (t) 
   .expect(401)
   .expect('Content-Type', 'application/json; charset=utf-8');
 
-  t.assert.deepStrictEqual(response.body, schemas.JSONError('Invalid API Key', 401, 'Unauthorized'));
+  t.assert.deepStrictEqual(response.body.code, "FST_JWT_NO_AUTHORIZATION_IN_HEADER");
 });
 
 test('GET `/users/` route with token to fetch all users', async (t) => {

@@ -13,9 +13,10 @@ services:
       - VITE_ENABLE_DEV_PAGES=${VITE_ENABLE_DEV_PAGES} #this is for dev testing of backend
     healthcheck:
       test: ["CMD", "curl", "-fk", "https://localhost:$FRONTEND_PORT/"]
-      interval: 30s
-      timeout: 10s
+      interval: 1m30s
       retries: 5
+      start_period: 10s
+      start_interval: 1s
     develop:
       watch:
         - action: sync+restart

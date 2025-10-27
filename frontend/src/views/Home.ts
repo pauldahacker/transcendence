@@ -1,22 +1,41 @@
 import { is3DActive } from "../tournament/state";
 import { setup3DSwitch } from "../3d/3dswitch";
-import { isLoggedIn } from "@/userUtils/TokenUtils";
+import { isUserLoggedIn } from "@/userUtils/TokenUtils";
+import { initSearchButton } from "@/friends/searchBtn";
+import { initNewsButton, updateNewsBadge } from "@/friends/newsBtn";
+import { fetchIncomingFriendRequests } from "@/friends/fetchFriendRequests";
 
-export function renderHome(root: HTMLElement) {
+export async function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-center items-center min-h-[400px] min-w-[600px] gap-[2vh] pb-[5vh] h-screen mx-auto my-auto";
+    const logged = await isUserLoggedIn();
     
-    const logged = isLoggedIn();
     let link = "#/login"
     let linktext = "Login"
     if (logged){
        link = "#/profile"
        linktext = "My Profile"
     }
-  
+
     container.innerHTML = `
-    <div class="absolute top-[2vh] right-[3vw] group">
+    <div class="absolute top-[2vh] right-[3vw] flex items-center gap-3">
+      ${logged ? `
+      <button id="newsBtn"
+        class="relative border-2 border-gray-100 rounded-full px-4 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900 flex items-center gap-2">
+        <img src="src/imgs/bell.png" alt="Search" class="w-[3.5vh] h-[3.5vh] inline-block" />
+        <span id="newsBadge"
+          class="hidden absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2  bg-red-600 rounded-full text-white 
+          text-xs w-5 h-5 flex items-center justify-center font-bit"></span>
+      </button>
+      <button id="searchBtn"
+        class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-4 py-2 
+          transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900 flex items-center gap-2">
+        <img src="src/imgs/lupa2.png" alt="Search" class="w-[3.5vh] h-[3.5vh] inline-block" />
+      </button>
+      ` : ''}
+
       <a href="${link}"
         class="font-bit text-[2.5vh] text-gray-100 border-2 border-gray-100 rounded-full px-6 py-2 
           transition-all duration-300 hover:bg-gray-100 hover:text-cyan-900">
@@ -90,6 +109,18 @@ export function renderHome(root: HTMLElement) {
   root.appendChild(container);
 
   setup3DSwitch(container); 
-
+  initSearchButton();
+  initNewsButton();
+  if (logged) {
+    // update notifications every 5 seconds
+    setInterval(async () => {
+      try {
+        const requests = await fetchIncomingFriendRequests();
+        updateNewsBadge(requests.length);
+      } catch (err) {
+        console.error("Failed to refresh news badge:", err);
+      }
+    }, 5000);
+  }
 }
 
