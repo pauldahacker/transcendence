@@ -36,6 +36,6 @@ export async function postFinalToChain({
   }
 
   const data = await res.json(); // { txHash: "0x..." }
-  console.log("Blockchain response:", data); // 👈 Debug print
+  console.log("Blockchain response:", data); // Debug print
   return data;
 }
