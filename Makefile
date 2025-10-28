@@ -107,36 +107,51 @@ e2e_blockchain_bridge:
 # --- Blockchain helpers (Fuji) ---
 
 chain-deploy-fuji:
+	@test -f .env || (echo ".env missing; run 'make build' first" && exit 1)
+	@set -a; . ./.env; set +a; \
 	cd $(BLOCKCHAIN_DIR) && npm ci && \
-	RPC_URL="$${RPC_URL}" PRIVATE_KEY="$${PRIVATE_KEY}" \
+	RPC_URL="$$RPC_URL" PRIVATE_KEY="$$PRIVATE_KEY" \
 	npx hardhat run scripts/deploy.cjs --network fuji
  
 chain-config:
-	@curl -sk "$(API_ORIGIN)/api/blockchain/config" \
-	 -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq .
+	@set -a; . ./.env; set +a; \
+	curl -sk "$(API_ORIGIN)/api/blockchain/config" \
+		-H "x-internal-api-key: $$INTERNAL_API_KEY" | jq .
 
 # Usage: make chain-real-smoke TID=42 WIN=alice SA=3 SB=1 PTW=3
 chain-real-smoke:
-	@test -n "$${INTERNAL_API_KEY}" || (echo "INTERNAL_API_KEY required" && exit 1)
-	@echo "==> Config"; \
-	curl -sk "$(API_ORIGIN)/api/blockchain/config" \
-	 -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq '.'
-	@test -n "$${TID}" || (echo "Set TID=<tournament id>" && exit 1)
-	@WIN=$${WIN:-alice}; SA=$${SA:-3}; SB=$${SB:-1}; PTW=$${PTW:-3}; \
-	echo "==> POST /finals id=$${TID}"; \
-	curl -sk "$(API_ORIGIN)/api/blockchain/finals" \
-	  -H "x-internal-api-key: $${INTERNAL_API_KEY}" \
-	  -H "content-type: application/json" \
-	  --data "{\"tournament_id\":$${TID},\"winner_alias\":\"$${WIN}\",\"score_a\":$${SA},\"score_b\":$${SB},\"points_to_win\":$${PTW}}" | jq '.'
-	@echo "==> GET /finals/$$TID"; \
-	curl -sk "$(API_ORIGIN)/api/blockchain/finals/$${TID}" \
-	  -H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq '.'
+	@{ \
+	  set -e; \
+	  test -f .env || { echo ".env missing; run 'make build' first"; exit 1; }; \
+	  set -a; . ./.env; set +a; \
+	  test -n "$$INTERNAL_API_KEY" || { echo "INTERNAL_API_KEY missing in .env"; exit 1; }; \
+	  test -n "$${TID}" || { echo "Set TID=<tournament id>"; exit 1; }; \
+	  WIN=$${WIN:-alice}; SA=$${SA:-3}; SB=$${SB:-1}; PTW=$${PTW:-3}; \
+	  echo "==> Config"; \
+	  curl -sk "$(API_ORIGIN)/api/blockchain/config" \
+	    -H "x-internal-api-key: $$INTERNAL_API_KEY" | jq '.'; \
+	  echo "==> POST /finals id=$${TID}"; \
+	  curl -sk "$(API_ORIGIN)/api/blockchain/finals" \
+	    -H "x-internal-api-key: $$INTERNAL_API_KEY" \
+	    -H "content-type: application/json" \
+	    --data "{\"tournament_id\":$${TID},\"winner_alias\":\"$${WIN}\",\"score_a\":$${SA},\"score_b\":$${SB},\"points_to_win\":$${PTW}}" | jq '.'; \
+	  echo "==> GET /finals/$$TID"; \
+	  curl -sk "$(API_ORIGIN)/api/blockchain/finals/$${TID}" \
+	    -H "x-internal-api-key: $$INTERNAL_API_KEY" | jq '.'; \
+	}
+
 
 # Quick health flags for real-mode adapter
 chain-diagnostics:
-	@curl -sk "$(API_ORIGIN)/api/blockchain/config/diagnostics" \
+	@set -a; . ./.env; set +a; \
+	curl -sk "$(API_ORIGIN)/api/blockchain/config/diagnostics" \
 	-H "x-internal-api-key: $${INTERNAL_API_KEY}" | jq .
 
+# Usage: make chain-check-tx TXHASH=hash_to_be_tested
+chain-check-tx:
+	@set -a; . ./.env; set +a; \
+	curl -s -X POST $$RPC_URL -H "Content-Type: application/json" \
+	-d '{"jsonrpc":"2.0","id":1,"method":"eth_getTransactionByHash","params":["'"$$TXHASH"'"]}'
 
 # e2e_blockchain_bridge:
 # 	@cd backend/blockchain/src/scripts && \
