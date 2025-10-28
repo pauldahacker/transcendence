@@ -1,6 +1,17 @@
 import { fetchUsers } from "@/userUtils/FetchUsers";
-import { sendFriendRequest } from "@/userUtils/SendFriendRequest";
 import { getUserIdFromToken } from "@/userUtils/TokenUtils";
+import { sendFriendRequest } from "./sendFriendRequest";
+import { fetchFriends } from "./fetchFriends";
+import { removeFriend } from "./removeFriend";
+
+type FriendRelation = {
+  id: number;
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+  confirmed: boolean;
+  requested_by_id: number;
+};
 
 export function initSearchButton() {
   const searchBtn = document.getElementById("searchBtn");
@@ -85,66 +96,121 @@ export async function searchBtnPopup() {
 
   // Friend button behavior
   function attachFriendButtons() {
+    const token = localStorage.getItem("auth_token");
+    const currentUserId = token ? getUserIdFromToken(token) : 0;
+  
     const buttons = results.querySelectorAll("button[data-userid]");
     buttons.forEach((btn) => {
       btn.addEventListener("click", async (e) => {
-        e.stopPropagation(); // Prevent popup close
+        e.stopPropagation();
         const button = e.currentTarget as HTMLButtonElement;
         const userId = parseInt(button.getAttribute("data-userid") || "0", 10);
-        if (!userId) return;
-
+  
+        const friends = await fetchFriends("all") as FriendRelation[];
+        const relation = friends.find(f => f.id === userId);
+  
         try {
-          const res = await sendFriendRequest(userId);
-
-          if (!popup.isConnected) return; // popup closed mid-request
-
-          button.textContent = "Sent ✓";
-          button.disabled = true;
-          button.classList.add("bg-gray-600");
-          showMessage(res.message || "Friend request sent!", "success");
+          if (!relation) {
+            // Send friend request
+            const res = await sendFriendRequest(userId);
+            button.textContent = "Pending"; // show "Pending" because request is sent
+            button.disabled = true;
+            button.className = "bg-gray-600 text-white text-[1.5vh] px-3 py-1 rounded";
+            showMessage(res.message, "success");
+          } else if (relation.confirmed) {
+            // Remove friend
+            const res = await removeFriend(userId);
+            button.textContent = "+ Add"; // show "+ Add" because user unfriended
+            button.disabled = false;
+            button.className = "bg-cyan-700 hover:bg-cyan-600 text-white text-[1.5vh] px-3 py-1 rounded";
+            showMessage(res.message, "success");
+          } else if (relation.requested_by_id !== currentUserId) {
+            // Accept friend request
+            const res = await sendFriendRequest(userId);
+            button.textContent = "Unfriend"; // now they are friends, so show "Unfriend"
+            button.className = "bg-red-600 hover:bg-red-500 text-white text-[1.5vh] px-3 py-1 rounded";
+            showMessage(res.message, "success");
+          }
         } catch (err) {
-          console.error(err);
-          showMessage((err as Error).message || "Failed to send friend request.", "error");
+          showMessage((err as Error).message, "error");
         }
       });
     });
   }
 
-  function renderList(filter = "") {
+  async function renderList(filter = "") {
     const query = filter.toLowerCase();
     const token = localStorage.getItem("auth_token");
     const currentUserId = token ? getUserIdFromToken(token) : 0;
-
+  
+    const friends: FriendRelation[] = await fetchFriends("all");
+  
     const filtered = users
-      .filter((u) => u.username.toLowerCase().includes(query))
-      .filter((u) => u.id !== currentUserId); // exclude yourself
-
-    results.innerHTML = filtered.length
-      ? filtered
-          .map(
-            (u) => `
-          <div class="flex items-center justify-between p-2 hover:bg-cyan-800 rounded transition-colors duration-150">
-            <div class="flex items-center gap-2">
-                <img src="${u.avatar_url || '/default-avatar.png'}" 
-                    class="w-6 h-6 rounded-full border border-cyan-700" alt="avatar" />
-                <span>${u.username}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 ${
-                u.is_active ? "bg-green-500" : "bg-gray-600"
-              } rounded-full inline-block"></span>
-              <button data-userid="${u.id}"
-                  class="bg-cyan-700 hover:bg-cyan-600 text-white text-[1.5vh] px-2 py-1 rounded">
-                      + Add
-              </button>
-            </div>
-          </div>`
-          )
-          .join("")
-      : `<p class="text-gray-400">No users found</p>`;
-
+      .filter(u => u.username.toLowerCase().includes(query))
+      .filter(u => u.id !== currentUserId)
+      .map(u => {
+        const relation = friends.find(f => f.id === u.id);
+        return { ...u, relation };
+      });
+  
+    const friendEntries = filtered.filter(u => u.relation?.confirmed);
+    const otherEntries = filtered.filter(u => !u.relation?.confirmed);
+  
+    function renderUserRow(u: any) {
+      let btnText = "+ Add";
+      let btnClass = "bg-cyan-700 hover:bg-cyan-600";
+      let disabled = false;
+  
+      if (u.relation) {
+        if (u.relation.confirmed) {
+          btnText = "Unfriend";
+          btnClass = "bg-red-600 hover:bg-red-500";
+        } else if (u.relation.requested_by_id === currentUserId) {
+          btnText = "Pending";
+          btnClass = "bg-gray-600";
+          disabled = true;
+        } else {
+          btnText = "Accept";
+          btnClass = "bg-green-600 hover:bg-green-500";
+        }
+      }
+  
+      const dotClass = u.is_active ? "bg-green-500" : "bg-gray-600";
+  
+      return `
+        <div class="flex items-center justify-between p-2 hover:bg-cyan-800 rounded transition-colors duration-150">
+          <div class="flex items-center gap-2">
+            <img src="${u.avatar_url || '/default-avatar.png'}"
+                class="w-6 h-6 rounded-full border border-cyan-700" />
+            <span class="w-3 h-3 ${dotClass} rounded-full inline-block"></span>
+            <span>${u.username}</span>
+          </div>
+          <button data-userid="${u.id}"
+            class="${btnClass} text-white text-[1.5vh] px-3 py-1 rounded"
+            ${disabled ? "disabled" : ""}>
+            ${btnText}
+          </button>
+        </div>`;
+    }
+  
+    // Combine Friends + Users sections
+    results.innerHTML = `
+      ${friendEntries.length
+        ? `<h3 class="text-white text-[2vh] mb-2 mt-2">Friends</h3>
+           ${friendEntries.map(renderUserRow).join("")}`
+        : ""
+      }
+      ${otherEntries.length
+        ? `<h3 class="text-white text-[2vh] mb-2 mt-4">Users</h3>
+           ${otherEntries.map(renderUserRow).join("")}`
+        : (!friendEntries.length
+            ? `<p class='text-gray-400 mt-2'>No users found</p>`
+            : "")
+      }
+    `;
+  
     attachFriendButtons();
-  }
+  }  
 
   renderList();
   input.addEventListener("input", () => renderList(input.value));

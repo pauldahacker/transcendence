@@ -11,6 +11,7 @@ x-internal-ports: &internal-ports
     - FRONTEND_PORT
     - PROXY_PORT
     - APP_PORT
+    - BLOCKCHAIN_PORT
 
 x-shared-config: &shared-config
   profiles:
@@ -44,9 +45,12 @@ services:
   api:
     <<: [*shared-config, *internal-ports]
     depends_on:
+      
       users:
         condition: service_healthy
       tournaments:
+        condition: service_healthy
+      blockchain:
         condition: service_healthy
     extends:
       file: backend/api/docker/docker-compose.api.yml
@@ -69,6 +73,12 @@ services:
     extends:
       file: backend/tournaments/docker/docker-compose.tournaments.yml
       service: tournaments
+
+  blockchain:
+    <<: [*shared-config, *internal-ports]
+    extends:
+      file: backend/blockchain/docker/docker-compose.blockchain.yml
+      service: blockchain
 
 volumes:
   users_db: null

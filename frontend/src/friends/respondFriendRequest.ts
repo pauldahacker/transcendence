@@ -1,23 +1,35 @@
-import { getUserIdFromToken } from "@/userUtils/TokenUtils"
-
 export async function respondFriendRequest(requestedById: number, accept: boolean) {
-  
-    const token = localStorage.getItem("auth_token");
-    const userId = token ? getUserIdFromToken(token) : 0;
+  const token = localStorage.getItem("auth_token");
+  if (!token) throw new Error("Not logged in");
 
-    if (!accept)
-      return Promise.resolve({ message: "Request ignored" });
-  
-    const res = await fetch(`/api/users/${userId}/friend-request`, {
+  if (!accept) {
+    // remove request
+    const res = await fetch(`/api/users/${requestedById}/friend-request?action=remove`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}), // API requires NO body for accept
+        "Authorization": `Bearer ${token}`
+      }
     });
-  
-    if (!res.ok) throw new Error("Failed to accept friend request");
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed (${res.status})`);
+    }
     return res.json();
   }
-  
+
+  // Accept friend request
+  const res = await fetch(`/api/users/${requestedById}/friend-request?action=add`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Failed (${res.status})`);
+  }
+
+  return res.json();
+}
