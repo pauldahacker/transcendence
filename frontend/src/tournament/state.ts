@@ -1,9 +1,12 @@
+import { generateMatchId } from "@/userUtils/UserMatch";
+
 export interface TournamentState {
     active: boolean;
     currentMatch: number;
     matches: [string, string][];
     winners: string[];
     stopCurrentGame: (() => void) | null;
+    tournamentId: number; // blockchain integration
 }
   
 export function createTournamentState(matches: [string, string][]): TournamentState {
@@ -13,6 +16,7 @@ export function createTournamentState(matches: [string, string][]): TournamentSt
       matches,
       winners: [],
       stopCurrentGame: null,
+      tournamentId: generateMatchId(),
   };
 }
 

@@ -1,20 +1,28 @@
-import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
+import { postFinalToChain } from "@/blockchain/postFinal";
 import { renderGame } from "../views/Game";
 import { TournamentState } from "./state";
 import { createMatchList } from "./ui";
 import type { GameOverState } from "@/pong/types";
 
-// runs the current match of the tournament, handles the winner, and shows a "Proceed" overlay
-export function playNextMatch(root: HTMLElement, state: TournamentState) {
+export async function playNextMatch(root: HTMLElement, state: TournamentState) {
   if (!state.active) return;
 
   const [p1, p2] = state.matches[state.currentMatch];
-
+  const aiP1 = p1.startsWith("[AI]");
+  const aiP2 = p2.startsWith("[AI]");
   root.innerHTML = "";
 
-  state.stopCurrentGame = renderGame(
-    root, { tournament: true, tournamentState: state, player1: p1, player2: p2, aiPlayer1: p1.startsWith("[AI]"), aiPlayer2: p2.startsWith("[AI]"), onGameOver: (result: GameOverState) => {
+  state.stopCurrentGame = renderGame(root, {
+    tournament: true,
+    tournamentState: state,
+    player1: p1,
+    player2: p2,
+    aiPlayer1: aiP1,
+    aiPlayer2: aiP2,
+
+    onGameOver: async (result: GameOverState) => {
       if (!state.active) return;
+
       const resolvedWinner = result.winner === 1 ? p1 : p2;
       state.winners.push(resolvedWinner);
 
@@ -31,11 +39,11 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
         "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black";
       overlay.appendChild(nextBtn);
 
-      nextBtn.addEventListener("click", () => {
+      nextBtn.addEventListener("click", async () => {
         document.querySelectorAll(".overlay").forEach(el => el.remove());
         state.currentMatch++;
 
-        // If 4 players and first round finished, set up final
+        // Handle final in 4-player tournament
         if (state.matches.length === 2 && state.currentMatch >= 2) {
           state.matches = [[state.winners[0], state.winners[1]]];
           state.currentMatch = 0;
@@ -47,27 +55,41 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
           const finalOverlay = document.createElement("div");
           finalOverlay.className =
             "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay bg-black/80 text-white font-bit text-center";
-          
+
           const title = document.createElement("h2");
           title.textContent = "Tournament Finished";
           title.className = "text-[10vh] text-stone-600 mb-4";
           finalOverlay.appendChild(title);
 
           const msg = document.createElement("p");
-          msg.textContent = `${state.winners[0]} won!`;
+          msg.textContent = `${resolvedWinner} won!`;
           msg.className = "text-[8vh] mb-6 text-lime-400 animate-bounce drop-shadow-[0_0_10px_gold]";
           finalOverlay.appendChild(msg);
 
-          const aiP1 = p1.startsWith("[AI]");
-          const aiP2 = p2.startsWith("[AI]");
+          // Only store if real user played — not AI vs AI
           if (!(aiP1 && aiP2)) {
-            const userScore = aiP1 && !aiP2 ? result.score2 : result.score1;
-            const opponentScore = aiP1 && !aiP2 ? result.score1 : result.score2;
-            postMatch({
-              tournament_id: generateMatchId(),
-              a_participant_score: userScore,
-              b_participant_score: opponentScore,
-            });
+            const pointsToWin = 3;
+            const winnerAlias = resolvedWinner;
+            
+            postFinalToChain({
+              tournament_id: state.tournamentId,
+              winner_alias: winnerAlias,
+              score_a: result.score1,
+              score_b: result.score2,
+              points_to_win: pointsToWin,
+            })
+            .then(res => {
+              if (res.txHash) {
+                const bcBtn = document.createElement("a");
+                bcBtn.href = `https://testnet.snowtrace.io/tx/${res.txHash}`;
+                bcBtn.target = "_blank";
+                bcBtn.rel = "noopener noreferrer";
+                bcBtn.textContent = "View Blockchain Transaction";
+                bcBtn.className = "mt-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 transition-colors duration-200";
+                finalOverlay.appendChild(bcBtn);
+              }
+            })
+            .catch(err => console.error("Failed to record final on blockchain:", err));
           }
 
           const homeBtn = document.createElement("button");
@@ -75,7 +97,6 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
           homeBtn.className =
             "w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black min-w-[300px]";
           homeBtn.addEventListener("click", () => {
-            finalOverlay.remove();
             location.hash = "/";
           });
           finalOverlay.appendChild(homeBtn);
@@ -83,21 +104,19 @@ export function playNextMatch(root: HTMLElement, state: TournamentState) {
           gameContainer.appendChild(finalOverlay);
           return;
         }
+
         showMatchList(root, state);
       });
     },
   });
 }
 
-// renders the match list inside the root container and plays the next match if the play button is clicked
 export function showMatchList(root: HTMLElement, state: TournamentState) {
   root.innerHTML = "";
-  const matchListContainer = createMatchList(state.matches, state.winners, state.currentMatch);
-  root.appendChild(matchListContainer);
+  const container = createMatchList(state.matches, state.winners, state.currentMatch);
+  root.appendChild(container);
 
-  const playBtn = matchListContainer.querySelector<HTMLButtonElement>("#play")!;
-  playBtn.addEventListener("click", () => {
-    matchListContainer.remove();
+  container.querySelector("#play")?.addEventListener("click", () => {
     playNextMatch(root, state);
   });
 }
