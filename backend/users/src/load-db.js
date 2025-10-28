@@ -16,12 +16,12 @@ function loadInitialData() {
       ('dave', '${bcrypt.hashSync('password', 10)}', '${now}'),
       ('eve', '${bcrypt.hashSync('password', 10)}', '${now}');
 
-    INSERT OR IGNORE INTO users_profile (user_id, display_name, bio) VALUES
-      ((SELECT id FROM users_auth WHERE username = 'alice'), 'Alice Wonderland', 'Lover of adventures.'),
-      ((SELECT id FROM users_auth WHERE username = 'bob'), 'Bob Builder', 'Can we fix it? Yes we can!'),
-      ((SELECT id FROM users_auth WHERE username = 'charlie'), 'Charlie Chocolate', 'Sweet and adventurous.'),
-      ((SELECT id FROM users_auth WHERE username = 'dave'), 'Dave Grohl', 'Musician and rockstar.'),
-      ((SELECT id FROM users_auth WHERE username = 'eve'), 'Eve Online', 'Space explorer.');
+    INSERT OR IGNORE INTO users_profile (user_id, display_name, bio, is_active) VALUES
+      ((SELECT id FROM users_auth WHERE username = 'alice'), 'Alice Wonderland', 'Lover of adventures.', 0),
+      ((SELECT id FROM users_auth WHERE username = 'bob'), 'Bob Builder', 'Can we fix it? Yes we can!', 0),
+      ((SELECT id FROM users_auth WHERE username = 'charlie'), 'Charlie Chocolate', 'Sweet and adventurous.', 0),
+      ((SELECT id FROM users_auth WHERE username = 'dave'), 'Dave Grohl', 'Musician and rockstar.', 0),
+      ((SELECT id FROM users_auth WHERE username = 'eve'), 'Eve Online', 'Space explorer.', 0);
 
     INSERT OR IGNORE INTO friends (a_friend_id, b_friend_id, requested_by_id, created_at, confirmed) VALUES
       ((SELECT id FROM users_auth WHERE username = 'alice'), (SELECT id FROM users_auth WHERE username = 'bob'), (SELECT id FROM users_auth WHERE username = 'alice'), '${now}', 1),
