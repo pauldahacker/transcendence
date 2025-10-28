@@ -15,7 +15,7 @@
 :heavy_check_mark: Use Avalanche and Solidity to store the score of a tournament in the Blockchain - 1 point.
 
 ### User Management
-:heavy_check_mark: Standard user management, authentication, users across tournaments - 1 point.
+:white_check_mark: Standard user management, authentication, users across tournaments - 1 point.
 
 :black_square_button: Use OAuth 2.0 to implement a remote authentication - 1 point.
 
@@ -70,7 +70,7 @@
 :black_square_button: Enabling Pong gameplay via CLI against web users with API integration - 1 point.
 
 ## Total points
-- Major modules completed: 5 (5 points)
+- Major modules completed: 6 (6 points)
 - Minor modules completed: 3 (1.5 points)
 
-- Total points: 6.5/7
+- Total points: 7.5/7
