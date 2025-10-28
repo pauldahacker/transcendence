@@ -1,4 +1,4 @@
-import { fetchFriendRequests } from "./fetchFriendRequests";
+import { fetchIncomingFriendRequests } from "./fetchFriendRequests";
 import { respondFriendRequest } from "./respondFriendRequest";
 
 export function initNewsButton() {
@@ -29,12 +29,25 @@ async function showNewsPopup() {
   const list = document.getElementById("requestsList")!;
   list.innerHTML = "Loading...";
 
+  // only refresh badge till an incoming friend request is detected
+  async function refreshBadge() {
+    try {
+      const remaining = await fetchIncomingFriendRequests();
+      updateNewsBadge(remaining.length);
+    } catch (err) {
+      console.error("Failed to update badge:", err);
+    }
+  }
+
   try {
-    const requests = await fetchFriendRequests();
+    const requests = await fetchIncomingFriendRequests();
+
     if (!requests.length) {
       list.innerHTML = `<p class="text-gray-300">No pending requests.</p>`;
+      await refreshBadge(); // blocks here until at least 1 incoming request
       return;
     }
+    await refreshBadge();
 
     list.innerHTML = requests.map((r: any) => `
       <div class="flex justify-between items-center p-2 hover:bg-cyan-800 rounded">
@@ -51,15 +64,41 @@ async function showNewsPopup() {
 
     list.querySelectorAll("button").forEach((btn) =>
       btn.addEventListener("click", async (e) => {
-        const el = e.currentTarget as HTMLElement;
+        const el = e.currentTarget as HTMLButtonElement;
         const requestedById = Number(el.getAttribute("data-id"));
         const accept = el.getAttribute("data-action") === "accept";
 
-        await respondFriendRequest(requestedById, accept);
-        el.closest("div")?.remove();
+        try {
+          await respondFriendRequest(requestedById, accept);
+
+          const row = el.closest("div");
+          if (row) {
+            row.innerHTML = `
+              <span class="text-${accept ? "green" : "red"}-400 font-bit">
+                ${accept ? "Accepted" : "Rejected"}
+              </span>
+            `;
+            setTimeout(() => row.remove(), 1500);
+          }
+          // refresh notifications
+          await refreshBadge();
+        } catch {
+            alert("Failed to respond to request.");
+        }
       })
     );
   } catch {
     list.innerHTML = `<p class="text-red-400">Failed to fetch requests</p>`;
+  }
+}
+
+export function updateNewsBadge(count: number) {
+  const badge = document.getElementById("newsBadge");
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = String(count);
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
   }
 }

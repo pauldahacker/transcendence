@@ -32,7 +32,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -215,6 +216,20 @@ dist
 # Ignore all local history of files
 .history
 .ionide
+
+# Hardhat build outputs
+artifacts/
+cache/
+solidity-files-cache.json
+
+# If any local variants appear under src/
+src/artifacts/
+src/cache/
+
+# Common extras (optional but harmless)
+coverage/
+typechain*/
+*.tsbuildinfo
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node,linux,certificates,macos
 

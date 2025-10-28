@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/14 22:08:08 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/28 00:00:06 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ const { scoreMatchBody, scoreMatchResponse } = require('./schemas');
 const { finishMatchAndAdvance, getMatchById, getParticipantsUserIds } = require('./repo');
 const { nextMatchResponse } = require('./schemas');
 const { getNextScheduledMatch } = require('./repo');
+const { reportFinalIfEnabled } = require('./blockchainReporter');
 // const REPORT_GUEST_AS_ZERO = String(process.env.REPORT_GUEST_AS_ZERO || 'true') === 'true';
 const reportGuestAsZero = () => String(process.env.REPORT_GUEST_AS_ZERO || 'true') === 'true';
 
@@ -304,7 +305,35 @@ function routes(app, db) {
       } catch (err) {
         req.log?.warn?.({ err }, 'users/match reporting threw');
       }
+      try {
+        //  after the match check: if no scheduled matches remain, this was the final
+        const next = getNextScheduledMatch(db, id);
+        const wasFinal = next && next.none === true;
+        const winnerPid = r.match?.winner_participant_id;
+        if (wasFinal && Number.isInteger(winnerPid)) {
+          // resolve winner display name from participants list
+          const participants = listParticipantsSimple(db, id);
+          const winner = Array.isArray(participants)
+            ? participants.find((p) => p.id === winnerPid)
+            : null;
 
+          const winnerAlias = winner?.display_name || String(winnerPid);
+          const pointsToWin = Math.max(Number(score_a), Number(score_b));
+
+          // fire and forget (no interference with outer code flow)
+          reportFinalIfEnabled({
+            tournament_id: id,
+            winner_alias: winnerAlias,
+            score_a: Number(score_a),
+            score_b: Number(score_b),
+            points_to_win: Number(pointsToWin),
+          }, req.log);
+        }
+      } catch (e) {
+        // future proof: if something changes, flag removed or anything else we still know
+        // smth is not correcrt while the outer code shoould still proceed
+        req?.log?.error?.({ err: e }, 'blockchain reporter threw unexpectedly');
+      }
       return reply.code(200).send(r.match);
     }
   });

@@ -1,0 +1,32 @@
+services:
+  blockchain:
+    container_name: blockchain
+    build:
+      context: ../src
+      dockerfile: ../../../common/docker/Dockerfile
+    # command: node src/server.js
+    command: node server.js
+    restart: always
+    environment:
+      - PORT=${BLOCKCHAIN_PORT}
+      - BLOCKCHAIN_ENABLED=${BLOCKCHAIN_ENABLED}
+      - RPC_URL=${RPC_URL}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - REGISTRY_ADDRESS=${REGISTRY_ADDRESS}
+
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:$BLOCKCHAIN_PORT/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../src
+          # target: /app/src
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ../src/package.json

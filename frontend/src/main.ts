@@ -9,6 +9,7 @@ import { renderProfile } from "./views/Profile";
 import { isUserLoggedIn } from "./userUtils/TokenUtils";
 // NB! this is to test the tournamenbt functionality
 import { renderTournamentDev } from "./views/TournamentDev";
+import { renderBlockchainDev } from './views/BlockchainDev';
 
 
 async function router() {
@@ -64,6 +65,14 @@ async function router() {
       }
       break;
     }
+    // NB! This is to test the blockchain functionality 
+    case '#/blockchain-dev':
+      if (import.meta.env.VITE_ENABLE_DEV_PAGES === 'true') {
+        renderBlockchainDev();
+      } else {
+        document.body.innerHTML = '<p>Dev pages are disabled</p>';
+      }
+      break;
     default:
       renderHome(app);
       break;
