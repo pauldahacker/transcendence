@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/14 17:32:53 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/10/28 02:36:13 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,14 +76,20 @@ async function runTest(name, fn) {
   const originalFetch = global.fetch;
 
   // Mock global fetch to capture payload sent to Users via gateway
+  // upd after merging blockchain into main: I introduced the if check for '/users/match', 
+  // bc the test was counting extra fetch when tournaments send report to the blockchain
   global.fetch = async (url, init) => {
-    try {
-      const body = init && init.body ? JSON.parse(init.body) : null;
-      reports.push({ url, headers: init?.headers || {}, body });
-      return okRes(201);
-    } catch {
-      return okRes(500);
+    const u = typeof url === 'string' ? url : (url?.toString?.() || '');
+    if (u.includes('/users/match')) {
+      try {
+        const body = init && init.body ? JSON.parse(init.body) : null;
+        reports.push({ url, headers: init?.headers || {}, body });
+        return okRes(201);
+      } catch {
+        return okRes(500);
+      }
     }
+    return okRes(204);
   };
 
   const results = [];
