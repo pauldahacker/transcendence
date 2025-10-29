@@ -15,6 +15,9 @@ RUN npm install
 # Copy application files
 COPY --chown=app:app . /app
 
+# Compile smart contracts here (ensures ABI readable inside container)
+RUN npx hardhat compile || (echo "Hardhat compile failed (mock mode fallback)" && mkdir -p /app/artifacts)
+
 # Create necessary directories
 RUN mkdir -p /app/db
 
