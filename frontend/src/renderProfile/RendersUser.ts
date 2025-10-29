@@ -27,7 +27,7 @@ export function renderUser(username: string, avatarUrl: string, displayName: str
 
       <!-- BIO -->
       <div class="relative w-full mt-[1vh] text-center group cursor-pointer" id="bioHoverArea">
-        <p id="currentBio"
+        <p id="userBio"
            class="font-bit text-[2.0vh] text-gray-300 text-center whitespace-normal overflow-hidden [overflow-wrap:anywhere] [word-break:normal] transition-all duration-200 group-hover:underline">
           ${bio}
         </p>

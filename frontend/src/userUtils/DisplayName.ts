@@ -94,6 +94,7 @@ export function setupDisplayNameEditor(user_id: number, displayName: string) {
 
     try {
       await updateDisplayName(user_id, newName);
+      displayName = newName;
       nameElement.textContent = newName;
       //namePopup.classList.add("hidden");
     } catch (err) {

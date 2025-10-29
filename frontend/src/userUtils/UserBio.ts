@@ -15,60 +15,74 @@ export async function updateBio(user_id: number, newBio: string){
     return await res.json();
 }
 
-export async function setupBIoButton(user_id: number, bio: string) {
-    const bioHoverArea = document.getElementById("bioHoverArea")!;
-    const bioPopup = document.getElementById("bioPopup")!;
-    const updateBioBtn = document.getElementById("updateBioBtn")!;
-    const bioInput = document.getElementById("bioInput") as HTMLInputElement;
-    const bioElement = document.querySelector("p")!;
-    
-    let msg = document.querySelector("#bio-msg");
-    if (!msg){
-      msg = document.createElement("span");
-      msg.id = "register-msg";
-      msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300";
-      updateBioBtn.insertAdjacentElement("beforebegin", msg);
+export async function setupBioButton(user_id: number, bio: string) {
+  const bioHoverArea = document.getElementById("bioHoverArea")!;
+  const bioPopup = document.getElementById("bioPopup")!;
+  const updateBioBtn = document.getElementById("updateBioBtn")!;
+  const bioInput = document.getElementById("bioInput") as HTMLInputElement;
+  const bioElement = document.querySelector("#userBio") as HTMLElement;
+  let msg = document.querySelector<HTMLElement>("#bio-msg");
+
+  if (!msg) {
+    msg = document.createElement("span");
+    msg.id = "bio-msg";
+    msg.className = "mt-2 text-center font-bit text-[2vh] transition-all duration-300";
+    updateBioBtn.insertAdjacentElement("beforebegin", msg);
+  }
+
+  const messageEl = msg as HTMLElement;
+
+  messageEl.textContent = "";
+  messageEl.classList.remove("text-green-400", "text-red-400");
+
+  bioHoverArea.addEventListener("click", () => {
+    bioInput.value = bio;
+    bioPopup.classList.remove("hidden");
+    bioInput.focus();
+  });
+
+  bioInput.addEventListener("input", () => {
+    if (bioInput.value.length > 120) {
+      bioInput.value = bioInput.value.slice(0, 120);
+      messageEl.classList.add("text-red-400");
+      messageEl.textContent = "Bio cannot exceed 120 characters";
+    } else {
+      messageEl.textContent = "";
     }
-    msg.textContent = null;
-    msg.classList.add("text-red-400");
+  });
 
-    bioHoverArea.addEventListener("click", () => {
-      bioInput.value = bio;
-      bioPopup.classList.remove("hidden");
-      bioInput.focus();
-    });
+  updateBioBtn.addEventListener("click", async () => {
+    const newBio = bioInput.value.trim();
+    if (!newBio) {
+      messageEl.classList.add("text-red-400");
+      messageEl.textContent = "Bio cannot be empty";
+      return;
+    }
+    if (newBio.length > 120) {
+      messageEl.classList.add("text-red-400");
+      messageEl.textContent = "Bio cannot exceed 120 characters";
+      return;
+    }
 
-    bioInput.addEventListener("input", () => {
-      if (bioInput.value.length > 120) {
-        bioInput.value = bioInput.value.slice(0, 120);
-        //alert("Bio cannot exceed 120 characters");
-        msg.classList.add("text-red-400");
-        msg.textContent = "Bio cannot exceed 120 characters";
-      }
-    });
+    try {
+      const res = await updateBio(user_id, newBio); // ✅ wait for backend
+      bio = res.bio || newBio; // use backend value if returned
+      bioElement.textContent = bio;
+      messageEl.classList.remove("text-red-400");
+      messageEl.classList.add("text-green-400");
+      messageEl.textContent = "Bio updated!";
+      setTimeout(() => (messageEl.textContent = ""), 2000);
+    } catch (err) {
+      console.error(err);
+      messageEl.classList.add("text-red-400");
+      messageEl.textContent = "Failed to update bio";
+    }
 
-    updateBioBtn.addEventListener("click", () => {
-      const newBio = bioInput.value.trim();
-      if (newBio) {
-        if (newBio.length > 120) {
-          msg.classList.add("text-red-400");
-          msg.textContent = "Bio cannot exceed 120 characters";
-          //alert("Bio cannot exceed 120 characters");
-          return;
-        }
-        bio = newBio;
-        bioElement.textContent = bio;
-        updateBio(user_id, newBio);
-      }
-      bioPopup.classList.add("hidden");
-      msg.textContent = null;
-      msg.classList.remove("text-red-400");
-    });
+    bioPopup.classList.add("hidden");
+  });
 
-    bioPopup.addEventListener("click", (e) => {
-      if (e.target === bioPopup) bioPopup.classList.add("hidden");
-      msg.textContent = null;
-      msg.classList.remove("text-red-400");
-    });
-    
+  bioPopup.addEventListener("click", (e) => {
+    if (e.target === bioPopup) bioPopup.classList.add("hidden");
+    messageEl.textContent = "";
+  });
 }
