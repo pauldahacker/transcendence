@@ -3,6 +3,8 @@ import { getUserIdFromToken } from "@/userUtils/TokenUtils";
 import { sendFriendRequest } from "./sendFriendRequest";
 import { fetchFriends } from "./fetchFriends";
 import { removeFriend } from "./removeFriend";
+import { renderProfile } from "@/views/Profile"
+import { NumberLiteralType } from "../../../../../node_modules/typescript/lib/typescript";
 
 type FriendRelation = {
   id: number;
@@ -183,19 +185,20 @@ export async function searchBtnPopup() {
       const dotClass = u.is_active ? "bg-green-500" : "bg-gray-600";
   
       return `
-        <div class="flex items-center justify-between p-2 hover:bg-cyan-800 rounded transition-colors duration-150">
-          <div class="flex items-center gap-2">
-            <img src="${u.avatar_url || '/default-avatar.png'}"
-                class="w-6 h-6 rounded-full border border-cyan-700" />
-            <span class="w-3 h-3 ${dotClass} rounded-full inline-block"></span>
-            <span>${u.username}</span>
-          </div>
-          <button data-userid="${u.id}"
-            class="${btnClass} text-white text-[1.5vh] px-3 py-1 rounded"
-            ${disabled ? "disabled" : ""}>
-            ${btnText}
-          </button>
-        </div>`;
+    <div data-userid-row="${u.id}" 
+       class="flex items-center justify-between p-2 hover:bg-cyan-800 rounded transition-colors duration-150 cursor-pointer">
+    <div class="flex items-center gap-2">
+      <img src="${u.avatar_url || '/default-avatar.png'}"
+          class="w-6 h-6 rounded-full border border-cyan-700" />
+      <span class="w-3 h-3 ${dotClass} rounded-full inline-block"></span>
+      <span>${u.username}</span>
+    </div>
+    <button data-userid="${u.id}"
+      class="${btnClass} text-white text-[1.5vh] px-3 py-1 rounded"
+      ${disabled ? "disabled" : ""}>
+      ${btnText}
+    </button>
+  </div>`;
     }
   
     // Combine Friends + Users sections
@@ -213,8 +216,20 @@ export async function searchBtnPopup() {
             : "")
       }
     `;
+
+    function attachProfileLinks(userId: number) {
+      const userRows = results.querySelectorAll("[data-userid-row]");
+      userRows.forEach((row) => {
+        row.addEventListener("click", (e) => {
+          const userId = parseInt((e.currentTarget as HTMLElement).dataset.useridRow || "0", 10);
+          popup.remove();
+          window.location.hash = `#/profile/${userId}`;
+        });
+      });
+    }
   
     attachFriendButtons();
+    attachProfileLinks(currentUserId!);
   }  
 
   renderList();
