@@ -131,6 +131,11 @@ export async function searchBtnPopup() {
             button.className = "bg-red-600 hover:bg-red-500 text-white text-[1.5vh] px-3 py-1 rounded";
             showMessage(res.message, "success");
           }
+          await renderList(input.value);
+          // Keep search input focused after re-render for UX
+          input.focus();
+          input.selectionStart = input.selectionEnd = input.value.length;
+
         } catch (err) {
           showMessage((err as Error).message, "error");
         }
@@ -144,7 +149,7 @@ export async function searchBtnPopup() {
     const currentUserId = token ? getUserIdFromToken(token) : 0;
   
     const friends: FriendRelation[] = await fetchFriends("all");
-  
+    
     const filtered = users
       .filter(u => u.username.toLowerCase().includes(query))
       .filter(u => u.id !== currentUserId)

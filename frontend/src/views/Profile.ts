@@ -9,7 +9,7 @@ import {
   UserData,
   UserStats,
   getUserStats,
-  setupBIoButton,
+  setupBioButton,
   renderLastMatches,
   logoutUser,
   setupAvatarPopup,
@@ -144,7 +144,7 @@ const progressBar = container.querySelector(".bg-green-400");
 //--Display name editor
   setupDisplayNameEditor(user_id, data.display_name || username);
 //--Bio button
-  setupBIoButton(user_id, bio);
+  setupBioButton(user_id, bio);
 //--Match history
   //seedTestMatches(1, 2);
   renderLastMatches(user_id);
