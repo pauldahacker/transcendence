@@ -37,15 +37,22 @@ export async function getUserData(userId: number) {
     throw Error("User id not found.");
 
   const token = localStorage.getItem("auth_token");
-  const res = await fetch(`/api/users/${userId}`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-    },
-  });
-  if (!res.ok){
-	console.log(`Error al acceder a /api/users/${userId}`)
-	throw new Error(`Error ${res.status}`);
-  }
-  return await res.json();
+
+  const [userRes, friendsRes] = await Promise.all([
+    fetch(`/api/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    fetch(`/api/users/${userId}/friends?filter=confirmed`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  ]);
+
+  if (!userRes.ok) throw new Error(`User fetch failed: ${userRes.status}`);
+  if (!friendsRes.ok) throw new Error(`Friends fetch failed: ${friendsRes.status}`);
+
+  const userData = await userRes.json();
+  const friendsData = await friendsRes.json();
+
+  return { ...userData, friends: friendsData.map((f: any) => f.id) };
 }
+
