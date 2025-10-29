@@ -114,7 +114,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
           const opponentScore = aiP1 && !aiP2 ? score1 : score2;
           try {
             await postMatch({
-              tournament_id: 0,
+              tournament_id: generateMatchId(),
               a_participant_score: userScore,
               b_participant_score: opponentScore,
             });
