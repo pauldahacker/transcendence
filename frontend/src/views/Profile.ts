@@ -190,9 +190,5 @@ export async function renderProfile(
         alert("An error occurred while deleting your account.");
       }
     });
-  } else {
-    // If readonly: remove interactive hover hints
-    container.querySelectorAll("#avatarWrapper, #nameHoverArea, #bioHoverArea")
-      .forEach(el => el?.classList.remove("cursor-pointer"));
   }
 }
