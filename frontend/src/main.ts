@@ -47,13 +47,6 @@ async function router() {
       else
         window.location.hash = "#/profile";
       break;
-    case "#/profile":
-      if (loggedIn) {
-        renderProfile(app);
-      } else {
-        localStorage.removeItem("auth_token");
-        window.location.hash = "#/home";
-      }
     break;
     //NB! this is to test the tournament backend functionality
     case "#/tournament-dev": {
@@ -73,9 +66,25 @@ async function router() {
         document.body.innerHTML = '<p>Dev pages are disabled</p>';
       }
       break;
-    default:
-      renderHome(app);
-      break;
+      default:
+        if (route.startsWith("#/profile")) {
+          if (!loggedIn) {
+            localStorage.removeItem("auth_token");
+            window.location.hash = "#/home";
+            return;
+          }
+      
+          const parts = route.split("/");
+          const userIdStr = parts[2]; // e.g. "#/profile/42" → ["#/profile","42"]
+          const userId = userIdStr ? parseInt(userIdStr) : undefined;
+      
+          renderProfile(app, userId);
+          return;
+        }
+      
+        // fallback to home
+        renderHome(app);
+        break;
   }
 }
 
