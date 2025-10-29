@@ -4,7 +4,6 @@ import { sendFriendRequest } from "./sendFriendRequest";
 import { fetchFriends } from "./fetchFriends";
 import { removeFriend } from "./removeFriend";
 import { renderProfile } from "@/views/Profile"
-import { NumberLiteralType } from "../../../../../node_modules/typescript/lib/typescript";
 
 type FriendRelation = {
   id: number;
