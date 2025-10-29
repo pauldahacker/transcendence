@@ -6,4 +6,4 @@ FROM ${IMAGE_BASE}:${STACK_VERSION}
 ARG CONFIG_FILE
 ARG CONFIG_PATH
 
-COPY --chown=root:root conf/${CONFIG_FILE} /usr/share/${CONFIG_PATH}/${CONFIG_FILE}
+COPY --chown=root:root --chmod=go-w conf/${CONFIG_FILE} /usr/share/${CONFIG_PATH}/${CONFIG_FILE}
