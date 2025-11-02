@@ -49,7 +49,7 @@ build: $(ENV_FILE) $(CERTS_DIR)
 
 up: build
 	$(call help_message, "Running the containerized application...")
-	docker compose --profile app up --watch
+	docker compose --profile app up --build --watch
 
 logs:
 	$(call help_message, "Running ELK stack...")
