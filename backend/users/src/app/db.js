@@ -52,6 +52,8 @@ class UsersDatabase extends Database {
         match_date TEXT NOT NULL,
         a_participant_id INTEGER,
         b_participant_id INTEGER,
+        a_participant_alias TEXT,
+        b_participant_alias TEXT,
         a_participant_score INTEGER NOT NULL,
         b_participant_score INTEGER NOT NULL,
         winner_id INTEGER,
@@ -265,8 +267,8 @@ class UsersDatabase extends Database {
         throw JSONError('Both participants are bots', 400);
 
       const stmt = this.prepare(`
-        INSERT INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO match_history (tournament_id, match_id, match_date, a_participant_id, b_participant_id, a_participant_score, b_participant_score, winner_id, loser_id, a_participant_alias, b_participant_alias)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const info = stmt.run(
         match.tournament_id,
@@ -277,7 +279,9 @@ class UsersDatabase extends Database {
         match.a_participant_score,
         match.b_participant_score,
         match.winner_id,
-        match.loser_id
+        match.loser_id,
+        match.a_participant_alias,
+        match.b_participant_alias
       );
       return this.getMatchResult(info.lastInsertRowid);
     } catch (error) {

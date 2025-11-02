@@ -12,7 +12,7 @@ const usernameAndPasswordSchema = {
     username: { 
       type: 'string', 
       minLength: 3, 
-      maxLength: 20, 
+      maxLength: 8, 
       pattern: '^[a-zA-Z0-9_]+$',
       not: { const: 'admin' }
     },
@@ -25,9 +25,9 @@ const usernameAndPasswordSchema = {
 const profileParamSchema = {
   type: 'object',
   properties: {
-    display_name: { type: 'string', minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_ ]+$' },
+    display_name: { type: 'string', minLength: 3, maxLength: 8, pattern: '^[a-zA-Z0-9_ ]+$' },
     avatar_url: { type: 'string', format: 'uri' },
-    bio: { type: 'string', maxLength: 160 }
+    bio: { type: 'string', maxLength: 120 }
   },
   additionalProperties: false
 };
@@ -40,6 +40,8 @@ const matchResultSchema = {
     match_date: { type: 'string', format: 'date-time' },
     a_participant_id: { type: 'number' },
     b_participant_id: { type: 'number' },
+    a_participant_alias: { type: 'string' },
+    b_participant_alias: { type: 'string' },
     a_participant_score: { type: 'number' },
     b_participant_score: { type: 'number' },
     winner_id: { type: 'number' },
