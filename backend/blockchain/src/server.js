@@ -18,7 +18,15 @@ const PORT = Number(process.env.PORT || 3007); // not exposed yet at this staeg
 const HOST = '0.0.0.0';
 
 async function main() {
-  const { app } = buildFastify({ logger: true });
+  const { app } = buildFastify({ logger: {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        ignore: 'pid,hostname'
+      }
+    }
+  }});
 
   await app.listen({ host: HOST, port: PORT });
   app.log.info({ port: PORT }, 'Blockchain service listening');
