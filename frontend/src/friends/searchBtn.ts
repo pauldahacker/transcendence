@@ -216,7 +216,7 @@ export async function searchBtnPopup() {
       }
     `;
 
-    function attachProfileLinks(userId: number) {
+    function attachProfileLinks() {
       const userRows = results.querySelectorAll("[data-userid-row]");
       userRows.forEach((row) => {
         row.addEventListener("click", (e) => {
@@ -228,7 +228,7 @@ export async function searchBtnPopup() {
     }
   
     attachFriendButtons();
-    attachProfileLinks(currentUserId!);
+    attachProfileLinks();
   }  
 
   renderList();

@@ -1,8 +1,8 @@
-import { startPong } from "../pong/startPong";
-import { startPong3D } from "../3d/renderStart";
+import { startPong } from "@/pong/startPong";
+import { startPong3D } from "@/3d/renderStart";
 import { is3DActive, type TournamentState } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
-import { getUserIdFromToken, getUsernameFromToken, getDisplayName, isUserLoggedIn } from "@/userUtils";
+import { getDisplayName, isUserLoggedIn } from "@/userUtils";
 import type { GameOverState } from "@/pong/types";
 
 type RenderGameOptions = {
@@ -16,35 +16,37 @@ type RenderGameOptions = {
   onGameOver?: (result: GameOverState, tournament?: TournamentState) => void;
 };
 
-/*
-renderGame mounts Pong into the DOM and configures players.
-By default, it mounts a 2-player (Human vs Human) non-tournament game.
-But the onePlayer or tournament flag can be set for adaptability.
-
-Handles overlays for Winner message, Play Again button, or Proceed to next match.
-
-Returns a cleanup function to stop the game when leaving the page.
-*/
 export async function renderGame(root: HTMLElement, options: RenderGameOptions = {}) {
-  const {
-    onePlayer = false,
-    tournament = false,
-    tournamentState,
-    onGameOver
-  } = options;
+  const { onePlayer = false, tournament = false, tournamentState, onGameOver } = options;
 
-  const logged = await isUserLoggedIn();
+  const loggedIn = await isUserLoggedIn();
+  const displayName = loggedIn ? await getDisplayName() : null;
 
   let p1 = options.player1 ?? "Player 1";
   let p2 = options.player2 ?? "Player 2";
   let aiP1 = options.aiPlayer1 ?? false;
   let aiP2 = options.aiPlayer2 ?? false;
-  if (onePlayer)
-  {
-    p1 = "AI";
-    p2 = logged ? (await getDisplayName() ?? "You") : "You";
-    aiP1 = true;
-    aiP2 = false;
+
+  if (loggedIn) {
+    if (onePlayer) {
+      p1 = "AI";
+      p2 = displayName ?? "You";
+      aiP1 = true;
+      aiP2 = false;
+    } else if (!tournament) {
+      p1 = "Guest";
+      p2 = displayName ?? "You";
+    }
+  } else {
+    if (onePlayer) {
+      p1 = "AI";
+      p2 = "You";
+      aiP1 = true;
+      aiP2 = false;
+    } else if (!tournament) {
+      p1 = "Guest 1";
+      p2 = "Guest 2";
+    }
   }
 
   const container = document.createElement("div");
@@ -56,25 +58,31 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
 
     <div class="flex items-center justify-center gap-[2vw]">
       <div class="flex flex-col items-center font-honk text-[4vh] text-center">
-        <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
-          ${p1}
-        </div>
+        <input id="player1-name" 
+              maxlength="8";
+              value="${p1}" 
+              ${onePlayer || tournament ? "readonly" : ""}
+              class="bg-transparent border-b border-gray-400 text-center w-[8ch] outline-none focus:border-lime-400 transition-all duration-200">
         ${aiP1 ? "" : `<div class="mt-2 font-bit text-[2vh] text-gray-300">W / S</div>`}
       </div>
+
       <div id="game-container" class="relative h-[80vh] aspect-[3/2] 
                 max-w-[calc(100vw-100px)] max-h-[calc(100vh-100px)] min-w-[300px] min-h-[200px]">
         <canvas id="game-canvas" class="bg-cyan-950 w-full h-full border border-gray-500 rounded">
         </canvas>
       </div>
+
       <div class="flex flex-col items-center font-honk text-[4vh] text-center">
-        <div class="overflow-hidden text-ellipsis whitespace-nowrap w-[8ch]">
-          ${p2}
-        </div>
+        <input id="player2-name" 
+              maxlength="8";
+              value="${p2}" 
+              ${(loggedIn || tournament) ? "readonly" : ""}
+              class="bg-transparent border-b border-gray-400 text-center w-[8ch] outline-none focus:border-lime-400 transition-all duration-200">
         ${aiP2 ? "" : `<div class="mt-2 font-bit text-[2vh] text-gray-300">Arrow Keys</div>`}
       </div>
     </div>
 
-    <a id="back-home" href="#/" 
+    <a id="back-home" href="#/home" 
       class="flex items-center justify-center w-[25vw] h-[5vh] rounded-full min-w-[300px]
                 border-2 border-gray-100 text-gray-100 font-bit text-[3vh]
                 transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
@@ -82,34 +90,70 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
     </a>
   `;
 
-  root.innerHTML = ""; // clear old screen
+  root.innerHTML = "";
   root.appendChild(container);
 
   const canvas = container.querySelector<HTMLCanvasElement>("#game-canvas")!;
   const gameContainer = container.querySelector<HTMLDivElement>("#game-container")!;
   const backHomeButton = container.querySelector<HTMLAnchorElement>("#back-home")!;
+  const player1Input = container.querySelector<HTMLInputElement>("#player1-name")!;
+  const player2Input = container.querySelector<HTMLInputElement>("#player2-name")!;
+
+  // Duplicate name validation
+  const errorMsg = document.createElement("p");
+  errorMsg.id = "name-error";
+  errorMsg.className = "mt-2 text-center font-bit text-[2vh] text-red-400 hidden";
+  container.insertBefore(errorMsg, backHomeButton); // show above Back Home button
+
+  function checkDuplicateNames() {
+    const name1 = player1Input.value.trim().toLowerCase();
+    const name2 = player2Input.value.trim().toLowerCase();
+
+    if (name1 && name2 && name1 === name2) {
+      errorMsg.textContent = "Duplicate player names are not allowed.";
+      errorMsg.classList.remove("hidden");
+      return false;
+    } else {
+      errorMsg.textContent = "";
+      errorMsg.classList.add("hidden");
+      return true;
+    }
+  }
+
+  // Watch for user edits
+  [player1Input, player2Input].forEach(input => {
+    input.addEventListener("input", checkDuplicateNames);
+  });
+
+  function disableAliasEditing() {
+    const inputs = [player1Input, player2Input];
+    inputs.forEach(input => {
+      input.readOnly = true;
+      input.classList.add("opacity-70", "cursor-not-allowed");
+      input.blur();
+    });
+  }
 
   let stopGame: () => void;
 
   requestAnimationFrame(() => {
-
-    //we choose if 3d or no
+    while (!checkDuplicateNames()) ; 
     const start = is3DActive ? startPong3D : startPong;
 
     stopGame = start(
       canvas,
       async (result: GameOverState) => {
-		const { winner, score1, score2} = result;
+        const { winner, score1, score2 } = result;
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
-        
-  
-        if (!(aiP2 && aiP1)) {
-          const userScore = aiP1 && !aiP2 ? score2 : score1;
-          const opponentScore = aiP1 && !aiP2 ? score1 : score2;
+
+        const displayName = await getDisplayName();
+        if (p2 == displayName || p1 == displayName) {
+          const userScore = p1 == displayName ? score1 : score2;
+          const opponentScore = p1 == displayName ? score2 : score1;
           try {
             await postMatch({
-              tournament_id: generateMatchId(),
+              tournament_id: tournament? generateMatchId() : 0,
               a_participant_score: userScore,
               b_participant_score: opponentScore,
             });
@@ -117,57 +161,48 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
             console.error("Failed to post match", error);
           }
         }
-		
-        // Winner message
-        if (onePlayer) {
-          overlay.innerHTML =
-            winner === 1
-              ? `<h2 class="text-[10vh] font-honk text-center animate-zoomIn">You lost!</h2>`
-              : `<h2 class="text-[10vh] font-honk text-center animate-zoomIn">You won!</h2>`;
-        } else {
-          overlay.innerHTML = `
-            <h2 class="text-[10vh] font-honk text-center animate-zoomIn">
-              ${winner === 1 ? p1 : p2} Won!
-            </h2>
-          `;
-        }
+
+        const winnerName = winner === 1 ? player1Input.value : player2Input.value;
+        overlay.innerHTML = `
+          <h2 class="text-[10vh] font-honk text-center animate-zoomIn">
+            ${winnerName} won!
+          </h2>
+        `;
         gameContainer.appendChild(overlay);
-    
+
         setTimeout(() => {
           if (tournament && onGameOver) {
-            // tournament: go to next match
             onGameOver(result, tournamentState);
           } else {
-            // normal game: show Play Again
             const buttonOverlay = document.createElement("div");
             buttonOverlay.className =
               "absolute inset-0 flex flex-col justify-center items-center gap-6";
-        
             const playAgainBtn = document.createElement("button");
             playAgainBtn.textContent = "Play Again";
             playAgainBtn.className =
-              "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg " +
-              "transition-colors duration-300 hover:bg-lime-500 hover:text-black";
-    
+              "mt-[35vh] w-[25vw] h-[6vh] bg-black font-bit text-[3vh] text-lime-500 rounded-lg transition-colors duration-300 hover:bg-lime-500 hover:text-black";
             playAgainBtn.addEventListener("click", () => {
               if (stopGame) stopGame();
-              renderGame(root, options); // restart with same settings
+              renderGame(root, options); // restart
             });
-    
             buttonOverlay.appendChild(playAgainBtn);
             gameContainer.appendChild(buttonOverlay);
           }
         }, 2000);
       },
-      { aiPlayer1: aiP1, aiPlayer2: aiP2 }
+      { aiPlayer1: aiP1,
+        aiPlayer2: aiP2,
+        onStart: disableAliasEditing,
+        canStart: checkDuplicateNames }
     );
-    
-  }
-);
-
-  backHomeButton.addEventListener("click", () => {
-    if (stopGame) stopGame(); // cleanup if already started
   });
+
+  backHomeButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (stopGame) stopGame();
+    window.location.hash = "#/home"; // ensure SPA route change
+  });
+  
 
   return () => {
     if (stopGame) stopGame();

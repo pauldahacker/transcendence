@@ -19,6 +19,8 @@ export function startPong(canvas: HTMLCanvasElement,
     aiPlayer2?: boolean;
     render3D?: (state: GameState, config: GameConfig) => void;
     skip2DDraw?: boolean;
+    onStart?: () => void;
+    canStart?: () => boolean;
   } = {}
 ) {
   const {
@@ -104,9 +106,10 @@ export function startPong(canvas: HTMLCanvasElement,
 
   // At the end of the start screen (when a user presses a key), enter the loop.
   showStartScreen(canvas, () => {
+    if (options.onStart) options.onStart();
     document.addEventListener("keydown", handlePause);
     loop();
-  });
+  }, options.canStart);
 
   // función de parada/limpieza
   return () => {

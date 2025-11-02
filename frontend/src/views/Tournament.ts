@@ -1,7 +1,7 @@
 import { createTournamentState } from "../tournament/state";
-import { createAliasOverlay, createMatchList } from "../tournament/ui";
-import { playNextMatch, showMatchList } from "../tournament/controller";
-import { getUsernameFromToken, isUserLoggedIn } from "@/userUtils/TokenUtils";
+import { createAliasOverlay } from "../tournament/ui";
+import { showMatchList } from "../tournament/controller";
+import { isUserLoggedIn } from "@/userUtils/TokenUtils";
 import { getUserDisplayName } from "@/userUtils/DisplayName";
 
 export async function renderTournament(root: HTMLElement) {
@@ -36,22 +36,38 @@ export async function renderTournament(root: HTMLElement) {
   const backHomeLink = container.querySelector<HTMLAnchorElement>("a[href='#/']")!;
 
   button2p.addEventListener("click", async () => {
-    if (await isUserLoggedIn()) skipAliasOverlay(2); // if logged in, show display name + play against bots
-    else showAliasOverlay(2);
+    showAliasOverlay(2);
   });
   
   button4p.addEventListener("click", async () => {
-    if (await isUserLoggedIn()) skipAliasOverlay(4);
-    else showAliasOverlay(4);
+
+    showAliasOverlay(4);
   });
+  
 
   backHomeLink.addEventListener("click", () => {
     document.querySelectorAll(".overlay").forEach((el) => el.remove());
   });
 
   // When the 2 player or 4 player button is pressed, show the correct overlay to allow alias input.
-  function showAliasOverlay(numPlayers: number) {
+  async function showAliasOverlay(numPlayers: number) {
     const overlay = createAliasOverlay(numPlayers);
+
+    const inputs = overlay.querySelectorAll<HTMLInputElement>("input");
+    const displayName = await getUserDisplayName();
+
+    // Fill the first input if user is logged in
+    if (displayName && inputs.length > 0) {
+      inputs[0].value = displayName;
+      inputs[0].readOnly = true;
+      inputs[0].classList.add("bg-gray-700", "text-cyan-300", "cursor-not-allowed");
+    }
+
+    // auto-fill remaining inputs with [AI] 1, 2 etc
+    for (let i = 0; i < inputs.length; i++) {
+      if (!inputs[i].value.trim())
+        inputs[i].placeholder = `[AI] ${i + 1}`;
+    }
 
     const startButton = document.createElement("button");
     startButton.textContent = "Start Tournament";
@@ -87,9 +103,9 @@ export async function renderTournament(root: HTMLElement) {
         return;
       }
 
-      // No name can exceed 20 characters
-      if (aliases.some((name) => name.length > 20)) {
-        msg.textContent = "Player names cannot exceed 20 characters.";
+      // No name can exceed 8 characters
+      if (aliases.some((name) => name.length > 8)) {
+        msg.textContent = "Player names cannot exceed 8 characters.";
         return;
       }
 
@@ -126,28 +142,5 @@ export async function renderTournament(root: HTMLElement) {
     backButton.addEventListener("click", () => {
       overlay.remove();
     });
-  }
-
-  // skip the overlay only if user is logged in
-  async function skipAliasOverlay(numPlayers: number) {
-    const displayName = await getUserDisplayName();
-    const name = displayName || "Guest"; // should never be "Guest" because its called after isLoggedIn()
-
-    const aliases: string[] = [name];
-    const totalAI = numPlayers - 1;
-    for (let i = 1; i <= totalAI; i++) {
-      aliases.push(`[AI] ${i}`);
-    }
-    const shuffled = aliases.sort(() => Math.random() - 0.5);
-
-    const matches: [string, string][] = [];
-    for (let i = 0; i < shuffled.length; i += 2) {
-      matches.push([shuffled[i], shuffled[i + 1]]);
-    }
-
-    container.remove();
-
-    const state = createTournamentState(matches);
-    showMatchList(root, state);
   }
 }
