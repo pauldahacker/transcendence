@@ -68,11 +68,11 @@ export function setupDisplayNameEditor(user_id: number, displayName: string) {
   });
 
   nameInput.addEventListener("input", () => {
-    if (nameInput.value.length > 20) {
-      nameInput.value = nameInput.value.slice(0, 20);
-      //alert("Display name cannot exceed 20 characters");
+    if (nameInput.value.length > 8) {
+      nameInput.value = nameInput.value.slice(0, 8);
+      //alert("Display name cannot exceed 8 characters");
       msg.classList.add("text-red-400");
-      msg.textContent = "Display name cannot exceed 20 characters";
+      msg.textContent = "Display name cannot exceed 8 characters";
     }
   });
 
@@ -85,10 +85,10 @@ export function setupDisplayNameEditor(user_id: number, displayName: string) {
       return;
     }
 
-    if (newName.length > 20) {
-        //alert("Display name cannot exceed 20 characters");
+    if (newName.length > 8) {
+        //alert("Display name cannot exceed 8 characters");
         msg.classList.add("text-red-400");
-        msg.textContent = "Display name cannot exceed 20 characters";
+        msg.textContent = "Display name cannot exceed 8 characters";
         return;
       }
 

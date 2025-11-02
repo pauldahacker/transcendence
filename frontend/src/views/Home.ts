@@ -46,28 +46,15 @@ export async function renderHome(root: HTMLElement) {
     <h1 class="font-honk text-[20vh] animate-wobble">Pong</h1>
 
     <div class="relative group flex items-center">
-      <a href="#/1player" 
+      <a href="#/quickgame"
         class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full min-w-[300px]
-               border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
-               transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
-        1 player
+          border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
+          transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
+            Quick Game
       </a>
       <span class="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-black text-gray-100 
-                   text-[2vh] font-bit opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Play against an AI opponent
-      </span>
-    </div>
-
-    <div class="relative group flex items-center">
-      <a href="#/2players" 
-        class="flex items-center justify-center w-[25vw] h-[8vh] rounded-full min-w-[300px]
-               border-2 border-gray-100 text-gray-100 font-bit text-[5vh]
-               transition-colors duration-300 hover:bg-gray-100 hover:text-cyan-900">
-        2 players
-      </a>
-      <span class="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-black text-gray-100 
-                   text-[2vh] font-bit opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Play against a friend on the same keyboard
+        text-[2vh] font-bit opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          Play a quick match against AI or a friend
       </span>
     </div>
 

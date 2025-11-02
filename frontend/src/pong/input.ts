@@ -1,4 +1,4 @@
-import { KeyState, GameState } from "./types";
+import { KeyState } from "./types";
 
 // Attaches key listeners and fills the keys object.
 // Returns a cleanup function to remove the listeners later.

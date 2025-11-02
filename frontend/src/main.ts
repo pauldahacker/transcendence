@@ -7,6 +7,7 @@ import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
 import { isUserLoggedIn } from "./userUtils/TokenUtils";
+import { renderQuickGame } from "./views/QuickGame";
 // NB! this is to test the tournamenbt functionality
 import { renderTournamentDev } from "./views/TournamentDev";
 import { renderBlockchainDev } from './views/BlockchainDev';
@@ -20,14 +21,14 @@ async function router() {
   const route = location.hash;
 
   switch (location.hash) {
-    case "#/1player":
-      renderGame(app, {onePlayer: true});
+    case "#/quickgame":
+      renderQuickGame(app);
       break;
-    case "#/2players":
-      renderGame(app);
+    case "#/quickgame/ai":
+      renderGame(app, { onePlayer: true }); // quick match vs AI
       break;
-    case "#/game3d":
-      renderGame3D(app);
+    case "#/quickgame/player":
+      renderGame(app); // quick match vs local player
       break;
     case "#/tournament":
       renderTournament(app);
@@ -47,7 +48,6 @@ async function router() {
       else
         window.location.hash = "#/profile";
       break;
-    break;
     //NB! this is to test the tournament backend functionality
     case "#/tournament-dev": {
       const devEnabled = String(import.meta.env.VITE_ENABLE_DEV_PAGES) === "true";
@@ -66,25 +66,24 @@ async function router() {
         document.body.innerHTML = '<p>Dev pages are disabled</p>';
       }
       break;
-      default:
-        if (route.startsWith("#/profile")) {
-          if (!loggedIn) {
-            localStorage.removeItem("auth_token");
-            window.location.hash = "#/home";
-            return;
-          }
-      
-          const parts = route.split("/");
-          const userIdStr = parts[2]; // e.g. "#/profile/42" → ["#/profile","42"]
-          const userId = userIdStr ? parseInt(userIdStr) : undefined;
-      
-          renderProfile(app, userId);
+    default:
+      if (route.startsWith("#/profile")) {
+        if (!loggedIn) {
+          localStorage.removeItem("auth_token");
+          window.location.hash = "#/home";
           return;
         }
       
-        // fallback to home
-        renderHome(app);
-        break;
+        const parts = route.split("/");
+        const userIdStr = parts[2]; // e.g. "#/profile/42" → ["#/profile","42"]
+        const userId = userIdStr ? parseInt(userIdStr) : undefined;
+      
+        renderProfile(app, userId);
+        return;
+      }
+      // fallback to home
+      renderHome(app);
+      break;
   }
 }
 

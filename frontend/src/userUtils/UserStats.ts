@@ -1,5 +1,3 @@
-import { getUserIdFromToken } from "./TokenUtils";
-
 export type UserStats = {
 	total_games: number;
 	wins: number;
