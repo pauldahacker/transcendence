@@ -175,7 +175,7 @@ test('`users` tests', async (t) => {
         const user1Response = await supertest(server)
         .post('/api/users/register')
         .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-        .send({ username: 'testuser', password: 'testpassword' })
+        .send({ username: 'testusr', password: 'testpassword' })
         .expect(201)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -185,7 +185,7 @@ test('`users` tests', async (t) => {
         const response = await supertest(server)
         .post('/api/users/register')
         .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-        .send({ username: 'testuser2', password: 'testpassword2' })
+        .send({ username: 'testusr2', password: 'testpassword2' })
         .expect(201)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -197,7 +197,7 @@ test('`users` tests', async (t) => {
         const response = await supertest(server)
         .post('/api/users/register')
         .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-        .send({ username: 'testuser', password: 'testpassword' })
+        .send({ username: 'testusr', password: 'testpassword' })
         .expect(409)
         .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -231,7 +231,7 @@ test('`users` tests', async (t) => {
       const user1Response = await supertest(server)
       .post('/api/users/login')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .send({ username: 'testuser', password: 'testpassword' })
+      .send({ username: 'testusr', password: 'testpassword' })
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -241,7 +241,7 @@ test('`users` tests', async (t) => {
       const user2Response = await supertest(server)
       .post('/api/users/login')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .send({ username: 'testuser2', password: 'testpassword2' })
+      .send({ username: 'testusr2', password: 'testpassword2' })
       .expect(200)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -264,7 +264,7 @@ test('`users` tests', async (t) => {
       const response = await supertest(server)
       .post('/api/users/login')
       .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-      .send({ username: 'testuser', password: 'wrongpass' })
+      .send({ username: 'testusr', password: 'wrongpass' })
       .expect(401)
       .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -350,7 +350,7 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
-      t.assert.strictEqual(response.body.username, 'testuser2');
+      t.assert.strictEqual(response.body.username, 'testusr2');
       profile = response.body;
     });
 
@@ -362,7 +362,7 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
-      t.assert.strictEqual(response.body.username, 'testuser');
+      t.assert.strictEqual(response.body.username, 'testusr');
     });
 
     await t.test('Get profile as a different user', async (t) => {
@@ -374,7 +374,7 @@ test('`users` tests', async (t) => {
       .expect('Content-Type', 'application/json; charset=utf-8');
 
       t.assert.deepStrictEqual(Object.keys(response.body), schemas.profileResponseSchema.required);
-      t.assert.strictEqual(response.body.username, 'testuser');
+      t.assert.strictEqual(response.body.username, 'testusr');
     });
 
     await t.test('Get profile of non-existing user', async (t) => {
@@ -677,7 +677,7 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
     await supertest(server)
     .post(`/api/users/register`)
     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-    .send({ username: 'testuser3', password: 'testpassword3' })
+    .send({ username: 'testusr3', password: 'testpassword3' })
     .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8')
     .then((res) => {
@@ -687,7 +687,7 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
     await supertest(server)
     .post(`/api/users/login`)
     .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
-    .send({ username: 'testuser3', password: 'testpassword3' })
+    .send({ username: 'testusr3', password: 'testpassword3' })
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8')
     .then((res) => {
@@ -870,7 +870,7 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
       t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
       t.assert.strictEqual(response.body.length, 1);
       t.assert.strictEqual(response.body[0].id, ids.user3);
-      t.assert.strictEqual(response.body[0].username, 'testuser3');
+      t.assert.strictEqual(response.body[0].username, 'testusr3');
       t.assert.strictEqual(response.body[0].display_name, null);
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
@@ -886,7 +886,7 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
       t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
       t.assert.strictEqual(response.body.length, 1);
       t.assert.strictEqual(response.body[0].id, ids.user2);
-      t.assert.strictEqual(response.body[0].username, 'testuser2');
+      t.assert.strictEqual(response.body[0].username, 'testusr2');
       t.assert.strictEqual(response.body[0].display_name, 'New Name');
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
@@ -916,7 +916,7 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
       t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
       t.assert.strictEqual(response.body.length, 1);
       t.assert.strictEqual(response.body[0].id, ids.user3);
-      t.assert.strictEqual(response.body[0].username, 'testuser3');
+      t.assert.strictEqual(response.body[0].username, 'testusr3');
       t.assert.strictEqual(response.body[0].display_name, null);
       t.assert.strictEqual(response.body[0].confirmed, 1);
     });
@@ -1056,5 +1056,149 @@ await test('E2E tournament → gateway → blockchain (skips if reporter disable
 
       t.assert.deepStrictEqual(user3response.body, { message: 'User deleted' });
     });
+  });
+});
+
+test('`blockchain` tests', async (t) => {
+  await t.test('GET `/api/blockchain/abi/TournamentRegistry` route', async (t) => {
+    await t.test('Without auth -> 401', async (t) => {
+      const response = await supertest(server)
+        .get('/api/blockchain/abi/TournamentRegistry')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('With internal API key -> 200', async (t) => {
+      const response = await supertest(server)
+        .get('/api/blockchain/abi/TournamentRegistry')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Array.isArray(response.body));
+      t.assert.ok(response.body.length >= 0);
+    });
+  });
+
+  await t.test('POST `/api/blockchain/finals` route', async (t) => {
+    await t.test('Without auth -> 401', async (t) => {
+      const response = await supertest(server)
+        .post('/api/blockchain/finals')
+        .send({ tournament_id: 123, winner_alias: 'alice', score_a: 3, score_b: 1, points_to_win: 3 })
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('With internal API key -> 201 { txHash }', async (t) => {
+      const response = await supertest(server)
+        .post('/api/blockchain/finals')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: 456, winner_alias: 'bob', score_a: 3, score_b: 2, points_to_win: 3 })
+        .expect(201)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(response.body && typeof response.body.txHash === 'string');
+    });
+  });
+
+  await t.test('GET `/api/blockchain/finals/:id` route', async (t) => {
+    await t.test('Without auth -> 401', async (t) => {
+      const response = await supertest(server)
+        .get('/api/blockchain/finals/999')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('With internal API key -> 200 (after seed POST)', async (t) => {
+      const seedId = 777;
+      await supertest(server)
+        .post('/api/blockchain/finals')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: seedId, winner_alias: 'seeded', score_a: 3, score_b: 1, points_to_win: 3 })
+        .expect(201)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      const response = await supertest(server)
+        .get(`/api/blockchain/finals/${seedId}`)
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.strictEqual(response.body.exists, true);
+      t.assert.strictEqual(response.body.winner_alias, 'seeded');
+      t.assert.strictEqual(response.body.score_a, 3);
+      t.assert.strictEqual(response.body.score_b, 1);
+      t.assert.strictEqual(response.body.points_to_win, 3);
+    });
+  });
+
+  await t.test('GET `/api/blockchain/config` route', async (t) => {
+    await t.test('Without auth -> 401', async (t) => {
+      const response = await supertest(server)
+        .get('/api/blockchain/config')
+        .expect(401)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+    });
+
+    await t.test('With internal API key -> 200 + fields', async (t) => {
+      const response = await supertest(server)
+        .get('/api/blockchain/config')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .expect(200)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(Object.prototype.hasOwnProperty.call(response.body, 'enabled'), 'missing enabled');
+      t.assert.ok(Object.prototype.hasOwnProperty.call(response.body, 'network'), 'missing network');
+      t.assert.ok(Object.prototype.hasOwnProperty.call(response.body, 'registryAddress'), 'missing registryAddress');
+    });
+  });
+
+  await t.test('POST `/api/blockchain/finals` duplicate guard', async (t) => {
+    const tid = 13579;
+
+    await t.test('First call -> 201', async (t) => {
+      const response = await supertest(server)
+        .post('/api/blockchain/finals')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: tid, winner_alias: 'dup', score_a: 3, score_b: 1, points_to_win: 3 })
+        .expect(201)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.ok(response.body && typeof response.body.txHash === 'string', 'expected txHash string');
+    });
+
+    await t.test('Second call with same id -> 409', async (t) => {
+      const response = await supertest(server)
+        .post('/api/blockchain/finals')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+        .send({ tournament_id: tid, winner_alias: 'dup', score_a: 3, score_b: 1, points_to_win: 3 })
+        .expect(409)
+        .expect('Content-Type', 'application/json; charset=utf-8');
+
+      t.assert.equal(response.body && response.body.error, 'already_recorded', 'expected already_recorded error');
+    });
+  });
+
+  await t.test('Rate limit: multiple hits to `/api/blockchain/health`', async (t) => {
+    for (let i = 0; i < 30; i++) {
+      const response = await supertest(server)
+        .get('/api/blockchain/health')
+        .set('x-internal-api-key', process.env.INTERNAL_API_KEY)
+    }
+
+    const response = await supertest(server)
+      .get('/api/blockchain/health')
+      .set('x-internal-api-key', process.env.INTERNAL_API_KEY);
+
+    t.assert.ok([429, 403].includes(response.statusCode), `expected 429/403, got ${response.statusCode}`);
+
+    const bodyText = typeof response.text === 'string' ? response.text : '';
+    const looksLimited =
+      /Too Many Requests/i.test(bodyText) ||
+      response.body?.code === 'FST_ERR_RATE_LIMIT' ||
+      /rate[- ]?limit/i.test(bodyText) ||
+      response.headers['x-ratelimit-limit'] !== undefined;
+
+    t.assert.ok(looksLimited, 'expected rate-limit style response or headers');
   });
 });

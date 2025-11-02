@@ -245,13 +245,13 @@ test('PUT `/:user_id` route', async (t) => {
   await t.test('Update another user profile', async (t) => {
      const registerResponse = await supertest(app.server)
     .post('/register')
-    .send({ username: 'otheruser', password: 'otherpass' })
+    .send({ username: 'otherusr', password: 'otherpass' })
     .expect(201)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
     const loginResponse = await supertest(app.server)
     .post('/login')
-    .send({ username: 'otheruser', password: 'otherpass' })
+    .send({ username: 'otherusr', password: 'otherpass' })
     .expect(200)
     .expect('Content-Type', 'application/json; charset=utf-8');
 
@@ -259,7 +259,7 @@ test('PUT `/:user_id` route', async (t) => {
     token_2 = loginResponse.body.token;
 
     t.assert.deepStrictEqual(Object.keys(registerResponse.body), schemas.userResponseSchema.required);
-    t.assert.strictEqual(registerResponse.body.username, 'otheruser');
+    t.assert.strictEqual(registerResponse.body.username, 'otherusr');
 
     const response = await supertest(app.server)
     .put('/2')
@@ -287,7 +287,7 @@ test('GET `/` route', async (t) => {
   t.assert.deepStrictEqual(response.body[0].id, 1);
   t.assert.deepStrictEqual(response.body[0].username, 'myuser');
   t.assert.deepStrictEqual(response.body[1].id, 2);
-  t.assert.deepStrictEqual(response.body[1].username, 'otheruser');
+  t.assert.deepStrictEqual(response.body[1].username, 'otherusr');
 });
 
 test('POST `/match` route', async (t) => {
@@ -624,7 +624,7 @@ test('GET `/:user_id/friends` route', async (t) => {
     t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
     t.assert.strictEqual(response.body.length, 1);
     t.assert.strictEqual(response.body[0].id, 2);
-    t.assert.strictEqual(response.body[0].username, 'otheruser');
+    t.assert.strictEqual(response.body[0].username, 'otherusr');
     t.assert.strictEqual(response.body[0].display_name, null);
     t.assert
     t.assert.strictEqual(response.body[0].confirmed, 1);
@@ -672,7 +672,7 @@ test('GET `/:user_id/friends` route with /?filter=` query', async (t) => {
     t.assert.deepStrictEqual(Object.keys(response.body[0]), schemas.friendsResponseSchema.items.required);
     t.assert.strictEqual(response.body.length, 1);
     t.assert.strictEqual(response.body[0].id, 2);
-    t.assert.strictEqual(response.body[0].username, 'otheruser');
+    t.assert.strictEqual(response.body[0].username, 'otherusr');
     t.assert.strictEqual(response.body[0].display_name, null);
     t.assert.strictEqual(response.body[0].confirmed, 1);
   });
@@ -724,7 +724,7 @@ test('GET `/:user_id/match-history` route', async (t) => {
     t.assert.strictEqual(response.body.length, 4);
     t.assert.strictEqual(response.body[0].tournament_id, 1);
     t.assert.strictEqual(response.body[0].match_id, 4);
-    t.assert.strictEqual(response.body[0].opponent_username, 'otheruser');
+    t.assert.strictEqual(response.body[0].opponent_username, 'otherusr');
     t.assert.strictEqual(response.body[0].user_score, 21);
     t.assert.strictEqual(response.body[0].opponent_score, 17);
     t.assert.strictEqual(response.body[0].result, 'win');

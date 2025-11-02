@@ -40,6 +40,8 @@ const matchResultSchema = {
     match_date: { type: 'string', format: 'date-time' },
     a_participant_id: { type: 'number' },
     b_participant_id: { type: 'number' },
+    a_participant_alias: { type: 'string' },
+    b_participant_alias: { type: 'string' },
     a_participant_score: { type: 'number' },
     b_participant_score: { type: 'number' },
     winner_id: { type: 'number' },
