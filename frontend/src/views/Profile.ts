@@ -65,7 +65,10 @@ export async function renderProfile(
       localStorage.removeItem("auth_token");
       window.location.hash = "#/login";
     } else {
-      root.innerHTML = `<p class="text-red-400 font-bit text-[3vh]">User not found.</p>`;
+      root.innerHTML = `
+        <div class="flex items-center justify-center h-screen">
+          <p class="text-red-400 font-bit text-[3vh]">User not found.</p>
+        </div>`;
     }
     return;
   }
@@ -93,7 +96,7 @@ export async function renderProfile(
     <h1 class="font-honk text-[10vh] animate-wobble mb-[5vh]">Profile</h1>
 
     <div class="flex justify-center items-stretch gap-[5vw] w-[90%] h-[65vh]">
-      ${renderUser(username, avatarUrl, displayName, bio)}
+      ${renderUser(username, avatarUrl, displayName, bio, readonly)}
       ${renderStats(wins, losses, friends, tournaments, rank, medalUrl)}
       ${renderHistory()}
     </div>
