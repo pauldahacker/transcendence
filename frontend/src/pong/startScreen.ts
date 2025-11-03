@@ -27,7 +27,7 @@ export function showStartScreen(
 	  ctx.font = "40px Honk";
 	  ctx.textAlign = "center";
 	  ctx.textBaseline = "middle";
-	  ctx.fillText("Click to Start", 0, 0);
+	  ctx.fillText("Click or Press Enter to Start", 0, 0);
 	  ctx.restore();
   
 	  // Border party effect only if cursor is inside
@@ -56,8 +56,16 @@ export function showStartScreen(
 	  partyMode = insideCanvas;
 	  canvas.style.cursor = insideCanvas ? "pointer" : "default";
 	}
+
+	function handleStart()
+	{
+		if (!canStart || canStart()) {
+			cleanup();
+			onStart();
+		  }
+	}
   
-	function handleStart(event: MouseEvent) {
+	function handleClick(event: MouseEvent) {
 	  const rect = canvas.getBoundingClientRect();
 	  const insideCanvas =
 		event.clientX >= rect.left &&
@@ -65,10 +73,12 @@ export function showStartScreen(
 		event.clientY >= rect.top &&
 		event.clientY <= rect.bottom;
   
-	  if (insideCanvas && (!canStart || canStart())) {
-		cleanup();
-		onStart();
-	  }
+	  if (insideCanvas)
+		handleStart();
+	}
+
+	function handleKey(event: KeyboardEvent) {
+		if (event.key === "Enter") handleStart();
 	}
   
 	function cleanup() {
@@ -79,6 +89,7 @@ export function showStartScreen(
 	}
   
 	document.addEventListener("mousemove", handleMouseMove);
-	document.addEventListener("click", handleStart);
+	document.addEventListener("click", handleClick);
+	document.addEventListener("keydown", handleKey);
   }
   
