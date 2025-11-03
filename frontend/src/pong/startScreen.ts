@@ -57,9 +57,13 @@ export function showStartScreen(
 	  canvas.style.cursor = insideCanvas ? "pointer" : "default";
 	}
 
+	let hasStarted = false;
 	function handleStart()
 	{
+		if (hasStarted)
+			return;
 		if (!canStart || canStart()) {
+			hasStarted = true;
 			cleanup();
 			onStart();
 		  }
@@ -84,6 +88,7 @@ export function showStartScreen(
 	function cleanup() {
 	  document.removeEventListener("mousemove", handleMouseMove);
 	  document.removeEventListener("click", handleStart);
+	  document.removeEventListener("keydown", handleKey);
 	  cancelAnimationFrame(animationFrame);
 	  canvas.style.boxShadow = "none";
 	}

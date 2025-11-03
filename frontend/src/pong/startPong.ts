@@ -86,7 +86,6 @@ export function startPong(canvas: HTMLCanvasElement,
       update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
     }
 
-    // Dibujo 2D (opcional)
     if (!skip2DDraw) {
       ctx.save();
       ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
