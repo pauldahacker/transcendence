@@ -26,6 +26,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
   let p2 = options.player2 ?? "Player 2";
   let aiP1 = options.aiPlayer1 ?? false;
   let aiP2 = options.aiPlayer2 ?? false;
+  const skipRef = { current: false };
 
   if (loggedIn) {
     if (onePlayer) {
@@ -199,7 +200,8 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
       { aiPlayer1: aiP1,
         aiPlayer2: aiP2,
         onStart: disableAliasEditing,
-        canStart: checkDuplicateNames }
+        canStart: checkDuplicateNames },
+        skipRef//SKIP BUTTON ------------------------------
     );
   });
 
@@ -208,6 +210,29 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
     if (stopGame) stopGame();
     window.location.hash = "#/home"; // ensure SPA route change
   });
+
+  if (aiP1 && aiP2){
+    const skipBtn = document.createElement("button");
+    skipBtn.textContent = "Skip game";
+    skipBtn.className = `
+      absolute top-2 right-2 z-50
+      px-3 py-1 rounded-md
+      bg-black/60 text-white font-bit text-[2vh]
+      border border-white/30 shadow-md
+      hover:bg-white hover:text-black hover:border-transparent
+      transition-colors duration-200
+    `;
+    gameContainer.appendChild(skipBtn);
+
+    const handleSkipClick = () => {
+      //skipGame = true;
+      //skipBtn.textContent = "Skipping…";
+      skipRef.current = true;
+      skipBtn.disabled = true;
+      skipBtn.classList.add("opacity-60", "cursor-not-allowed");
+    };
+    skipBtn.addEventListener("click", handleSkipClick);
+  }
   
 
   return () => {
