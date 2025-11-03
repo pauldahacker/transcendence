@@ -25,7 +25,8 @@ import {
   export function startPong3D(
 	canvas3D: HTMLCanvasElement,
   	onGameEnd: (result: GameOverState) => void,
-  	options: Start3DOptions = {}
+  	options: Start3DOptions = {},
+	skipRef?: { current: boolean }
 	): () => void {
 		let engine: Engine | null = null;
   		try {
@@ -202,7 +203,8 @@ import {
 			aiPlayer1: options.aiPlayer1 ?? false,
     		aiPlayer2: options.aiPlayer2 ?? false,
 			onStart: removeOverlay,
-		}
+		},
+		skipRef//skipvalue
 		);
 
 		let running = true;
