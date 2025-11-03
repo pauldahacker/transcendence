@@ -7,7 +7,9 @@ export function update(
   state: GameState,
   config: GameConfig,
   keys: KeyState,
-  onGameOver: (result: GameOverState) => void
+  aiMatch : boolean,
+  onGameOver: (result: GameOverState) => void,
+  skipRef?: { current: boolean },
 ) {
   const { paddleHeight, paddleWidth, ballSize } = config;
 
@@ -54,6 +56,24 @@ export function update(
 
   // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
+
+  //skip value
+  if (skipRef?.current && aiMatch){
+    const p1Winner = Math.random() < 0.5;
+    if (p1Winner){
+      state.score1 = 3;
+      if (state.score2 < 1)
+        state.score2 += Math.round(Math.random());
+      if (state.score2 < 2)
+        state.score2 += Math.round(Math.random());
+    } else {
+      state.score2 = 3;
+      if (state.score1 < 1)
+        state.score1 += Math.round(Math.random());
+      if (state.score1 < 2)
+        state.score1 += Math.round(Math.random());
+    }
+  }
 
   // Scoring
   if (state.ballX < 0) {

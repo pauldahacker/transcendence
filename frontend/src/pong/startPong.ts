@@ -21,7 +21,8 @@ export function startPong(canvas: HTMLCanvasElement,
     skip2DDraw?: boolean;
     onStart?: () => void;
     canStart?: () => boolean;
-  } = {}
+  } = {},
+  skipRef?: { current: boolean },
 ) {
   const {
     aiPlayer1 = false,
@@ -83,7 +84,7 @@ export function startPong(canvas: HTMLCanvasElement,
     if (!state.gameRunning) return;
 
     if (!paused) {
-      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, onGameOver);
+      update(BASE_WIDTH, BASE_HEIGHT, state, config, keys, !!(options.aiPlayer1 && options.aiPlayer2), onGameOver, skipRef);
     }
 
     if (!skip2DDraw) {
