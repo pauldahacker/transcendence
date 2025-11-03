@@ -50,7 +50,7 @@ export async function renderLastMatches(userId: number) {
         return `
           <li class="grid grid-cols-[1fr,1fr,1fr] px-3 py-2 items-center">
             <span class="flex items-center gap-1">
-              <span>AI</span>
+              <span>${m.opponent_username || "AI"}</span>
             </span>
             <span class="${
               m.user_score > m.opponent_score
