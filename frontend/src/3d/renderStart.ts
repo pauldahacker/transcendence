@@ -149,6 +149,28 @@ import {
   		hidden2D.style.display = "none";
   		canvas3D.parentElement?.appendChild(hidden2D);
 
+		const overlayParent = canvas3D.parentElement;
+        const overlay = document.createElement("div");
+        overlay.className =
+          "absolute inset-0 flex items-center justify-center pointer-events-none";
+        const overlayText = document.createElement("span");
+        overlayText.className = "font-honk text-white text-4xl drop-shadow-lg";
+        overlayText.textContent = "Press Enter to Start";
+        overlay.appendChild(overlayText)
+        const removeOverlay = () => {
+          window.removeEventListener("keydown", handleEnterToStart);
+          overlay.remove();
+        }
+        const handleEnterToStart = (event: KeyboardEvent) => {
+          if (event.key === "Enter") {
+            removeOverlay();
+          }
+        }
+        if (overlayParent) {
+          overlayParent.appendChild(overlay);
+          window.addEventListener("keydown", handleEnterToStart);
+        }
+
 		const stopPong2D = startPong(
 		hidden2D,
 		(result: GameOverState) => {
@@ -179,6 +201,7 @@ import {
 			},
 			aiPlayer1: options.aiPlayer1 ?? false,
     		aiPlayer2: options.aiPlayer2 ?? false,
+			onStart: removeOverlay,
 		}
 		);
 
@@ -190,8 +213,7 @@ import {
 		const onResize = () => engine!.resize();
 		window.addEventListener("resize", onResize);
 	  
-		// 6) stop(): limpieza completa
-		// ---------------------------
+
 		const stop = () => {
 		  running = false;
 		  window.removeEventListener("resize", onResize);
@@ -199,6 +221,7 @@ import {
 		  try { scene.dispose(); } catch {}
 		  try { engine!.dispose(); } catch {}
 		  try { hidden2D.remove(); } catch {}
+		  if (overlayParent?.contains(overlay)) {removeOverlay();}
 		  engine = null;
 		};
 	  
