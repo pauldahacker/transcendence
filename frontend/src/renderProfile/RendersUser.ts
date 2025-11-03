@@ -1,4 +1,4 @@
-export function renderUser(username: string, avatarUrl: string, displayName: string, bio: string) : string {
+export function renderUser(username: string, avatarUrl: string, displayName: string, bio: string, readonly: boolean) : string {
     return `
     <div class="flex flex-col items-center bg-cyan-900/30 border-4 border-cyan-800 rounded-3xl p-[3vh] shadow-xl w-[30vw] h-full">
 
@@ -6,32 +6,34 @@ export function renderUser(username: string, avatarUrl: string, displayName: str
       <h2 class="font-bit text-[4vh] text-gray-100">${username}</h2>
 
       <!-- AVATAR -->
-      <div id="avatarWrapper" class="relative group cursor-pointer mb-[2vh]">
+      <div id="avatarWrapper" class="relative ${!readonly ? "group cursor-pointer" : ""} mb-[2vh]">
         <img id="avatarImg" src="${avatarUrl}" alt="User Avatar" class="w-[25vh] h-[25vh] rounded-full border-4 border-cyan-500 shadow-[0_0_15px_#00ffff] object-cover">
-        <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-          <span class="font-bit text-[2.2vh] text-white select-none">Change avatar</span>
-        </div>
+        ${!readonly ? `
+          <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+            <span class="font-bit text-[2.2vh] text-white select-none">Change avatar</span>
+          </div>
+        ` : ""}
       </div>
       ${renderAvatarPopup()}
 
       <!-- DISPLAY NAME -->
-      <div class="relative w-full mt-[1vh] text-center group cursor-pointer" id="nameHoverArea">
+      <div  id="nameHoverArea" class="relative w-full mt-[1vh] text-center ${!readonly ? "group cursor-pointer" : ""}">
         <span id="currentDisplayName" class="font-bit text-[3vh] text-cyan-200 transition-all duration-200 group-hover:underline">
           ${displayName}
         </span>
-        ${renderHoverMsg("Click to edit display name")}
+        ${!readonly ? renderHoverMsg("Click to edit display name") : ""}
       </div>
       ${renderDisplayNamePopup()}
 
       
 
       <!-- BIO -->
-      <div class="relative w-full mt-[1vh] text-center group cursor-pointer" id="bioHoverArea">
+      <div class="relative w-full mt-[1vh] text-center ${!readonly ? "group cursor-pointer" : ""}" id="bioHoverArea">
         <p id="userBio"
            class="font-bit text-[2.0vh] text-gray-300 text-center whitespace-normal overflow-hidden [overflow-wrap:anywhere] [word-break:normal] transition-all duration-200 group-hover:underline">
           ${bio}
         </p>
-        ${renderHoverMsg("Click to edit bio")}
+        ${!readonly ? renderHoverMsg("Click to edit bio") : ""}
       </div>
       ${renderBioPopup()}
   `;
