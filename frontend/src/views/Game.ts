@@ -146,14 +146,19 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
         const { winner, score1, score2 } = result;
         const overlay = document.createElement("div");
         overlay.className = "absolute inset-0 flex flex-col justify-center items-center gap-6 overlay";
+        const player1Name = player1Input.value.trim();
+        const player2Name = player2Input.value.trim();
 
         const displayName = await getDisplayName();
-        if (p2 == displayName || p1 == displayName) {
-          const userScore = p1 == displayName ? score1 : score2;
-          const opponentScore = p1 == displayName ? score2 : score1;
+        if (player1Name == displayName || player2Name == displayName) {
+          const userScore = player1Name == displayName ? score1 : score2;
+          const opponentScore = player1Name == displayName ? score2 : score1;
+          const opponentName = player1Name !== displayName ? player1Name : player2Name;
           try {
             await postMatch({
               tournament_id: tournament? generateMatchId() : 0,
+              a_participant_alias: displayName,
+              b_participant_alias: opponentName,
               a_participant_score: userScore,
               b_participant_score: opponentScore,
             });

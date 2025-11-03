@@ -160,9 +160,17 @@ class UsersDatabase extends Database {
           match_id,
           match_date,
           CASE 
-            WHEN a_participant_id = ? THEN (SELECT username FROM users_auth WHERE id = b_participant_id)
-            ELSE (SELECT username FROM users_auth WHERE id = a_participant_id)
-          END as opponent_username,
+            WHEN a_participant_id = ? THEN 
+              CASE 
+                WHEN b_participant_id = 0 THEN b_participant_alias
+                ELSE (SELECT username FROM users_auth WHERE id = b_participant_id)
+              END
+            ELSE
+              CASE 
+                WHEN a_participant_id = 0 THEN a_participant_alias
+                ELSE (SELECT username FROM users_auth WHERE id = a_participant_id)
+              END
+          END AS opponent_username,
           CASE 
             WHEN a_participant_id = ? THEN a_participant_score
             ELSE b_participant_score

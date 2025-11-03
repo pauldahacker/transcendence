@@ -5,6 +5,8 @@ import { initSearchButton } from "@/friends/searchBtn";
 import { initNewsButton, updateNewsBadge } from "@/friends/newsBtn";
 import { fetchIncomingFriendRequests } from "@/friends/fetchFriendRequests";
 
+let friendRequestInterval: number | undefined;
+
 export async function renderHome(root: HTMLElement) {
   const container = document.createElement("div");
   container.className =
@@ -99,15 +101,20 @@ export async function renderHome(root: HTMLElement) {
   initSearchButton();
   initNewsButton();
   if (logged) {
-    // update notifications every 5 seconds
-    setInterval(async () => {
+    // clear any previous interval to prevent stacking
+    if (friendRequestInterval) {
+      clearInterval(friendRequestInterval);
+    }
+
+    // start fresh interval + refresh every 10 seconds to prevent console from overflowing
+    friendRequestInterval = window.setInterval(async () => {
       try {
         const requests = await fetchIncomingFriendRequests();
         updateNewsBadge(requests.length);
       } catch (err) {
         console.error("Failed to refresh news badge:", err);
       }
-    }, 5000);
+    }, 10000);
   }
 }
 

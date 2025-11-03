@@ -6,6 +6,8 @@ export interface MatchData {
 //    match_date: string;
 //    a_participant_id: number;
 //    b_participant_id: number;
+    a_participant_alias: string;
+    b_participant_alias: string;
     a_participant_score: number;
     b_participant_score: number;
 //    winner_id: number;
@@ -18,6 +20,8 @@ export async function postMatch({
 //    match_date,
 //    a_participant_id,
 //    b_participant_id,
+  a_participant_alias,
+  b_participant_alias,
   a_participant_score,
   b_participant_score,
 //    winner_id,
@@ -41,6 +45,8 @@ match_id,
 match_date,
 a_participant_id,
 b_participant_id,
+a_participant_alias,
+b_participant_alias,
 a_participant_score,
 b_participant_score,
 winner_id,
@@ -58,6 +64,8 @@ loser_id
           match_date,
           a_participant_id,
           b_participant_id,
+          a_participant_alias,
+          b_participant_alias,
           a_participant_score,
           b_participant_score,
           winner_id,
