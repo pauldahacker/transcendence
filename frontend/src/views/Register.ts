@@ -25,11 +25,7 @@ export function renderRegister(root: HTMLElement) {
              class="w-full px-4 py-2 rounded-full bg-transparent border-2 border-gray-100 text-gray-100 
                     placeholder-gray-400 font-bit text-[2.5vh] focus:outline-none focus:bg-gray-100 focus:text-cyan-900 transition-all duration-300" />
 
-      <input type="text" 
-               id="display_name"
-               placeholder="Display Name (optional)"
-               class="w-full px-4 py-2 rounded-full bg-transparent border-2 border-gray-100 text-gray-100 
-                      placeholder-gray-400 font-bit text-[2.5vh] focus:outline-none focus:bg-gray-100 focus:text-cyan-900 transition-all duration-300" />
+    
 
       <button type="submit"
               class="w-full py-2 rounded-full border-2 border-gray-100 text-gray-100 font-bit text-[3vh]
@@ -59,8 +55,8 @@ export function renderRegister(root: HTMLElement) {
     e.preventDefault();
     const username = (container.querySelector("#username") as HTMLInputElement).value;
     const password = (container.querySelector("#password") as HTMLInputElement).value;
-    const displayN = (container.querySelector("#display_name") as HTMLInputElement).value.trim();
-    const displayName = displayN || username;
+    //const displayN = (container.querySelector("#display_name") as HTMLInputElement).value.trim();
+    const displayName = username;
     //console.log("Register attempt:", { username, password });
 
     let msg = container.querySelector("#register-msg") as HTMLParagraphElement;
