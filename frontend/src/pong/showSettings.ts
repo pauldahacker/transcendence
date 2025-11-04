@@ -40,7 +40,7 @@ export async function showGameSettings(): Promise<GameSettings | null> {
           <div>
             <span class="block mb-2 text-lg">Speed</span>
             <div id="speed-options" class="flex justify-around gap-4">
-              <div data-speed="0.25"
+              <div data-speed="0.75"
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
                 Slow
               </div>
@@ -48,7 +48,7 @@ export async function showGameSettings(): Promise<GameSettings | null> {
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
                 Default
               </div>
-              <div data-speed="2"
+              <div data-speed="1.5"
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
                 Quick
               </div>

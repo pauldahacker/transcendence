@@ -35,15 +35,25 @@ export function draw(
     ctx.fillRect(0, 0, width, height);
   }
   
+  let paddleColor = "white";
+  let ballColor = "white";
+
+  if (map?.includes("moscow")) {
+    paddleColor = "#ff66cc"; // pink
+    ballColor = "#ff99cc";
+  } else if (map?.includes("barcelona")) {
+    paddleColor = "yellow";
+    ballColor = "yellow";
+  }
 
   // Paddles
-  ctx.fillStyle = "white";
+  ctx.fillStyle = paddleColor;
   ctx.fillRect(20, paddle1Y, paddleWidth, paddleHeight);
-  ctx.fillStyle = "white";
+  ctx.fillStyle = paddleColor;
   ctx.fillRect(width - 20 - paddleWidth, paddle2Y, paddleWidth, paddleHeight);
 
   // Ball
-  ctx.fillStyle = state.ballFlash > 0 ? "lime" : "white";
+  ctx.fillStyle = state.ballFlash > 0 ? "lime" :  ballColor;
   ctx.fillRect(ballX, ballY, ballSize, ballSize);
 
   // Score
