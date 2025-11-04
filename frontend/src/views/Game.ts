@@ -155,7 +155,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
           const userScore = player1Name == displayName ? score1 : score2;
           const opponentScore = player1Name == displayName ? score2 : score1;
           const opponentName = player1Name !== displayName ? player1Name : player2Name;
-          const isTournamentFinal = tournament && tournamentState && (tournamentState.currentMatch >= tournamentState.matches.length);
+          const isTournamentFinal = tournament && tournamentState && (tournamentState.currentMatch === tournamentState.matches.length - 1);
           try {
             await postMatch({
               tournament_id: isTournamentFinal ? generateMatchId() : 0,
