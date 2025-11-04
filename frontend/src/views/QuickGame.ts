@@ -1,9 +1,4 @@
-import { isUserLoggedIn, getDisplayName } from "@/userUtils";
-
 export async function renderQuickGame(root: HTMLElement) {
-  const loggedIn = await isUserLoggedIn();
-  const displayName = loggedIn ? await getDisplayName() : "Guest";
-
   const container = document.createElement("div");
   container.className = "flex flex-col justify-center items-center h-screen gap-8 text-center";
 

@@ -3,7 +3,7 @@ import { getUserIdFromToken } from "@/userUtils/TokenUtils";
 import { sendFriendRequest } from "./sendFriendRequest";
 import { fetchFriends } from "./fetchFriends";
 import { removeFriend } from "./removeFriend";
-import { renderProfile } from "@/views/Profile"
+import { attachProfileLinks} from "./attachProfileLinks"
 
 type FriendRelation = {
   id: number;
@@ -215,20 +215,9 @@ export async function searchBtnPopup() {
             : "")
       }
     `;
-
-    function attachProfileLinks() {
-      const userRows = results.querySelectorAll("[data-userid-row]");
-      userRows.forEach((row) => {
-        row.addEventListener("click", (e) => {
-          const userId = parseInt((e.currentTarget as HTMLElement).dataset.useridRow || "0", 10);
-          popup.remove();
-          window.location.hash = `#/profile/${userId}`;
-        });
-      });
-    }
   
     attachFriendButtons();
-    attachProfileLinks();
+    attachProfileLinks(results, () => popup.remove());
   }  
 
   renderList();

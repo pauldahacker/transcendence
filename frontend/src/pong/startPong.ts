@@ -9,8 +9,8 @@ import { AIController, startSimpleAI } from "./ai";
 /*
 startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, pause, and cleanup.
   canvas: the HTML element in which to draw the game
-  onGameover: callback when either player wins (displays winning animation + end screen)
-  options: which player(s) should be AI-controlled
+  onGameover: callback when either player wins (displays winning animation / end screen / tournament / play again)
+  options: which player(s) should be AI-controlled, 
 */
 export function startPong(canvas: HTMLCanvasElement,
   onGameOver: (result: GameOverState) => void,
