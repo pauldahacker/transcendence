@@ -5,6 +5,7 @@ import { setupInput } from "./input";
 import { showStartScreen } from "./startScreen";
 import { showPauseScreen } from "./pause";
 import { AIController, startSimpleAI } from "./ai";
+import { GameSettings, defaultSettings } from "./types";
 
 /*
 startPong(): boots up the Pong game loop, handles physics, drawing, input, AI, pause, and cleanup.
@@ -21,6 +22,7 @@ export function startPong(canvas: HTMLCanvasElement,
     skip2DDraw?: boolean;
     onStart?: () => void;
     canStart?: () => boolean;
+    settings?: GameSettings;
   } = {},
   skipRef?: { current: boolean },
 ) {
@@ -41,13 +43,14 @@ export function startPong(canvas: HTMLCanvasElement,
 
   const targetFPS = 60;
 
+  const s = options.settings ?? defaultSettings;
   const config: GameConfig = {
     paddleHeight: 100,
     paddleWidth: 25,
-    paddleSpeed: BASE_HEIGHT / (1 * targetFPS),
+    paddleSpeed: BASE_HEIGHT / (1 * targetFPS) * s.paddleSpeed,
     ballSize: 25,
-    minSpeed: BASE_WIDTH / (2 * targetFPS),
-    maxSpeed: BASE_WIDTH / (1 * targetFPS),
+    minSpeed: BASE_WIDTH / (2 * targetFPS) * s.ballSpeed,
+    maxSpeed: BASE_WIDTH / (1 * targetFPS) * s.ballSpeed,
     maxBounceAngle: Math.PI / 4,
   };
 
@@ -90,7 +93,7 @@ export function startPong(canvas: HTMLCanvasElement,
     if (!skip2DDraw) {
       ctx.save();
       ctx.scale(canvas.width / BASE_WIDTH, canvas.height / BASE_HEIGHT);
-      draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config);
+      draw(ctx, BASE_WIDTH, BASE_HEIGHT, state, config, options.settings?.map);
       ctx.restore();
 
       if (paused) showPauseScreen(canvas);
@@ -109,7 +112,7 @@ export function startPong(canvas: HTMLCanvasElement,
     if (options.onStart) options.onStart();
     document.addEventListener("keydown", handlePause);
     loop();
-  }, options.canStart);
+  }, options.canStart, options.settings?.map);
 
   // función de parada/limpieza
   return () => {
