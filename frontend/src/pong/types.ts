@@ -29,6 +29,18 @@ export interface GameOverState {
 	score2: number;
 	state: GameState;
 }
+
+export interface GameSettings {
+    map: string;            // path to texture
+    ballSpeed: number;      // multiplier (1x = normal)
+    paddleSpeed: number;    // multiplier
+}
+  
+export const defaultSettings: GameSettings = {
+    map: "",
+    ballSpeed: 1,
+    paddleSpeed: 1,
+};
   
 export type KeyState = Record<string, boolean>;
   

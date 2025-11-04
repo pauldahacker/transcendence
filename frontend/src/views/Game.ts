@@ -3,7 +3,8 @@ import { startPong3D } from "@/3d/renderStart";
 import { is3DActive, type TournamentState } from "@/tournament/state";
 import { postMatch, generateMatchId } from "@/userUtils/UserMatch";
 import { getDisplayName, isUserLoggedIn } from "@/userUtils";
-import type { GameOverState } from "@/pong/types";
+import type { GameOverState, GameSettings } from "@/pong/types";
+import { showGameSettings } from "@/pong/showSettings";
 
 type RenderGameOptions = {
   onePlayer?: boolean;
@@ -137,6 +138,13 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
 
   let stopGame: () => void;
 
+  let settings: GameSettings | undefined;
+
+  if (!is3DActive) {
+    const s = await showGameSettings();
+    if (!s) return; // user canceled
+    settings = s;
+  }
   requestAnimationFrame(() => {
     while (!checkDuplicateNames()) ; 
     const start = is3DActive ? startPong3D : startPong;
@@ -155,7 +163,7 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
           const userScore = player1Name == displayName ? score1 : score2;
           const opponentScore = player1Name == displayName ? score2 : score1;
           const opponentName = player1Name !== displayName ? player1Name : player2Name;
-          const isTournamentFinal = tournament && tournamentState && (tournamentState.currentMatch >= tournamentState.matches.length);
+          const isTournamentFinal = tournament && tournamentState && tournamentState.currentMatch === tournamentState.matches.length - 1;
           try {
             await postMatch({
               tournament_id: isTournamentFinal ? generateMatchId() : 0,
@@ -200,7 +208,8 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
       { aiPlayer1: aiP1,
         aiPlayer2: aiP2,
         onStart: disableAliasEditing,
-        canStart: checkDuplicateNames },
+        canStart: checkDuplicateNames,
+        settings },
         skipRef//SKIP BUTTON ------------------------------
     );
   });
