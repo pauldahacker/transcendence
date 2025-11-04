@@ -13,7 +13,6 @@ import { startPong } from "../pong/startPong";
 import { GameState, GameConfig, GameOverState } from "../pong/types";
 
 export function renderGame3D(root: HTMLElement) {
-  // Contenedor + canvas
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-between items-center h-screen pt-[2vh] pb-[2vh] min-h-[400px] min-w-[600px] relative mx-auto my-auto";
@@ -149,11 +148,11 @@ export function renderGame3D(root: HTMLElement) {
   p1.position.x = p1X;
   p2.position.x = p2X;
 
-  // helpers: centro 2D -> pos 3D
+  // center board
   const mapXCenter = (xCenter2D: number) => (xCenter2D - BASE_WIDTH / 2) * sx;
   const mapZCenter = (yCenter2D: number) => (BASE_HEIGHT / 2 - yCenter2D) * sz;
 
-  // Hidden 1 * 1 canvas to start 2d pong engine
+  // Hidden 2d pong engine
   const hidden2D = document.createElement("canvas");
   hidden2D.width = 900;
   hidden2D.height = 600;
@@ -201,12 +200,10 @@ export function renderGame3D(root: HTMLElement) {
       },
       aiPlayer1:false,
       aiPlayer2:true
-      // Puedes activar AI si quieres:
-      // aiPlayer1: true, aiPlayer2: true,
     }
   );
 
-  // Render Babylon
+  //babylon
   let running = true;
   engine.runRenderLoop(() => {
     if (!running) return;

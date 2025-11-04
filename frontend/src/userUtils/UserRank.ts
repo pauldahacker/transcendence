@@ -1,4 +1,4 @@
-import { getUserStats } from "./UserStats"; // o el path correcto
+import { getUserStats } from "./UserStats";
 
 export async function getUserRank(user_id: number): Promise<number | null> {
   const token = localStorage.getItem("auth_token");

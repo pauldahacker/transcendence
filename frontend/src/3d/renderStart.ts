@@ -113,11 +113,11 @@ import {
 		ball.position.y = paddleHeightY / 2;
 
 		const lightSize = 0.25;
-		const marginX = 1;  // separa del borde X
-		const elevY = 0;    // altura base de la luz inferior
+		const marginX = 1;
+		const elevY = 0;
 		const rightX =  (W / 2) - marginX;
 		const leftX  = -(W / 2) + marginX;
-		const zFront = H/2 + lightSize/2;     // ponlo más cerca o más lejos si quieres
+		const zFront = H/2 + lightSize/2;
 		//scoreboard1
 
 		const leftScore = new ScoreLights(scene, {
@@ -180,13 +180,13 @@ import {
 		{
 			skip2DDraw: true,
 		  	render3D: (state: GameState, config: GameConfig) => {
-				// centros en 2D
+				// centros2D
 				const p1CenterY = state.paddle1Y + config.paddleHeight / 2;
 				const p2CenterY = state.paddle2Y + config.paddleHeight / 2;
 				const ballCenterX = state.ballX + config.ballSize / 2;
 				const ballCenterY = state.ballY + config.ballSize / 2;
 			
-				// posición en 3D
+				// posición3D
 				p1.position.x = p1X;
 				p1.position.z = mapZCenter(p1CenterY);
 				p2.position.x = p2X;
@@ -194,7 +194,7 @@ import {
 				ball.position.x = mapXCenter(ballCenterX);
 				ball.position.z = mapZCenter(ballCenterY);
 			
-				// flash bola
+				// flashball
 				(ball.material as StandardMaterial).diffuseColor =
 				  state.ballFlash > 0 ? Color3.FromHexString("#2CFF1F") : Color3.FromHexString("#FFFFFF");
 				leftScore.update(state.score1);

@@ -65,8 +65,8 @@ export async function setupBioButton(user_id: number, bio: string) {
     }
 
     try {
-      const res = await updateBio(user_id, newBio); // ✅ wait for backend
-      bio = res.bio || newBio; // use backend value if returned
+      const res = await updateBio(user_id, newBio);
+      bio = res.bio || newBio;
       bioElement.textContent = bio;
       messageEl.classList.remove("text-red-400");
       messageEl.classList.add("text-green-400");

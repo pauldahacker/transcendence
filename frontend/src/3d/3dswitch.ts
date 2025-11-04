@@ -12,7 +12,6 @@ export function setup3DSwitch(container: HTMLElement) {
     toggle3D();
 
     if (switch3d.checked) {
-      // -> ON: efecto 3D neón
       label.classList.remove("bg-gray-800","border-gray-600","shadow-none");
       label.classList.add(
         "bg-black","border-cyan-500",
@@ -27,7 +26,6 @@ export function setup3DSwitch(container: HTMLElement) {
         "shadow-[0_6px_12px_rgba(255,0,128,0.35)]"
       );
     } else {
-      // -> OFF: plano 2D
       label.classList.add("bg-gray-800","border-gray-600","shadow-none");
       label.classList.remove(
         "bg-black","border-cyan-500",
