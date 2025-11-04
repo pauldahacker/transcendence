@@ -2,7 +2,8 @@
 export function showStartScreen(
 	canvas: HTMLCanvasElement,
 	onStart: () => void,
-	canStart?: () => boolean
+	canStart?: () => boolean,
+	map?: string
   ) {
 	const ctx = canvas.getContext("2d")!;
 	const { width, height } = canvas;
@@ -12,14 +13,25 @@ export function showStartScreen(
 	let pulse = 0;
 	let partyMode = false;
   
-	function animate() {
-	  // Background
-	  ctx.fillStyle = "rgba(8, 51, 68, 1)";
-	  ctx.fillRect(0, 0, width, height);
+	// preload the map
+	let bgImage: HTMLImageElement | null = null;
+	if (map) {
+	  bgImage = new Image();
+	  bgImage.src = map;
+	}
   
-	  // Pulse the text continuously
-	  pulse += 0.03; // slower pulsing
-	  const scale = 1 + Math.sin(pulse) * 0.05; // ±5%
+	function animate() {
+	  // draw background
+	  if (bgImage && bgImage.complete) {
+		ctx.drawImage(bgImage, 0, 0, width, height);
+	  } else {
+		ctx.fillStyle = "rgba(8, 51, 68, 1)";
+		ctx.fillRect(0, 0, width, height);
+	  }
+  
+	  // pulse text
+	  pulse += 0.03;
+	  const scale = 1 + Math.sin(pulse) * 0.05;
 	  ctx.save();
 	  ctx.translate(width / 2, height / 2);
 	  ctx.scale(scale, scale);
@@ -30,7 +42,6 @@ export function showStartScreen(
 	  ctx.fillText("Click or Press Enter to Start", 0, 0);
 	  ctx.restore();
   
-	  // Border party effect only if cursor is inside
 	  if (partyMode) {
 		hue = (hue + 1) % 360;
 		const borderColor = `hsl(${hue}, 100%, 60%)`;
@@ -87,7 +98,7 @@ export function showStartScreen(
   
 	function cleanup() {
 	  document.removeEventListener("mousemove", handleMouseMove);
-	  document.removeEventListener("click", handleStart);
+	  document.removeEventListener("click", handleClick);
 	  document.removeEventListener("keydown", handleKey);
 	  cancelAnimationFrame(animationFrame);
 	  canvas.style.boxShadow = "none";

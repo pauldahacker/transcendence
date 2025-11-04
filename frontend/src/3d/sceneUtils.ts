@@ -130,21 +130,22 @@ export function buildborders(scene: Scene, W: number, H: number){
 }
 
 
-export function addSkyDome(scene: Scene) {
-  const spaceUrl = new URL("./textures/space.jpg", import.meta.url).href;
-  const texture = new Texture(spaceUrl, scene);
-  texture.uScale = 30; // cuántas veces se repite horizontalmente (U)
-  texture.vScale = 20; // cuántas veces se repite verticalmente (V)
+export function addSkyDome(scene: Scene, texturePath = "/textures/space.jpg") {
+  const texture = new Texture(texturePath, scene);
+  texture.uScale = 30;
+  texture.vScale = 20;
 
-  const dome = MeshBuilder.CreateSphere(spaceUrl, { diameter: 150, segments: 32, sideOrientation: Mesh.BACKSIDE }, scene);
+  const dome = MeshBuilder.CreateSphere("skyDome", {
+    diameter: 150,
+    segments: 32,
+    sideOrientation: Mesh.BACKSIDE,
+  }, scene);
+
   const mat = new StandardMaterial("skyDomeMat", scene);
   mat.diffuseTexture = texture;
   mat.emissiveTexture = texture;
-  //mat.emissiveColor = new Color3(1.2, 1.2, 1.2);
   mat.disableLighting = true;
   mat.backFaceCulling = false;
-  
-
   dome.material = mat;
   return dome;
 }
