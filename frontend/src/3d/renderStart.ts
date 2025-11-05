@@ -12,6 +12,7 @@ import {
 	Color3,
 	StandardMaterial,
 	DynamicTexture,
+	AbstractMesh
   } from "babylonjs";
 
 
@@ -113,12 +114,47 @@ import {
 		ball.material = matBall;
 		ball.position.y = paddleHeightY / 2;
 
+		// Power-up coin (flat disc always facing camera)
+		const powerUp3D = MeshBuilder.CreateDisc("powerUp3D", { radius: ballSize3D, tessellation: 32 }, scene);
+		// make it visually coin-shaped (not flattened)
+		powerUp3D.scaling.y = 1.0;
+		powerUp3D.rotation.x = Math.PI; // face camera correctly
+		// small visible elevation above the playing surface
+		const POWER_ELEVATION = paddleHeightY / 2 + 0.2;
+		powerUp3D.position.y = POWER_ELEVATION; // slightly above the ground
+				
+		// Create a DynamicTexture to draw a "?" on it
+		const dynTex = new DynamicTexture("powerText", { width: 256, height: 256 }, scene, true);
+		const ctx = dynTex.getContext();
+
+		ctx.clearRect(0, 0, 256, 256);
+		ctx.fillStyle = "#FFD700";
+		ctx.fillRect(0, 0, 256, 256); // base fill for emissive look
+		ctx.fillStyle = "#000";
+		ctx.font = "bold 200px Arial";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		ctx.fillText("?", 128, 160);
+		dynTex.update();
+
+		const matPower = new StandardMaterial("matPower", scene);
+		matPower.diffuseTexture = dynTex;
+		matPower.emissiveTexture = dynTex;
+		matPower.disableLighting = true;
+		matPower.backFaceCulling = false;
+		powerUp3D.material = matPower;
+		powerUp3D.billboardMode = AbstractMesh.BILLBOARDMODE_ALL;
+
+		// don't overwrite the elevation later — keep it at POWER_ELEVATION
+		powerUp3D.isVisible = false;
+
 		const lightSize = 0.25;
 		const marginX = 1;  // separa del borde X
 		const elevY = 0;    // altura base de la luz inferior
 		const rightX =  (W / 2) - marginX;
 		const leftX  = -(W / 2) + marginX;
 		const zFront = H/2 + lightSize/2;     // ponlo más cerca o más lejos si quieres
+		
 		//scoreboard1
 
 		const leftScore = new ScoreLights(scene, {
@@ -179,7 +215,7 @@ import {
 		  onGameEnd(result);
 		},
 		{
-			skip2DDraw: true,
+			skip2DDraw: true, //not draw in 2d
 		  	render3D: (state: GameState, config: GameConfig) => {
 				// centros en 2D
 				const p1CenterY = state.paddle1Y + config.paddleHeight / 2;
@@ -194,6 +230,26 @@ import {
 				p2.position.z = mapZCenter(p2CenterY);
 				ball.position.x = mapXCenter(ballCenterX);
 				ball.position.z = mapZCenter(ballCenterY);
+
+				// Power-up
+				if (state.powerUpActive && state.powerUpX !== undefined && state.powerUpY !== undefined) {
+					// Map 2D coordinates to 3D (center)
+					const powerX3D = mapXCenter(state.powerUpX);
+					const powerZ3D = mapZCenter(state.powerUpY);
+  
+					powerUp3D.position.x = powerX3D;
+					powerUp3D.position.z = powerZ3D;
+					powerUp3D.isVisible = true;
+  
+					// Match its visual size with 2D radius
+					const powerRadius2D = config.ballSize * 1.0;
+					const scaleFactor = (powerRadius2D / (config.ballSize / 2)) * 1.0;
+					powerUp3D.scaling.setAll(scaleFactor);
+					// ensure Y stays at elevation
+					powerUp3D.position.y = POWER_ELEVATION;
+				} else {
+					powerUp3D.isVisible = false;
+				}
 			
 				// flash bola
 				(ball.material as StandardMaterial).diffuseColor =

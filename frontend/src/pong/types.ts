@@ -11,6 +11,11 @@ export interface GameState {
 	animationId?: number;
 
 	ballFlash: number; // number of frames for flashing perfect shot
+
+	powerUpSet?: boolean;
+	powerUpActive?: boolean;
+  	powerUpX?: number;
+  	powerUpY?: number;
 }
   
 export interface GameConfig {
@@ -34,12 +39,14 @@ export interface GameSettings {
     map: string;            // path to texture
     ballSpeed: number;      // multiplier (1x = normal)
     paddleSpeed: number;    // multiplier
+	powerUps?: boolean;
 }
   
 export const defaultSettings: GameSettings = {
     map: "",
     ballSpeed: 1,
     paddleSpeed: 1,
+	powerUps: false,
 };
   
 export type KeyState = Record<string, boolean>;

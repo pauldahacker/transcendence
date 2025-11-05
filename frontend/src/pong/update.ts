@@ -57,6 +57,36 @@ export function update(
   // Flash timers
   if (state.ballFlash > 0) state.ballFlash--;
 
+  //Power-Up logic
+  if (config && state.powerUpSet) {
+    // Occasionally spawn a power-up
+    if (!state.powerUpActive && Math.random() < 0.002) { // 1/500 chance per frame. game runs at 60fps, every 8–9 seconds
+      state.powerUpActive = true;
+      state.powerUpX = width / 2;
+      state.powerUpY = Math.random() * (height - 50) + 25;
+    }
+
+    // Collision with ball
+    if (state.powerUpActive) {
+      const bx = state.ballX + config.ballSize / 2;
+      const by = state.ballY + config.ballSize / 2;
+      const dx = bx - (state.powerUpX ?? 0);
+      const dy = by - (state.powerUpY ?? 0);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const powerUpRadius = config.ballSize * 2;
+
+      if (dist < powerUpRadius) {
+        // Activate random Y trajectory change and keep same X speed
+        const speedY = (Math.random() - 0.5) * Math.abs(state.ballSpeedX) * 2; 
+        state.ballSpeedY = speedY;
+        state.ballSpeedX = Math.min(1.1 * state.ballSpeedX, config.maxSpeed);
+    
+        state.ballFlash = 30;
+        state.powerUpActive = false;
+      }
+    }
+  }
+
   //skip value
   if (skipRef?.current && aiMatch){
     const p1Winner = Math.random() < 0.5;
@@ -115,7 +145,7 @@ function handleBounce(
   const relativeIntersectY = (state.ballY + config.ballSize / 2) - (paddleY + paddleHeight / 2); // where on the paddle the ball hits
   const normalized = relativeIntersectY / (paddleHeight / 2); // normalized to [-1 (top), 0 (center), 1 (bottom)]
 
-  if (Math.abs(normalized) <= 0.15) state.ballFlash = 20; // if close to center, "perfect" shot
+  if (Math.abs(normalized) <= 0.15) state.ballFlash = 30; // if close to center, "perfect" shot
 
   const bounceAngle = normalized * config.maxBounceAngle; // get the angle depending on where it hit
   const speedRatio = 1 - Math.abs(normalized); // make speed quicker the close the ball is to the center

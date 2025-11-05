@@ -1,7 +1,5 @@
 import { GameState, GameConfig } from "./types";
 
-let cachedBg: { src: string; img: HTMLImageElement | null } = { src: "", img: null };
-
 // draws the paddles, scores and ball on the canvas for a single frame
 export function draw(
   ctx: CanvasRenderingContext2D,
@@ -58,6 +56,20 @@ export function draw(
   // Ball
   ctx.fillStyle = state.ballFlash > 0 ? "lime" :  ballColor;
   ctx.fillRect(ballX, ballY, ballSize, ballSize);
+
+  // Power-up
+  if (state.powerUpActive && state.powerUpX !== undefined && state.powerUpY !== undefined) {
+    const radius = config.ballSize;
+    ctx.fillStyle = "#ffd700"; // gold
+    ctx.beginPath();
+    ctx.arc(state.powerUpX, state.powerUpY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = `${Math.round(radius * 1.2)}px Arial`;
+    ctx.fillStyle = "#000";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", state.powerUpX, state.powerUpY + 1);
+  }
 
   // Score
   ctx.font = "50px Honk";
