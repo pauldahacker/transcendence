@@ -129,7 +129,7 @@ export function buildborders(scene: Scene, W: number, H: number){
   bottomB.position.y = 0;
 
   const sideMat = new StandardMaterial("graySideMat", scene);
-  sideMat.diffuseColor = Color3.FromHexString("#6B7280"); // Tailwind gray-500
+  sideMat.diffuseColor = Color3.FromHexString("#6B7280");
   sideMat.emissiveColor = sideMat.diffuseColor;
   sideMat.disableLighting = true;
 
