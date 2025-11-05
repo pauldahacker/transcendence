@@ -13,7 +13,6 @@ import { startPong } from "../pong/startPong";
 import { GameState, GameConfig, GameOverState } from "../pong/types";
 
 export function renderGame3D(root: HTMLElement) {
-  // Contenedor + canvas
   const container = document.createElement("div");
   container.className =
     "flex flex-col justify-between items-center h-screen pt-[2vh] pb-[2vh] min-h-[400px] min-w-[600px] relative mx-auto my-auto";
@@ -201,8 +200,6 @@ export function renderGame3D(root: HTMLElement) {
       },
       aiPlayer1:false,
       aiPlayer2:true
-      // Puedes activar AI si quieres:
-      // aiPlayer1: true, aiPlayer2: true,
     }
   );
 
