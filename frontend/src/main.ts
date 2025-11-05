@@ -3,7 +3,6 @@ import { renderGame } from "./views/Game";
 import { renderResults } from "./views/Results";
 import { renderLogin } from "./views/Login";
 import { renderTournament} from "./views/Tournament";
-import { renderGame3D } from "./views/Game3D";
 import { renderRegister } from "./views/Register";
 import { renderProfile } from "./views/Profile";
 import { isUserLoggedIn } from "./userUtils/TokenUtils";

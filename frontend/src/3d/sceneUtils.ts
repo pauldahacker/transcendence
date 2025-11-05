@@ -127,19 +127,62 @@ export function buildborders(scene: Scene, W: number, H: number){
   bottomB.position.x = 0;
   bottomB.position.z = -(H/2 + 0.3/2 + 0.0001);
   bottomB.position.y = 0;
+
+  const sideMat = new StandardMaterial("graySideMat", scene);
+  sideMat.diffuseColor = Color3.FromHexString("#6B7280"); // Tailwind gray-500
+  sideMat.emissiveColor = sideMat.diffuseColor;
+  sideMat.disableLighting = true;
+
+  const sideThickness = 0.01; // thin border
+  const sideHeight = 0.01;
+  const sideDepth = H;
+
+  const leftB = MeshBuilder.CreateBox("leftB", { width: sideThickness, height: sideHeight, depth: sideDepth }, scene);
+  leftB.material = sideMat;
+  leftB.position.set(-(W / 2 + sideThickness / 2 + 0.0001), 0, 0);
+
+  const rightB = MeshBuilder.CreateBox("rightB", { width: sideThickness, height: sideHeight, depth: sideDepth }, scene);
+  rightB.material = sideMat;
+  rightB.position.set(W / 2 + sideThickness / 2 + 0.0001, 0, 0);
 }
 
 
-export function addSkyDome(scene: Scene, texturePath = "/textures/space.jpg") {
-  const texture = new Texture(texturePath, scene);
-  texture.uScale = 30;
-  texture.vScale = 20;
+export function addSkyDome(scene: Scene, mapPath?: string) {
+  // If no map, plain blue dome (no texture)
+  if (!mapPath || mapPath.trim() === "") {
+    const dome = MeshBuilder.CreateSphere(
+      "skyDome",
+      {
+        diameter: 150,
+        segments: 32,
+        sideOrientation: Mesh.BACKSIDE,
+      },
+      scene
+    );
 
-  const dome = MeshBuilder.CreateSphere("skyDome", {
-    diameter: 150,
-    segments: 32,
-    sideOrientation: Mesh.BACKSIDE,
-  }, scene);
+    const mat = new StandardMaterial("skyDomeMat", scene);
+    mat.diffuseColor = Color3.FromHexString("#164E63"); // same cyan-blue as your default background
+    mat.emissiveColor = Color3.FromHexString("#164E63");
+    mat.disableLighting = true;
+    mat.backFaceCulling = false;
+    dome.material = mat;
+    return dome;
+  }
+
+  // Otherwise, load texture
+  const texture = new Texture(mapPath, scene);
+  texture.uScale = 20;
+  texture.vScale = -8;
+
+  const dome = MeshBuilder.CreateSphere(
+    "skyDome",
+    {
+      diameter: 150,
+      segments: 32,
+      sideOrientation: Mesh.BACKSIDE,
+    },
+    scene
+  );
 
   const mat = new StandardMaterial("skyDomeMat", scene);
   mat.diffuseTexture = texture;
@@ -147,5 +190,7 @@ export function addSkyDome(scene: Scene, texturePath = "/textures/space.jpg") {
   mat.disableLighting = true;
   mat.backFaceCulling = false;
   dome.material = mat;
+
   return dome;
 }
+
