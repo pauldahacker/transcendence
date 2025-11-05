@@ -93,7 +93,7 @@ export async function renderProfile(
 
   // --- MAIN LAYOUT ---
   container.innerHTML = `
-    <h1 class="font-honk text-[10vh] animate-wobble mb-[5vh]">Profile</h1>
+    <h1 class="font-honk text-[10vh] animate-wobble mb-[2vh]">Profile</h1>
 
     <div class="flex justify-center items-stretch gap-[5vw] w-[90%] h-[65vh]">
       ${renderUser(username, avatarUrl, displayName, bio, readonly)}
