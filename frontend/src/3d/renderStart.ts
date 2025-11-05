@@ -59,7 +59,7 @@ import {
 		camera.lowerBetaLimit = 0.1;
 		camera.upperBetaLimit = Math.PI / 2;
 		camera.wheelPrecision = 40;
-		
+		camera.upperRadiusLimit = 75;
 
 		//light
 		const light = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
