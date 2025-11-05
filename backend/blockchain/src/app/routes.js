@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/21 21:06:27 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/11/05 20:53:26 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@ const fs = require('fs');
 const path = require('path');
 const { finalsPostSchema } = require('./schemas');
 // const { recordFinal, getFinal } = require('./chain');
-const { recordFinal, getFinal, diagnostics } = require('./chain');
+// const { recordFinal, getFinal, diagnostics } = require('./chain');
+const { recordFinal, getFinal, diagnostics, _getProviderAndIface } = require('./chain');
+const { jsonSafe } = require('./json-safe');
 
 // no longer needed due to switch away from internal mock up
 // const finalsStore = new Map();
@@ -100,6 +102,32 @@ async function routes(fastify) {
   fastify.get('/config/diagnostics', async (_req, _reply) => {
     const d = await diagnostics();
     return d;
+  });
+
+  // decode a transaction hash ( for real mode only)
+  fastify.get('/tx/:hash', async (req, reply) => {
+    const enabled = process.env.BLOCKCHAIN_ENABLED === 'true';
+    if (!enabled) return reply.code(400).send({ error: 'mock_mode' });
+    const { hash } = req.params;
+    if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) return reply.code(400).send({ error: 'bad_hash' });
+    const { provider, iface } = await _getProviderAndIface();
+    const tx = await provider.getTransaction(hash);
+    if (!tx) return reply.code(404).send({ error: 'tx_not_found' });
+    const receipt = await provider.getTransactionReceipt(hash);
+    let parsedFn = null;
+    try { parsedFn = iface.parseTransaction({ data: tx.data, value: tx.value }); } catch {}
+    const events = [];
+    if (receipt && receipt.logs) {
+      for (const log of receipt.logs) {
+        try { const ev = iface.parseLog(log); events.push({ name: ev.name, args: ev.args }); } catch {}
+      }
+    }
+    return jsonSafe({
+      to: tx.to, blockNumber: receipt && receipt.blockNumber || null,
+      function: parsedFn ? parsedFn.name : null,
+      args: parsedFn ? parsedFn.args : null,
+      events
+    });
   });
 
   fastify.get('/config', async () => {
