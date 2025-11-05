@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 22:03:44 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/21 21:32:05 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/11/05 20:39:45 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,17 @@ async function getFinal(tournamentId) {
 }
 
 module.exports = { isEnabled, recordFinal, getFinal, _store };
+
+// provider + iface for read-only ops (real mode only)
+async function _getProviderAndIface() {
+  if (!isEnabled()) throw new Error('not_enabled');
+  const { abi } = require('../artifacts/contracts/TournamentRegistry.sol/TournamentRegistry.json');
+  const ethers = require('ethers'); // safe lazy load
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+  const iface = new ethers.Interface(abi);
+  return { provider, iface };
+}
+module.exports._getProviderAndIface = _getProviderAndIface;
 
 // --- diagnostics helper (no secrets) ---
 async function diagnostics() {
