@@ -6,7 +6,7 @@
 /*   By: rzhdanov <rzhdanov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 03:24:04 by rzhdanov          #+#    #+#             */
-/*   Updated: 2025/10/11 13:16:08 by rzhdanov         ###   ########.fr       */
+/*   Updated: 2025/11/05 19:37:34 by rzhdanov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,30 @@ class TournamentsDatabase extends Database {
     this.ensureSchema();
     // simple select read to  ensure connectivity
     this.prepare('SELECT 1').get();
-    
+    // Optional: bump starting match id (next AUTOINCREMENT value)
+    const startStr = process.env.MATCH_ID_START;
+    const start = Number(startStr);
+    if (Number.isInteger(start) && start > 1) {
+      try {
+        // Ensure sqlite_sequence row exists or insert the target value
+        // We only raise the floor; never lower an already higher sequence.
+        const row = this.prepare(
+          "SELECT seq FROM sqlite_sequence WHERE name = 'match'"
+        ).get();
+        const target = start - 1; // sqlite_sequence holds "last used", not "next"
+        if (!row) {
+          this.prepare(
+            "INSERT INTO sqlite_sequence(name, seq) VALUES('match', ?)"
+          ).run(target);
+        } else if (row.seq < target) {
+          this.prepare(
+            "UPDATE sqlite_sequence SET seq = ? WHERE name = 'match'"
+          ).run(target);
+        }
+      } catch (_) {
+        // sqlite_sequence exists for AUTOINCREMENT tables; ignore if unavailable early.
+      }
+    }
   }
   
   ensureSchema() {
