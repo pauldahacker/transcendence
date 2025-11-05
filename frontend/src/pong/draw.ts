@@ -42,8 +42,11 @@ export function draw(
     paddleColor = "#ff66cc"; // pink
     ballColor = "#ff99cc";
   } else if (map?.includes("barcelona")) {
-    paddleColor = "yellow";
-    ballColor = "yellow";
+    paddleColor = "#ffd700"; // gold
+    ballColor = "#ffd700";
+  } else if (map?.includes("space")) {
+    paddleColor = "#e5375d"; // pink
+    ballColor = "#e5375d";
   }
 
   // Paddles
