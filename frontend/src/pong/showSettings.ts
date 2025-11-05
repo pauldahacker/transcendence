@@ -35,18 +35,18 @@ export async function showGameSettings(): Promise<GameSettings | null> {
                 Moscow
                 </div>
               </div>
-          </div>
+            </div>
 
-          <div>
-            <span class="block mb-2 text-lg">Speed</span>
-            <div id="speed-options" class="flex justify-around gap-4">
-              <div data-speed="0.75"
+            <div>
+              <span class="block mb-2 text-lg">Speed</span>
+              <div id="speed-options" class="flex justify-around gap-4">
+                <div data-speed="0.75"
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
-                Slow
-              </div>
+                    Slow
+                </div>
               <div data-speed="1"
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
-                Default
+                    Default
               </div>
               <div data-speed="1.5"
                    class="speed-option px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
@@ -54,6 +54,14 @@ export async function showGameSettings(): Promise<GameSettings | null> {
               </div>
             </div>
           </div>
+
+          <div>
+          <span class="block mb-2 text-lg">Power-Up</span>
+          <div id="powerup-option"
+            class="px-4 py-2 bg-cyan-800 rounded-md border-2 border-cyan-700 cursor-pointer text-center transition hover:scale-110 hover:border-lime-400">
+              ❓ Power-Up: Off
+          </div>
+        </div>
         </div>
 
         <div class="mt-10 flex justify-center gap-4">
@@ -100,6 +108,15 @@ export async function showGameSettings(): Promise<GameSettings | null> {
       });
     });
 
+    const powerUpOption = overlay.querySelector<HTMLDivElement>("#powerup-option")!;
+    let powerUpsEnabled = false;
+
+    powerUpOption.addEventListener("click", () => {
+      powerUpsEnabled = !powerUpsEnabled;
+      powerUpOption.textContent = powerUpsEnabled ? "❓ Power-Up: On" : "❓ Power-Up: Off";
+      powerUpOption.classList.toggle("ring-4", powerUpsEnabled);
+      powerUpOption.classList.toggle("ring-lime-400", powerUpsEnabled);
+    });
     // Set defaults
     mapOptions[0].click();
     speedOptions[1].click();
@@ -115,6 +132,7 @@ export async function showGameSettings(): Promise<GameSettings | null> {
         map: selectedMap === "default" ? "" : selectedMap,
         ballSpeed: selectedSpeed,
         paddleSpeed: selectedSpeed,
+        powerUps: powerUpsEnabled,
       };
       cleanup();
       resolve(settings);
