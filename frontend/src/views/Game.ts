@@ -139,12 +139,9 @@ export async function renderGame(root: HTMLElement, options: RenderGameOptions =
   let stopGame: () => void;
 
   let settings: GameSettings | undefined;
-
-  if (!is3DActive) {
-    const s = await showGameSettings();
-    if (!s) return; // user canceled
-    settings = s;
-  }
+  const s = await showGameSettings();
+  if (!s) return; // user canceled
+  settings = s;
   requestAnimationFrame(() => {
     while (!checkDuplicateNames()) ; 
     const start = is3DActive ? startPong3D : startPong;

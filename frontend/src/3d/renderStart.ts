@@ -1,6 +1,6 @@
 // src/3d/renderStart3D.ts
 import { startPong } from "@/pong/startPong";
-import type { GameState, GameConfig, GameOverState } from "@/pong/types";
+import type { GameState, GameConfig, GameOverState, GameSettings } from "@/pong/types";
 import { ScoreLights, buildborders, addSkyDome } from "@/3d/sceneUtils"
 import {
 	Engine,
@@ -20,6 +20,7 @@ import {
   type Start3DOptions = {
 	aiPlayer1?: boolean;
 	aiPlayer2?: boolean;
+	settings?: GameSettings;
   };
 
   export function startPong3D(
@@ -76,7 +77,7 @@ import {
 
 		//borders
 		buildborders(scene, W, H);
-		addSkyDome(scene);
+		addSkyDome(scene, options.settings?.map);
 		//paddle sizes
 		const paddleXThickness = W / 40; // X
 		const paddleDepth = H / 6;       // Z
@@ -203,6 +204,7 @@ import {
 			aiPlayer1: options.aiPlayer1 ?? false,
     		aiPlayer2: options.aiPlayer2 ?? false,
 			onStart: removeOverlay,
+			settings: options?.settings,
 		},
 		skipRef//skipvalue
 		);
