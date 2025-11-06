@@ -77,9 +77,8 @@ export function update(
 
       if (dist < powerUpRadius) {
         // Activate random Y trajectory change and keep same X speed
-        const speedY = (Math.random() - 0.5) * Math.abs(state.ballSpeedX) * 2; 
+        const speedY = (Math.random() - 0.5) * Math.sqrt(state.ballSpeedX ** 2 + state.ballSpeedY ** 2);
         state.ballSpeedY = speedY;
-        state.ballSpeedX = Math.min(1.1 * state.ballSpeedX, config.maxSpeed);
     
         state.ballFlash = 30;
         state.powerUpActive = false;
