@@ -117,7 +117,7 @@ import {
 		// Power-up coin (flat disc always facing camera)
 		const powerUp3D = MeshBuilder.CreateDisc("powerUp3D", { radius: ballSize3D, tessellation: 32 }, scene);
 		// make it visually coin-shaped (not flattened)
-		powerUp3D.scaling.y = 1.0;
+		powerUp3D.scaling.setAll(1);
 		powerUp3D.rotation.x = Math.PI; // face camera correctly
 		// small visible elevation above the playing surface
 		const POWER_ELEVATION = paddleHeightY / 2 + 0.2;
@@ -240,11 +240,7 @@ import {
 					powerUp3D.position.x = powerX3D;
 					powerUp3D.position.z = powerZ3D;
 					powerUp3D.isVisible = true;
-  
-					// Match its visual size with 2D radius
-					const powerRadius2D = config.ballSize * 1.0;
-					const scaleFactor = (powerRadius2D / (config.ballSize / 2)) * 1.0;
-					powerUp3D.scaling.setAll(scaleFactor);
+
 					// ensure Y stays at elevation
 					powerUp3D.position.y = POWER_ELEVATION;
 				} else {
