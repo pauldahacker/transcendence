@@ -1,5 +1,9 @@
 # transcendence - 42 project
 
+<p align="center">
+  <img src="assets/AIGameplay.gif" alt="Transcendence demo" width="600"/>
+</p>
+
 A full-stack Pong game with extensive features built as the final project of 42's Common Core .
 Developed with Fastify (Node.js), TypeScript, Tailwind, and an SQLite-backed microservice architecture, the project combines gameplay, user management, modern web design, blockchain integration, and 3D graphics.
 
