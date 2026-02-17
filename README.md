@@ -1,10 +1,10 @@
 # transcendence - 42 project
 
 <p align="center">
-  <img src="assets/AIGameplay.gif" alt="Transcendence demo" width="600"/>
+  <img src="assets/pongHome.jpg" alt="Transcendence Home Page" width="600"/>
 </p>
 
-A full-stack Pong game with extensive features built as the final project of 42's Common Core .
+A full-stack Pong game with extensive [features](#features) built as the final project of 42's Common Core .
 Developed with Fastify (Node.js), TypeScript, Tailwind, and an SQLite-backed microservice architecture, the project combines gameplay, user management, modern web design, blockchain integration, and 3D graphics.
 
 It includes customizable gameplay, an AI opponent, 3D visual enhancements, tournament score storage on the Avalanche blockchain, and structured log management infrastructure. Designed with scalability and modularity in mind!
@@ -25,6 +25,38 @@ make up
 This will create a default `.env` file, build the Docker images and start the containers.
 
 Once compilation is done, visit https://localhost
+
+## Features
+
+-**Customizable Gameplay**
+
+<p align="center">
+  <img src="assets/customizableGameplay.gif" alt="Customizable Gameplay" width="600"/>
+</p>
+
+-**AI Opponent**
+
+<p align="center">
+  <img src="assets/AIGameplay.gif" alt="AI Gameplay" width="600"/>
+</p>
+
+-**3D Graphics**
+
+<p align="center">
+  <img src="assets/AI3DGameplay.gif" alt="AI 3D Gameplay" width="600"/>
+</p>
+
+-**Tournament scores stored in Avalanche blockchain**
+
+<p align="center">
+  <img src="assets/blockchain.gif" alt="Avalanche Blockchain" width="600"/>
+</p>
+
+-**Log management**
+
+<p align="center">
+  <img src="assets/log.gif" alt="Log Management" width="600"/>
+</p>
 
 ## About
 
