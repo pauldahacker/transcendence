@@ -28,31 +28,31 @@ Once compilation is done, visit https://localhost
 
 ## Features
 
--**Customizable Gameplay**
+**Customizable Gameplay**
 
 <p align="center">
   <img src="assets/customization.gif" alt="Customizable Gameplay" width="600"/>
 </p>
 
--**AI Opponent**
+**AI Opponent**
 
 <p align="center">
   <img src="assets/AIGameplay.gif" alt="AI Gameplay" width="600"/>
 </p>
 
--**3D Graphics**
+**3D Graphics**
 
 <p align="center">
   <img src="assets/AI3DGameplay.gif" alt="AI 3D Gameplay" width="600"/>
 </p>
 
--**Tournament scores stored in Avalanche blockchain**
+**Tournament scores stored in Avalanche blockchain**
 
 <p align="center">
   <img src="assets/blockchain.gif" alt="Avalanche Blockchain" width="600"/>
 </p>
 
--**Log management**
+**Log management**
 
 <p align="center">
   <img src="assets/log.gif" alt="Log Management" width="600"/>
