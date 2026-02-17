@@ -31,7 +31,7 @@ Once compilation is done, visit https://localhost
 -**Customizable Gameplay**
 
 <p align="center">
-  <img src="assets/customizableGameplay.gif" alt="Customizable Gameplay" width="600"/>
+  <img src="assets/customization.gif" alt="Customizable Gameplay" width="600"/>
 </p>
 
 -**AI Opponent**
