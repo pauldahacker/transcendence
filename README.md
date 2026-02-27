@@ -29,7 +29,7 @@ Once compilation is done, visit https://localhost
 
 ## Overview
 
-1. Game start
+### 1. Game start
 
 A match starts by calling:
 ```
@@ -95,7 +95,7 @@ export interface GameState {
 
 In 3D mode, a hidden 2D canvas runs the same startPong() logic, and the 3D renderer subscribes to per-frame state updates.
 
-2. Input system
+### 2. Input system
 
 setupInput():
 
@@ -109,7 +109,7 @@ setupInput():
 
 - Pause is handled separately via the Space bar.
 
-3. Main game loop
+### 3. Main game loop
 
 The loop is driven by:
 
@@ -123,7 +123,7 @@ Render phase → draw() (2D) and/or render3D()
 
 If paused, only rendering runs.
 
-4. Physics update (update())
+### 4. Physics update (update())
 
 Runs at ~60 FPS and performs:
 
@@ -159,7 +159,7 @@ Runs at ~60 FPS and performs:
 
 - Calls onGameOver() with final state snapshot
 
-5. Rendering (2D)
+### 5. Rendering (2D)
 
 draw():
 
@@ -173,7 +173,7 @@ draw():
 
 - Rendering is skipped in 3D mode (skip2DDraw).
 
-6. Start / pause flow
+### 6. Start / pause flow
 
 Start screen blocks the loop until a key is pressed
 
@@ -181,7 +181,7 @@ Space toggles pause
 
 Pause overlays the canvas without stopping the render loop
 
-7. Cleanup
+### 7. Cleanup
 
 The stop function:
 
