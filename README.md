@@ -28,28 +28,7 @@ Transcendence is a comprehensive demonstration of full-stack software engineerin
 
 ---
 
-## Architecture
-
-### Microservices Design Pattern
-
-The application is organized into independent, containerized services communicating through a unified API gateway:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Nginx Reverse Proxy                      │
-├─────────────────────────────────────────────────────────────┤
-│  Frontend         API Gateway      Users Service             │
-│  (React/TS)       (Fastify)        (Fastify)                │
-│                                                              │
-│  Tournament       Blockchain       ELK Stack               │
-│  Service          Service          (Logging)               │
-│  (Fastify)        (Hardhat/Solidity)                        │
-│                                                              │
-│              SQLite Database Layer                           │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Service Breakdown
+## Service Breakdown
 
 | Service | Purpose | Technology |
 |---------|---------|-----------|
