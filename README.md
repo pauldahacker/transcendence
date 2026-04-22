@@ -51,7 +51,7 @@ See [full checklist](docs/CHECKLIST.md).
 - Docker & Docker Compose
 - Make
 
-### Setup
+### Start
 ```bash
 # Clone repository
 git clone <repo-url>
@@ -70,10 +70,11 @@ This will:
 3. Build all Docker images
 4. Start all services
 
-### Accessing the Application
+Then go to
 ```
 https://localhost
 ```
+on your browser.
 
 ### Available Commands
 | Command | Purpose |
