@@ -4,7 +4,7 @@
   <img src="assets/pongHome.jpg" alt="Transcendence Home Page" width="600"/>
 </p>
 
-Pong with user management, tournaments, 3D gameplay, AI opponent, blockchain integration, and clean infrastructure. Deployed as a containerized microservices architecture.
+Pong with user management & authentication, tournaments, 3D gameplay, AI opponent, blockchain integration and game customization. Designed as a containerized microservices architecture.
 
 **Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind
 
