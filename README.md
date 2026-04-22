@@ -14,29 +14,29 @@ Pong with user management & authentication, tournaments, 3D gameplay, AI opponen
 
 #### Major Modules
 
-- **Use Fastify with Node.js to build the backend**
+- Use Fastify with Node.js to build the backend
 
-- **Use Avalanche and Solidity to store the score of a tournament in the Blockchain**
+- Use Avalanche and Solidity to store the score of a tournament in the Blockchain
 
-- **Standard user management, authentication, users across tournaments**
+- Standard user management, authentication, users across tournaments
 
-- **Introduce an AI opponent**
+- Introduce an AI opponent
 
-- **Infrastructure setup for log management**
+- Infrastructure setup for log management
 
-- **Designing the backend as microservices**
+- Designing the backend as microservices
 
-- **Use advanced 3D techniques**
+- Use advanced 3D techniques
 
 #### Minor Modules
 
-- **Use Tailwind CSS in addition of the TypeScript to build the frontend**
+- Use Tailwind CSS in addition of the TypeScript to build the frontend
 
-- **Use SQLite database for the backend**.
+- Use SQLite database for the backend
 
-- **Game customization options**
+- Game customization options
 
-- **Expanding browser compatibility**
+- Expanding browser compatibility
 
 
 See [full checklist](docs/CHECKLIST.md).
