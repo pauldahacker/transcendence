@@ -91,7 +91,7 @@ https://localhost
 ## Testing
 
 ```bash
-make testf
+make test
 ```
 
 Tests cover:
