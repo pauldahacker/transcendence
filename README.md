@@ -1,4 +1,4 @@
-# Transcendence: Full-Stack Pong Platform
+# Transcendence: Pong Platform
 
 <p align="center">
   <img src="assets/pongHome.jpg" alt="Transcendence Home Page" width="600"/>
