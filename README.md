@@ -105,9 +105,8 @@ Tests cover:
 
 ## Features
 
-### Multiplayer Pong Engine
-- Real-time 2D/3D game rendering with state synchronization
-- Configurable game parameters (paddle speed, ball velocity, difficulty)
+### Pong Engine
+- 2D rendering with state synchronization
 - Hidden canvas game loop feeding 3D visualization
 - Collision detection and physics simulation
 
@@ -116,8 +115,6 @@ Tests cover:
 <img src="assets/AIGameplay.gif" alt="AI Gameplay" width="500"/>
 
 - Intelligent paddle control algorithm
-- Adaptive difficulty levels
-- Realistic player-like behavior patterns
 
 ### User Management
 - Secure JWT-based authentication
@@ -132,7 +129,7 @@ Tests cover:
 
 - Adjustable paddle speed and ball velocity
 - Multiple map/texture themes
-- Power-up toggles
+- Power-up toggle
 
 ### Tournament System
 - Tournament creation and bracket management
@@ -140,17 +137,17 @@ Tests cover:
 - Historical match tracking
 - Integration with blockchain for permanent record
 
-### 3D Graphics Engine
+### 3D Graphics
 
 <img src="assets/AI3DGameplay.gif" alt="3D Gameplay" width="500"/>
 
-- Babylon.js-powered 3D rendering
+- Babylon.js 3D rendering
 - Textured game environments
 - Dynamic camera controls
 - Shader-based visual effects
 - Real-time state synchronization with 2D game loop
 
-### Blockchain Integration (Avalanche)
+### Blockchain (Avalanche)
 
 <img src="assets/blockchain.gif" alt="Blockchain Integration" width="500"/>
 
@@ -187,12 +184,6 @@ interface GameState {
   powerUpActive?: boolean;
 }
 ```
-
-### Real-Time Rendering
-- **2D Canvas**: Hidden game loop handling physics
-- **3D Visualization**: Babylon.js subscribes to frame-by-frame state
-- **Texture Mapping**: Dynamic environment customization
-- **Performance**: Decoupled rendering from game logic
 
 ---
 
