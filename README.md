@@ -45,13 +45,8 @@ See [full checklist](docs/CHECKLIST.md).
 
 ---
 
-## Installation & Quick Start
+## Installation
 
-### Prerequisites
-- Docker & Docker Compose
-- Make
-
-### Start
 ```bash
 # Clone repository
 git clone <repo-url>
