@@ -4,7 +4,7 @@
   <img src="assets/pongHome.jpg" alt="Transcendence Home Page" width="600"/>
 </p>
 
-A full-stack multiplayer gaming platform featuring Pong with real-time gameplay, blockchain integration, and clean infrastructure. deployed as a containerized microservices architecture.
+Pong with user management, tournaments, 3D gameplay, AI opponent, blockchain integration, and clean infrastructure. Deployed as a containerized microservices architecture.
 
 **Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind
 
@@ -91,7 +91,7 @@ https://localhost
 ## Testing
 
 ```bash
-make test
+make testf
 ```
 
 Tests cover:
