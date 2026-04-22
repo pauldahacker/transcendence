@@ -4,15 +4,11 @@
   <img src="assets/pongHome.jpg" alt="Transcendence Home Page" width="600"/>
 </p>
 
-A production-ready, full-stack multiplayer gaming platform featuring Pong with real-time gameplay, blockchain integration, and enterprise-grade infrastructure. Built with modern web technologies and deployed as a containerized microservices architecture.
+A full-stack multiplayer gaming platform featuring Pong with real-time gameplay, blockchain integration, and clean infrastructure. deployed as a containerized microservices architecture.
 
-**Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind CSS
+**Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind
 
 ---
-
-## Project Overview
-
-Transcendence is a comprehensive demonstration of full-stack software engineering, combining competitive Pong gameplay with sophisticated user management, tournament systems, and blockchain-backed score verification. The application showcases best practices in microservices architecture, real-time game state management, and secure authentication.
 
 ### Completed Modules
 
@@ -94,7 +90,6 @@ https://localhost
 
 ## Testing
 
-The project includes comprehensive test suites:
 ```bash
 make test
 ```
@@ -108,21 +103,7 @@ Tests cover:
 
 ---
 
-## Service Breakdown
-
-| Service | Purpose | Technology |
-|---------|---------|-----------|
-| **API Gateway** | Routing, authentication, rate limiting | Fastify, JWT |
-| **Users Service** | Authentication, profile management | Fastify, bcrypt, better-sqlite3 |
-| **Tournaments Service** | Tournament creation, score tracking | Fastify, SQLite |
-| **Blockchain Service** | Score immutability on Avalanche | Hardhat, Solidity, Web3.js |
-| **Frontend** | Game UI and 3D rendering | TypeScript, Babylon.js, Tailwind CSS |
-| **Proxy** | SSL termination, load balancing | Nginx |
-| **ELK Stack** | Centralized logging & monitoring | Elasticsearch, Logstash, Kibana |
-
----
-
-## Core Features
+## Features
 
 ### Multiplayer Pong Engine
 - Real-time 2D/3D game rendering with state synchronization
@@ -188,27 +169,6 @@ Tests cover:
 - Real-time log streaming and analysis
 
 ---
-
-## Technical Highlights
-
-### Scalable Microservices Architecture
-- **Service Isolation**: Each service has independent database and deployment
-- **API Gateway Pattern**: Centralized routing with authentication middleware
-- **Container Orchestration**: Docker Compose for local/staging environments
-- **Horizontal Scalability**: Services can be independently scaled
-
-### Security & Authentication
-- **JWT Tokens**: Stateless, scalable authentication
-- **Password Hashing**: bcrypt with salt rounds
-- **Rate Limiting**: Built-in Fastify rate limiting middleware
-- **HTTPS/SSL**: Self-signed certificates for secure communication
-- **API Key Authorization**: Internal service authentication
-
-### Database
-- **SQLite**: Lightweight, serverless persistence layer
-- **Connection Pooling**: better-sqlite3 for efficient concurrent access
-- **Transaction Support**: ACID compliance for data integrity
-- **Schema Flexibility**: Easy schema migrations for service evolution
 
 ### Game State Management
 TypeScript-based immutable game state:
