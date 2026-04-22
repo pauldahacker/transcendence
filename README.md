@@ -6,7 +6,7 @@
 
 A production-ready, full-stack multiplayer gaming platform featuring Pong with real-time gameplay, blockchain integration, and enterprise-grade infrastructure. Built with modern web technologies and deployed as a containerized microservices architecture.
 
-**Key Technologies:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind CSS
+**Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind CSS
 
 ---
 
