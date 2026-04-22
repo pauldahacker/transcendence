@@ -50,7 +50,6 @@ See [full checklist](docs/CHECKLIST.md).
 ### Prerequisites
 - Docker & Docker Compose
 - Make
-- OpenSSL (for certificate generation)
 
 ### Setup
 ```bash
