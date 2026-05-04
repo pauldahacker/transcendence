@@ -6,7 +6,7 @@
 
 Pong with user management & authentication, tournaments, 3D gameplay, AI opponent, blockchain integration and game customization. Designed as a containerized microservices architecture.
 
-**Stack:** Node.js • TypeScript • Fastify • React • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind
+**Stack:** Node.js • TypeScript • Fastify • Babylon.js • SQLite • Avalanche Blockchain • Docker • Elasticsearch • Tailwind
 
 ---
 
