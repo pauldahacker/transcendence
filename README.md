@@ -98,6 +98,8 @@ Tests cover:
 
 ---
 
+<p align="center">
+
 ## Features
 
 ### Pong Engine
@@ -161,6 +163,8 @@ Tests cover:
 - Real-time log streaming and analysis
 
 ---
+
+</p>
 
 ## Documentation & References
 
