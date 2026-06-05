@@ -106,9 +106,7 @@ Tests cover:
 
 ### AI Opponent System
 
-<p align="center">
 <img src="assets/AIGameplay.gif" alt="AI Gameplay" width="500"/>
-</p>
 
 - Intelligent paddle control algorithm
 
