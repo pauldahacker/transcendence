@@ -162,26 +162,6 @@ Tests cover:
 
 ---
 
-### Game State Management
-TypeScript-based immutable game state:
-```typescript
-interface GameState {
-  paddle1Y: number;
-  paddle2Y: number;
-  ballX: number;
-  ballY: number;
-  ballSpeedX: number;
-  ballSpeedY: number;
-  score1: number;
-  score2: number;
-  gameRunning: boolean;
-  ballFlash: number;
-  powerUpActive?: boolean;
-}
-```
-
----
-
 ## Documentation & References
 
 ### Project Documentation
